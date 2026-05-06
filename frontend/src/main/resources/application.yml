@@ -7,13 +7,8 @@ spring:
   autoconfigure:
     exclude:
       - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
-
-mypet:
-  db:
-    host: 127.0.0.1
-    port: 1800
-    user: postgres
-    password: mypg123abc
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
 
 jwt:
   secret: mypet-jwt-secret-key-2026-minimum-32chars!!
@@ -24,7 +19,3 @@ springdoc:
     path: /api-docs
   swagger-ui:
     path: /swagger-ui.html
-
-logging:
-  level:
-    app.xinqianmao.com: DEBUG

@@ -1,0 +1,13 @@
+# 开发环境配置
+mypet:
+  db:
+    host: 127.0.0.1
+    port: 1800
+    user: postgres
+    password: mypg123abc
+  upload:
+    path: F:/MyWorkspace/project/mypet/uploads
+
+logging:
+  level:
+    app.xinqianmao.com: DEBUG
