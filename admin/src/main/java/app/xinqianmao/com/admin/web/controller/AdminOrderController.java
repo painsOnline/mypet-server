@@ -18,6 +18,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import java.util.List;
+
 /**
  * Order management controller.
  */
@@ -79,6 +81,20 @@ public class AdminOrderController {
     @PutMapping("/{id}/cancel")
     public Result<Void> cancel(@PathVariable String id) {
         orderService.cancel(id);
+        return Result.ok();
+    }
+
+    @Operation(summary = "批量发货")
+    @PutMapping("/batch/dispatch")
+    public Result<Void> batchDispatch(@RequestBody List<String> ids) {
+        orderService.batchDispatch(ids);
+        return Result.ok();
+    }
+
+    @Operation(summary = "批量取消订单")
+    @PutMapping("/batch/cancel")
+    public Result<Void> batchCancel(@RequestBody List<String> ids) {
+        orderService.batchCancel(ids);
         return Result.ok();
     }
 }

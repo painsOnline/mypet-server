@@ -10,6 +10,7 @@ app\xinqianmao\com\common\dao\JsonTypeHandler.class
 app\xinqianmao\com\common\enums\OrderTypeEnum.class
 app\xinqianmao\com\common\auth\TenantContext.class
 app\xinqianmao\com\common\auth\UserContext.class
+app\xinqianmao\com\common\MemberSeeder.class
 app\xinqianmao\com\common\utils\UUIDUtil.class
 app\xinqianmao\com\common\dao\DynamicDataSource.class
 app\xinqianmao\com\common\utils\PasswordUtil.class

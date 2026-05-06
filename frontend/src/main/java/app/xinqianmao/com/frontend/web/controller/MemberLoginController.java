@@ -10,6 +10,7 @@ import app.xinqianmao.com.common.auth.JwtUtil;
 import app.xinqianmao.com.common.auth.TenantContext;
 import app.xinqianmao.com.common.result.Result;
 import app.xinqianmao.com.common.utils.DateTimeUtil;
+import app.xinqianmao.com.common.utils.UUIDUtil;
 import app.xinqianmao.com.frontend.common.entity.Member;
 import app.xinqianmao.com.frontend.common.pojo.AccountLoginRequest;
 import app.xinqianmao.com.frontend.common.pojo.MemberLoginResponse;
@@ -60,6 +61,7 @@ public class MemberLoginController {
                 new LambdaQueryWrapper<Member>().eq(Member::getAccount, request.getAccount()));
         if (members.isEmpty()) {
             Member member = new Member();
+            member.setId(UUIDUtil.uuid());
             member.setAccount(request.getAccount());
             member.setMobile(request.getAccount());
             member.setAvatar("");
@@ -76,6 +78,7 @@ public class MemberLoginController {
                 new LambdaQueryWrapper<Member>().eq(Member::getMobile, phoneNumber));
         if (members.isEmpty()) {
             Member member = new Member();
+            member.setId(UUIDUtil.uuid());
             member.setAccount(phoneNumber);
             member.setMobile(phoneNumber);
             member.setAvatar("");

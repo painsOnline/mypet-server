@@ -5,6 +5,7 @@
  */
 package app.xinqianmao.com.frontend.common.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
@@ -22,6 +23,7 @@ public class OrderProductSku {
     private BigDecimal oldPrice;
     private Integer inventory;
     private String picture;
+    @TableField(typeHandler = app.xinqianmao.com.common.dao.JsonTypeHandler.class)
     private String specs;
     private LocalDateTime createTime;
     private LocalDateTime modifyTime;

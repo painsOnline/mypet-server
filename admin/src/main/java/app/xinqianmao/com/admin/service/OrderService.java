@@ -224,6 +224,38 @@ public class OrderService {
         orderMapper.updateById(order);
     }
 
+    /**
+     * Batch dispatch — only for orders with status 1 (pending delivery).
+     */
+    @Transactional
+    public void batchDispatch(List<String> ids) {
+        for (String id : ids) {
+            Order order = orderMapper.selectById(id);
+            if (order == null) throw new BizException("404", "订单不存在: " + id);
+            if (order.getOrderStatus() != 1) throw new BizException("400", "只能对待配送订单执行发货操作");
+            order.setOrderStatus(2);
+            order.setModifyTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
+            orderMapper.updateById(order);
+        }
+    }
+
+    /**
+     * Batch cancel — only for orders that are cancellable (status != 4 and != 5).
+     */
+    @Transactional
+    public void batchCancel(List<String> ids) {
+        for (String id : ids) {
+            Order order = orderMapper.selectById(id);
+            if (order == null) throw new BizException("404", "订单不存在: " + id);
+            if (order.getOrderStatus() == 4 || order.getOrderStatus() == 5) {
+                throw new BizException("400", "订单 " + id + " 当前状态无法取消");
+            }
+            order.setOrderStatus(5);
+            order.setModifyTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
+            orderMapper.updateById(order);
+        }
+    }
+
     @SuppressWarnings("unchecked")
     private String extractAttrsText(String specsJson) {
         if (specsJson == null || specsJson.isBlank()) return "";

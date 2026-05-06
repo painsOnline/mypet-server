@@ -1,0 +1,388 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] --------------------< app.xinqianmao.com:frontend >---------------------
+[INFO] Building frontend 1.0.0-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+Downloading from bigdata-released: https://nexus.mypaas.com.cn/repository/bigdata-maven-host-relased/app/xinqianmao/com/mypet-server/1.0.0-SNAPSHOT/maven-metadata.xml
+Downloading from bigdata-snapshot: https://nexus.mypaas.com.cn/repository/bigdata-maven-host-snapshot/app/xinqianmao/com/mypet-server/1.0.0-SNAPSHOT/maven-metadata.xml
+[WARNING] Could not transfer metadata app.xinqianmao.com:mypet-server:1.0.0-SNAPSHOT/maven-metadata.xml from/to bigdata-released (https://nexus.mypaas.com.cn/repository/bigdata-maven-host-relased/): Connect to nexus.mypaas.com.cn:443 [nexus.mypaas.com.cn/139.9.43.187] failed: Connect timed out
+[WARNING] Could not transfer metadata app.xinqianmao.com:mypet-server:1.0.0-SNAPSHOT/maven-metadata.xml from/to bigdata-snapshot (https://nexus.mypaas.com.cn/repository/bigdata-maven-host-snapshot/): Connect to nexus.mypaas.com.cn:443 [nexus.mypaas.com.cn/139.9.43.187] failed: Connect timed out
+[INFO] 
+[INFO] --- resources:3.4.0:resources (default-resources) @ frontend ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ frontend ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.4.0:testResources (default-testResources) @ frontend ---
+[INFO] Copying 1 resource from src\test\resources to target\test-classes
+[INFO] 
+[INFO] --- compiler:3.13.0:testCompile (default-testCompile) @ frontend ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 11 source files with javac [debug parameters release 21] to target\test-classes
+[INFO] 由于在类路径中发现了一个或多个处理程序，因此启用了
+  批注处理。未来发行版的 javac 可能会禁用批注处理，
+  除非至少按名称指定了一个处理程序 (-processor)，
+  或指定了搜索路径 (--processor-path, --processor-module-path)，
+  或显式启用了批注处理 (-proc:only, -proc:full)。
+  可使用 -Xlint:-options 隐藏此消息。
+  可使用 -proc:none 禁用批注处理。
+[INFO] /F:/MyWorkspace/project/mypet/java/mypet-server/frontend/src/test/java/app/xinqianmao/com/frontend/FullFlowTest.java: 某些输入文件使用了未经检查或不安全的操作。
+[INFO] /F:/MyWorkspace/project/mypet/java/mypet-server/frontend/src/test/java/app/xinqianmao/com/frontend/FullFlowTest.java: 有关详细信息, 请使用 -Xlint:unchecked 重新编译。
+[INFO] 
+[INFO] --- surefire:3.5.2:test (default-test) @ frontend ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running app.xinqianmao.com.frontend.FullFlowTest
+[OK] Database exists: mypet_config
+[OK] Database exists: mypet_empty
+[OK] Database exists: mypet_xlong
+[DbInit] Running F:/MyWorkspace/project/mypet/java/mypet-server/sql/init-config.sql on jdbc:postgresql://127.0.0.1:1800/mypet_config
+[DbInit] Done F:/MyWorkspace/project/mypet/java/mypet-server/sql/init-config.sql: 4 statements executed
+[DbInit] Running F:/MyWorkspace/project/mypet/java/mypet-server/sql/init-empty.sql on jdbc:postgresql://127.0.0.1:1800/mypet_empty
+[DbInit] Done F:/MyWorkspace/project/mypet/java/mypet-server/sql/init-empty.sql: 27 statements executed
+[DbInit] Running F:/MyWorkspace/project/mypet/java/mypet-server/sql/init-empty.sql on jdbc:postgresql://127.0.0.1:1800/mypet_xlong
+[DbInit] Done F:/MyWorkspace/project/mypet/java/mypet-server/sql/init-empty.sql: 27 statements executed
+[MIG] OK: ALTER TABLE t_product ADD COLUMN IF NOT EXISTS is_enable SMALLINT NOT NULL DEFAU...
+[MIG] OK: ALTER TABLE t_product ADD COLUMN IF NOT EXISTS is_enable SMALLINT NOT NULL DEFAU...
+[DbInit] All databases initialized (existing data preserved)
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v3.4.1)
+
+2026-05-06T13:46:08.927+08:00  INFO 30144 --- [mypet-frontend-test] [           main] a.xinqianmao.com.frontend.FullFlowTest   : Starting FullFlowTest using Java 21.0.11 with PID 30144 (started by 91461 in F:\MyWorkspace\project\mypet\java\mypet-server\frontend)
+2026-05-06T13:46:08.927+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.xinqianmao.com.frontend.FullFlowTest   : Running with Spring Boot v3.4.1, Spring v6.2.1
+2026-05-06T13:46:08.927+08:00  INFO 30144 --- [mypet-frontend-test] [           main] a.xinqianmao.com.frontend.FullFlowTest   : No active profile set, falling back to 1 default profile: "default"
+2026-05-06T13:46:11.133+08:00  INFO 30144 --- [mypet-frontend-test] [           main] a.x.c.c.dao.TenantDataSourceManager      : Config DataSource initialized: mypet_config
+ _ _   |_  _ _|_. ___ _ |    _ 
+| | |\/|_)(_| | |_\  |_)||_|_\ 
+     /               |         
+                        3.5.9 
+2026-05-06T13:46:11.714+08:00  WARN 30144 --- [mypet-frontend-test] [           main] c.b.m.core.metadata.TableInfoHelper      : Can not find table primary key in Class: "app.xinqianmao.com.frontend.common.entity.Shop".
+2026-05-06T13:46:11.714+08:00  WARN 30144 --- [mypet-frontend-test] [           main] c.b.m.core.injector.DefaultSqlInjector   : class app.xinqianmao.com.frontend.common.entity.Shop ,Not found @TableId annotation, Cannot use Mybatis-Plus 'xxById' Method.
+2026-05-06T13:46:11.735+08:00  WARN 30144 --- [mypet-frontend-test] [           main] c.b.m.core.metadata.TableInfoHelper      : Can not find table primary key in Class: "app.xinqianmao.com.frontend.common.entity.HotProduct".
+2026-05-06T13:46:11.735+08:00  WARN 30144 --- [mypet-frontend-test] [           main] c.b.m.core.injector.DefaultSqlInjector   : class app.xinqianmao.com.frontend.common.entity.HotProduct ,Not found @TableId annotation, Cannot use Mybatis-Plus 'xxById' Method.
+2026-05-06T13:46:11.928+08:00  WARN 30144 --- [mypet-frontend-test] [           main] c.b.m.core.metadata.TableInfoHelper      : Can not find table primary key in Class: "app.xinqianmao.com.frontend.common.entity.OrderProduct".
+2026-05-06T13:46:11.928+08:00  WARN 30144 --- [mypet-frontend-test] [           main] c.b.m.core.injector.DefaultSqlInjector   : class app.xinqianmao.com.frontend.common.entity.OrderProduct ,Not found @TableId annotation, Cannot use Mybatis-Plus 'xxById' Method.
+2026-05-06T13:46:11.942+08:00  WARN 30144 --- [mypet-frontend-test] [           main] c.b.m.core.metadata.TableInfoHelper      : Can not find table primary key in Class: "app.xinqianmao.com.frontend.common.entity.OrderProductSku".
+2026-05-06T13:46:11.942+08:00  WARN 30144 --- [mypet-frontend-test] [           main] c.b.m.core.injector.DefaultSqlInjector   : class app.xinqianmao.com.frontend.common.entity.OrderProductSku ,Not found @TableId annotation, Cannot use Mybatis-Plus 'xxById' Method.
+2026-05-06T13:46:13.178+08:00  INFO 30144 --- [mypet-frontend-test] [           main] a.xinqianmao.com.frontend.FullFlowTest   : Started FullFlowTest in 4.742 seconds (process running for 6.494)
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build what is described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org/mockito/Mockito.html#0.3
+WARNING: A Java agent has been loaded dynamically (D:\maven\repo\net\bytebuddy\byte-buddy-agent\1.15.11\byte-buddy-agent-1.15.11.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+2026-05-06T13:46:14.083+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.com.common.dao.DynamicDataSource     : DynamicDataSource routing to: xlong
+2026-05-06T13:46:14.083+08:00  INFO 30144 --- [mypet-frontend-test] [           main] a.x.com.common.dao.DynamicDataSource     : Creating DataSource for tenant: xlong
+2026-05-06T13:46:14.135+08:00  INFO 30144 --- [mypet-frontend-test] [           main] a.x.c.c.dao.TenantDataSourceManager      : Tenant database 'mypet_xlong' already exists
+2026-05-06T13:46:14.167+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.dao.MemberMapper.selectList      : ==>  Preparing: SELECT id,account,mobile,avatar,nickname,create_time,modify_time FROM t_member ORDER BY create_time ASC
+2026-05-06T13:46:14.177+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.dao.MemberMapper.selectList      : ==> Parameters: 
+2026-05-06T13:46:14.203+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.dao.MemberMapper.selectList      : <==      Total: 30
+Members: 4b3cb39267ed4a928b4e964e4c840273     / 5c0ef5021f264be78258e7495b66621d     / 7dca5519e30342538b81404640357050    
+2026-05-06T13:46:14.318+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.com.common.dao.DynamicDataSource     : DynamicDataSource routing to: xlong
+2026-05-06T13:46:14.318+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.dao.ProductMapper.selectList     : ==>  Preparing: SELECT id,product_type,product_category,name,"desc",price,old_price,main_pictures,picture,detail,sort,is_enable,create_time,modify_time FROM t_product WHERE (is_enable = ?)
+2026-05-06T13:46:14.318+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.dao.ProductMapper.selectList     : ==> Parameters: 1(Integer)
+2026-05-06T13:46:14.328+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.dao.ProductMapper.selectList     : <==      Total: 4
+2026-05-06T13:46:14.333+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.com.common.dao.DynamicDataSource     : DynamicDataSource routing to: xlong
+2026-05-06T13:46:14.333+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.dao.ProductSkuMapper.selectList  : ==>  Preparing: SELECT id,product_id,product_type,price,old_price,inventory,picture,specs,create_time,modify_time FROM t_product_sku WHERE (product_id = ?)
+2026-05-06T13:46:14.333+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.dao.ProductSkuMapper.selectList  : ==> Parameters: 64b594c0fa76502211db2804230773d3    (String)
+2026-05-06T13:46:14.343+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.dao.ProductSkuMapper.selectList  : <==      Total: 1
+2026-05-06T13:46:14.343+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.com.common.dao.DynamicDataSource     : DynamicDataSource routing to: xlong
+2026-05-06T13:46:14.343+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.dao.ProductSkuMapper.selectList  : ==>  Preparing: SELECT id,product_id,product_type,price,old_price,inventory,picture,specs,create_time,modify_time FROM t_product_sku WHERE (product_id = ?)
+2026-05-06T13:46:14.343+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.dao.ProductSkuMapper.selectList  : ==> Parameters: bf7e5ee8c46c2b97c0fb685bac17a300    (String)
+2026-05-06T13:46:14.343+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.dao.ProductSkuMapper.selectList  : <==      Total: 4
+Products: 妮可露混合膨润土豆腐猫砂杀菌除臭1.5Kg (SKU:be870061194c25c4f5d851230dda489c    ) / 顽皮高营养无添加高蛋白猫咪零食 (SKU:ead0ea0d7a6260cbb80454e0a78d3186    )
+2026-05-06T13:46:14.364+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.com.common.dao.DynamicDataSource     : DynamicDataSource routing to: xlong
+2026-05-06T13:46:14.364+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.dao.ReceiverMapper.selectCount   : ==>  Preparing: SELECT COUNT( * ) AS total FROM t_receiver
+2026-05-06T13:46:14.364+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.dao.ReceiverMapper.selectCount   : ==> Parameters: 
+2026-05-06T13:46:14.369+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.dao.ReceiverMapper.selectCount   : <==      Total: 1
+[SKIP] Addresses already exist: 60
+2026-05-06T13:46:14.369+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.com.common.dao.DynamicDataSource     : DynamicDataSource routing to: xlong
+2026-05-06T13:46:14.369+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.dao.ReceiverMapper.selectList    : ==>  Preparing: SELECT id,receiver,contact,province_code,city_code,county_code,address,is_default,create_time,modify_time FROM t_receiver WHERE (contact = ?)
+2026-05-06T13:46:14.369+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.dao.ReceiverMapper.selectList    : ==> Parameters: 13810000001(String)
+2026-05-06T13:46:14.369+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.dao.ReceiverMapper.selectList    : <==      Total: 2
+2026-05-06T13:46:14.369+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.com.common.dao.DynamicDataSource     : DynamicDataSource routing to: xlong
+2026-05-06T13:46:14.369+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.dao.ReceiverMapper.selectList    : ==>  Preparing: SELECT id,receiver,contact,province_code,city_code,county_code,address,is_default,create_time,modify_time FROM t_receiver WHERE (contact = ?)
+2026-05-06T13:46:14.374+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.dao.ReceiverMapper.selectList    : ==> Parameters: 13810000001(String)
+2026-05-06T13:46:14.374+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.dao.ReceiverMapper.selectList    : <==      Total: 2
+2026-05-06T13:46:14.374+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.com.common.dao.DynamicDataSource     : DynamicDataSource routing to: xlong
+2026-05-06T13:46:14.374+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.dao.ReceiverMapper.selectList    : ==>  Preparing: SELECT id,receiver,contact,province_code,city_code,county_code,address,is_default,create_time,modify_time FROM t_receiver
+2026-05-06T13:46:14.374+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.dao.ReceiverMapper.selectList    : ==> Parameters: 
+2026-05-06T13:46:14.379+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.dao.ReceiverMapper.selectList    : <==      Total: 60
+2026-05-06T13:46:14.586+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-1] a.x.com.common.dao.DynamicDataSource     : DynamicDataSource routing to: xlong
+2026-05-06T13:46:14.586+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-1] a.x.com.frontend.dao.CartMapper.delete   : ==>  Preparing: DELETE FROM t_cart
+2026-05-06T13:46:14.586+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-1] a.x.com.frontend.dao.CartMapper.delete   : ==> Parameters: 
+2026-05-06T13:46:14.586+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-1] a.x.com.frontend.dao.CartMapper.delete   : <==    Updates: 0
+2026-05-06T13:46:14.591+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-1] a.x.com.common.dao.DynamicDataSource     : DynamicDataSource routing to: xlong
+2026-05-06T13:46:14.591+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-1] a.x.com.frontend.dao.CartMapper.insert   : ==>  Preparing: INSERT INTO t_cart ( id, sku_id, name, specs, count, price, now_price, picture, selected, create_time ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )
+2026-05-06T13:46:14.591+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-1] a.x.com.frontend.dao.CartMapper.insert   : ==> Parameters: 3f37273178a23d1513848c8261e5d3b4(String), be870061194c25c4f5d851230dda489c    (String), 妮可露混合膨润土豆腐猫砂杀菌除臭1.5Kg(String), [](PGobject), 2(Integer), 0.00(BigDecimal), 20.00(BigDecimal), (String), 1(Integer), 2026-05-06T13:46:14.589737200(LocalDateTime)
+2026-05-06T13:46:14.596+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-1] a.x.com.frontend.dao.CartMapper.insert   : <==    Updates: 1
+2026-05-06T13:46:14.596+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-1] a.x.com.common.dao.DynamicDataSource     : DynamicDataSource routing to: xlong
+2026-05-06T13:46:14.596+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-1] a.x.com.frontend.dao.CartMapper.insert   : ==>  Preparing: INSERT INTO t_cart ( id, sku_id, name, specs, count, price, now_price, picture, selected, create_time ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )
+2026-05-06T13:46:14.596+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-1] a.x.com.frontend.dao.CartMapper.insert   : ==> Parameters: 388b646b4ef68927361e0d78bc6b9df9(String), ead0ea0d7a6260cbb80454e0a78d3186    (String), 顽皮高营养无添加高蛋白猫咪零食(String), [](PGobject), 1(Integer), 2.00(BigDecimal), 2.00(BigDecimal), (String), 1(Integer), 2026-05-06T13:46:14.596799500(LocalDateTime)
+2026-05-06T13:46:14.596+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-1] a.x.com.frontend.dao.CartMapper.insert   : <==    Updates: 1
+[Member1] Cart updated with 2 items
+2026-05-06T13:46:14.625+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.com.common.dao.DynamicDataSource     : DynamicDataSource routing to: xlong
+2026-05-06T13:46:14.625+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.dao.CartMapper.selectList        : ==>  Preparing: SELECT id,sku_id,name,specs,count,price,now_price,picture,selected,create_time,modify_time FROM t_cart
+2026-05-06T13:46:14.625+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.dao.CartMapper.selectList        : ==> Parameters: 
+2026-05-06T13:46:14.625+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.dao.CartMapper.selectList        : <==      Total: 2
+2026-05-06T13:46:14.631+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-2] a.x.com.common.dao.DynamicDataSource     : DynamicDataSource routing to: xlong
+2026-05-06T13:46:14.631+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-2] a.x.c.f.dao.CartMapper.selectList        : ==>  Preparing: SELECT id,sku_id,name,specs,count,price,now_price,picture,selected,create_time,modify_time FROM t_cart WHERE (selected = ?)
+2026-05-06T13:46:14.631+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-2] a.x.c.f.dao.CartMapper.selectList        : ==> Parameters: 1(Integer)
+2026-05-06T13:46:14.631+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-2] a.x.c.f.dao.CartMapper.selectList        : <==      Total: 2
+2026-05-06T13:46:14.631+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-2] a.x.com.common.dao.DynamicDataSource     : DynamicDataSource routing to: xlong
+2026-05-06T13:46:14.631+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-2] a.x.c.f.dao.ProductSkuMapper.selectById  : ==>  Preparing: SELECT id,product_id,product_type,price,old_price,inventory,picture,specs,create_time,modify_time FROM t_product_sku WHERE id=?
+2026-05-06T13:46:14.635+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-2] a.x.c.f.dao.ProductSkuMapper.selectById  : ==> Parameters: be870061194c25c4f5d851230dda489c    (String)
+2026-05-06T13:46:14.635+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-2] a.x.c.f.dao.ProductSkuMapper.selectById  : <==      Total: 1
+2026-05-06T13:46:14.635+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-2] a.x.com.common.dao.DynamicDataSource     : DynamicDataSource routing to: xlong
+2026-05-06T13:46:14.635+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-2] a.x.c.f.dao.ProductMapper.selectById     : ==>  Preparing: SELECT id,product_type,product_category,name,"desc",price,old_price,main_pictures,picture,detail,sort,is_enable,create_time,modify_time FROM t_product WHERE id=?
+2026-05-06T13:46:14.635+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-2] a.x.c.f.dao.ProductMapper.selectById     : ==> Parameters: 64b594c0fa76502211db2804230773d3    (String)
+2026-05-06T13:46:14.635+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-2] a.x.c.f.dao.ProductMapper.selectById     : <==      Total: 1
+2026-05-06T13:46:14.635+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-2] a.x.com.common.dao.DynamicDataSource     : DynamicDataSource routing to: xlong
+2026-05-06T13:46:14.635+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-2] a.x.c.f.dao.ProductSkuMapper.selectById  : ==>  Preparing: SELECT id,product_id,product_type,price,old_price,inventory,picture,specs,create_time,modify_time FROM t_product_sku WHERE id=?
+2026-05-06T13:46:14.635+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-2] a.x.c.f.dao.ProductSkuMapper.selectById  : ==> Parameters: ead0ea0d7a6260cbb80454e0a78d3186    (String)
+2026-05-06T13:46:14.640+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-2] a.x.c.f.dao.ProductSkuMapper.selectById  : <==      Total: 1
+2026-05-06T13:46:14.640+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-2] a.x.com.common.dao.DynamicDataSource     : DynamicDataSource routing to: xlong
+2026-05-06T13:46:14.640+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-2] a.x.c.f.dao.ProductMapper.selectById     : ==>  Preparing: SELECT id,product_type,product_category,name,"desc",price,old_price,main_pictures,picture,detail,sort,is_enable,create_time,modify_time FROM t_product WHERE id=?
+2026-05-06T13:46:14.640+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-2] a.x.c.f.dao.ProductMapper.selectById     : ==> Parameters: bf7e5ee8c46c2b97c0fb685bac17a300    (String)
+2026-05-06T13:46:14.640+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-2] a.x.c.f.dao.ProductMapper.selectById     : <==      Total: 1
+2026-05-06T13:46:14.640+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-2] a.x.com.common.dao.DynamicDataSource     : DynamicDataSource routing to: xlong
+2026-05-06T13:46:14.640+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-2] a.x.c.f.dao.ReceiverMapper.selectList    : ==>  Preparing: SELECT id,receiver,contact,province_code,city_code,county_code,address,is_default,create_time,modify_time FROM t_receiver
+2026-05-06T13:46:14.640+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-2] a.x.c.f.dao.ReceiverMapper.selectList    : ==> Parameters: 
+2026-05-06T13:46:14.646+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-2] a.x.c.f.dao.ReceiverMapper.selectList    : <==      Total: 60
+[Member1] Pre-order OK
+2026-05-06T13:46:14.734+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-3] a.x.com.common.dao.DynamicDataSource     : DynamicDataSource routing to: xlong
+2026-05-06T13:46:14.734+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-3] a.x.c.f.dao.ReceiverMapper.selectById    : ==>  Preparing: SELECT id,receiver,contact,province_code,city_code,county_code,address,is_default,create_time,modify_time FROM t_receiver WHERE id=?
+2026-05-06T13:46:14.739+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-3] a.x.c.f.dao.ReceiverMapper.selectById    : ==> Parameters: 66912a851333e965697b06d80ac67aa0    (String)
+2026-05-06T13:46:14.739+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-3] a.x.c.f.dao.ReceiverMapper.selectById    : <==      Total: 1
+2026-05-06T13:46:14.739+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-3] a.x.c.f.dao.CartMapper.selectList        : ==>  Preparing: SELECT id,sku_id,name,specs,count,price,now_price,picture,selected,create_time,modify_time FROM t_cart WHERE (selected = ?)
+2026-05-06T13:46:14.739+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-3] a.x.c.f.dao.CartMapper.selectList        : ==> Parameters: 1(Integer)
+2026-05-06T13:46:14.744+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-3] a.x.c.f.dao.CartMapper.selectList        : <==      Total: 2
+2026-05-06T13:46:14.744+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-3] a.x.c.f.dao.ProductSkuMapper.selectById  : ==>  Preparing: SELECT id,product_id,product_type,price,old_price,inventory,picture,specs,create_time,modify_time FROM t_product_sku WHERE id=?
+2026-05-06T13:46:14.744+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-3] a.x.c.f.dao.ProductSkuMapper.selectById  : ==> Parameters: be870061194c25c4f5d851230dda489c    (String)
+2026-05-06T13:46:14.744+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-3] a.x.c.f.dao.ProductSkuMapper.selectById  : <==      Total: 1
+2026-05-06T13:46:14.744+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-3] a.x.c.f.dao.ProductMapper.selectById     : ==>  Preparing: SELECT id,product_type,product_category,name,"desc",price,old_price,main_pictures,picture,detail,sort,is_enable,create_time,modify_time FROM t_product WHERE id=?
+2026-05-06T13:46:14.744+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-3] a.x.c.f.dao.ProductMapper.selectById     : ==> Parameters: 64b594c0fa76502211db2804230773d3    (String)
+2026-05-06T13:46:14.744+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-3] a.x.c.f.dao.ProductMapper.selectById     : <==      Total: 1
+2026-05-06T13:46:14.749+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-3] a.x.c.f.dao.ProductSkuMapper.updateById  : ==>  Preparing: UPDATE t_product_sku SET product_id=?, product_type=?, price=?, old_price=?, inventory=?, picture=?, specs=?, create_time=? WHERE id=?
+2026-05-06T13:46:14.749+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-3] a.x.c.f.dao.ProductSkuMapper.updateById  : ==> Parameters: 64b594c0fa76502211db2804230773d3    (String), 0c7b4588c3e31bc6c4e125b398d7ce12    (String), 20.00(BigDecimal), 30.00(BigDecimal), 2(Integer), /uploads/2026/05/05/1baf1918afd64e9cbe14f389846386ec.png(String), [{"name":"默认规格","valueName":"默认规格"}](PGobject), 2026-05-05T16:45:34.711255(LocalDateTime), be870061194c25c4f5d851230dda489c    (String)
+2026-05-06T13:46:14.749+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-3] a.x.c.f.dao.ProductSkuMapper.updateById  : <==    Updates: 1
+2026-05-06T13:46:14.749+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-3] a.x.c.f.dao.ProductSkuMapper.selectById  : ==>  Preparing: SELECT id,product_id,product_type,price,old_price,inventory,picture,specs,create_time,modify_time FROM t_product_sku WHERE id=?
+2026-05-06T13:46:14.749+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-3] a.x.c.f.dao.ProductSkuMapper.selectById  : ==> Parameters: ead0ea0d7a6260cbb80454e0a78d3186    (String)
+2026-05-06T13:46:14.749+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-3] a.x.c.f.dao.ProductSkuMapper.selectById  : <==      Total: 1
+2026-05-06T13:46:14.749+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-3] a.x.c.f.dao.ProductMapper.selectById     : ==>  Preparing: SELECT id,product_type,product_category,name,"desc",price,old_price,main_pictures,picture,detail,sort,is_enable,create_time,modify_time FROM t_product WHERE id=?
+2026-05-06T13:46:14.749+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-3] a.x.c.f.dao.ProductMapper.selectById     : ==> Parameters: bf7e5ee8c46c2b97c0fb685bac17a300    (String)
+2026-05-06T13:46:14.754+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-3] a.x.c.f.dao.ProductMapper.selectById     : <==      Total: 1
+2026-05-06T13:46:14.754+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-3] a.x.c.f.dao.ProductSkuMapper.updateById  : ==>  Preparing: UPDATE t_product_sku SET product_id=?, product_type=?, price=?, old_price=?, inventory=?, picture=?, specs=?, create_time=? WHERE id=?
+2026-05-06T13:46:14.754+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-3] a.x.c.f.dao.ProductSkuMapper.updateById  : ==> Parameters: bf7e5ee8c46c2b97c0fb685bac17a300    (String), 4f9d947fd7bb95e5fdb2b8f772883875    (String), 2.00(BigDecimal), 3.00(BigDecimal), 7(Integer), /uploads/2026/05/05/4acf492cd06d4cb2938ea1074152a3d2.png(String), [{"name":"重量","valueName":"80g"},{"name":"成分","valueName":"金枪鱼"}](PGobject), 2026-05-05T23:07:33.785(LocalDateTime), ead0ea0d7a6260cbb80454e0a78d3186    (String)
+2026-05-06T13:46:14.754+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-3] a.x.c.f.dao.ProductSkuMapper.updateById  : <==    Updates: 1
+2026-05-06T13:46:14.754+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-3] a.x.com.frontend.dao.OrderMapper.insert  : ==>  Preparing: INSERT INTO t_order ( id, order_type, order_status, product_type, total_money, actual_pay_money, pay_money, create_time ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ? )
+2026-05-06T13:46:14.754+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-3] a.x.com.frontend.dao.OrderMapper.insert  : ==> Parameters: f42cfdb2a3887cc1633ae446e9966f1e(String), 0(Integer), 1(Integer), 0c7b4588c3e31bc6c4e125b398d7ce12    (String), 42.00(BigDecimal), 42.00(BigDecimal), 42.00(BigDecimal), 2026-05-06T13:46:14.754734(LocalDateTime)
+2026-05-06T13:46:14.754+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-3] a.x.com.frontend.dao.OrderMapper.insert  : <==    Updates: 1
+2026-05-06T13:46:14.759+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-3] a.x.c.f.dao.OrderReceiverMapper.insert   : ==>  Preparing: INSERT INTO t_order_receiver ( order_id, receiver, contact, province_code, city_code, county_code, address, create_time ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ? )
+2026-05-06T13:46:14.759+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-3] a.x.c.f.dao.OrderReceiverMapper.insert   : ==> Parameters: f42cfdb2a3887cc1633ae446e9966f1e(String), 收货人0001(String), 13810000001(String), 110000(String), 110100(String), 110101(String), 测试街道1号(String), 2026-05-06T13:46:14.754734(LocalDateTime)
+2026-05-06T13:46:14.759+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-3] a.x.c.f.dao.OrderReceiverMapper.insert   : <==    Updates: 1
+2026-05-06T13:46:14.762+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-3] a.x.c.f.dao.OrderProductMapper.insert    : ==>  Preparing: INSERT INTO t_order_products ( order_id, product_id, product_type, product_category, name, "desc", price, old_price, main_pictures, picture, detail, sort, create_time ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )
+2026-05-06T13:46:14.765+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-3] a.x.c.f.dao.OrderProductMapper.insert    : ==> Parameters: f42cfdb2a3887cc1633ae446e9966f1e(String), 64b594c0fa76502211db2804230773d3    (String), 0c7b4588c3e31bc6c4e125b398d7ce12    (String), e2133c5a60af040bbfb09e7fbf0894a1    (String), 妮可露混合膨润土豆腐猫砂杀菌除臭1.5Kg(String), 妮可露混合膨润土豆腐猫砂杀菌除臭(String), 20.00(BigDecimal), 0.00(BigDecimal), null(PgArray), /uploads/2026/05/05/48c085be61fd498b987e20bb1a301751.png(String), <p><img src="/uploads/2026/05/05/a23c53d6dab54b49aad80abf6900a097.png" alt="/uploads/2026/05/05/a23c53d6dab54b49aad80abf6900a097.png" data-href="/uploads/2026/05/05/a23c53d6dab54b49aad80abf6900a097.png" style=""/></p>(String), 0(Integer), 2026-05-06T13:46:14.749681(LocalDateTime)
+2026-05-06T13:46:14.765+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-3] a.x.c.f.dao.OrderProductMapper.insert    : <==    Updates: 1
+2026-05-06T13:46:14.770+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-3] a.x.c.f.dao.OrderProductMapper.insert    : ==>  Preparing: INSERT INTO t_order_products ( order_id, product_id, product_type, product_category, name, "desc", price, old_price, main_pictures, picture, detail, sort, create_time ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )
+2026-05-06T13:46:14.770+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-3] a.x.c.f.dao.OrderProductMapper.insert    : ==> Parameters: f42cfdb2a3887cc1633ae446e9966f1e(String), bf7e5ee8c46c2b97c0fb685bac17a300    (String), 4f9d947fd7bb95e5fdb2b8f772883875    (String), 4cbe91641eb6e6b57cc19dc74318bc41    (String), 顽皮高营养无添加高蛋白猫咪零食(String), 高营养无添加高蛋白猫咪零食(String), 2.00(BigDecimal), 3.00(BigDecimal), null(PgArray), /uploads/2026/05/05/a109eabf476348c9bfa90b6cc3ac6222.png(String), <p><img src="/uploads/2026/05/05/400c53ab7fa8480799cca6b99cacf807.png" alt="/uploads/2026/05/05/400c53ab7fa8480799cca6b99cacf807.png" data-href="/uploads/2026/05/05/400c53ab7fa8480799cca6b99cacf807.png" style=""/></p>(String), 0(Integer), 2026-05-06T13:46:14.754734(LocalDateTime)
+2026-05-06T13:46:14.770+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-3] a.x.c.f.dao.OrderProductMapper.insert    : <==    Updates: 1
+2026-05-06T13:46:14.770+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-3] a.x.c.f.d.OrderProductSkuMapper.insert   : ==>  Preparing: INSERT INTO t_order_product_skus ( order_id, sku_id, product_id, product_type, price, old_price, inventory, picture, specs, create_time ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )
+2026-05-06T13:46:14.770+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-3] a.x.c.f.d.OrderProductSkuMapper.insert   : ==> Parameters: f42cfdb2a3887cc1633ae446e9966f1e(String), be870061194c25c4f5d851230dda489c    (String), 64b594c0fa76502211db2804230773d3    (String), 0c7b4588c3e31bc6c4e125b398d7ce12    (String), 20.00(BigDecimal), 30.00(BigDecimal), 2(Integer), /uploads/2026/05/05/1baf1918afd64e9cbe14f389846386ec.png(String), [{"name":"默认规格","valueName":"默认规格"}](PGobject), 2026-05-06T13:46:14.749681(LocalDateTime)
+2026-05-06T13:46:14.770+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-3] a.x.c.f.d.OrderProductSkuMapper.insert   : <==    Updates: 1
+2026-05-06T13:46:14.775+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-3] a.x.c.f.d.OrderProductSkuMapper.insert   : ==>  Preparing: INSERT INTO t_order_product_skus ( order_id, sku_id, product_id, product_type, price, old_price, inventory, picture, specs, create_time ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )
+2026-05-06T13:46:14.775+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-3] a.x.c.f.d.OrderProductSkuMapper.insert   : ==> Parameters: f42cfdb2a3887cc1633ae446e9966f1e(String), ead0ea0d7a6260cbb80454e0a78d3186    (String), bf7e5ee8c46c2b97c0fb685bac17a300    (String), 4f9d947fd7bb95e5fdb2b8f772883875    (String), 2.00(BigDecimal), 3.00(BigDecimal), 1(Integer), /uploads/2026/05/05/4acf492cd06d4cb2938ea1074152a3d2.png(String), [{"name":"重量","valueName":"80g"},{"name":"成分","valueName":"金枪鱼"}](PGobject), 2026-05-06T13:46:14.754734(LocalDateTime)
+2026-05-06T13:46:14.775+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-3] a.x.c.f.d.OrderProductSkuMapper.insert   : <==    Updates: 1
+2026-05-06T13:46:14.775+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-3] a.x.com.frontend.dao.CartMapper.delete   : ==>  Preparing: DELETE FROM t_cart WHERE (selected = ?)
+2026-05-06T13:46:14.775+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-3] a.x.com.frontend.dao.CartMapper.delete   : ==> Parameters: 1(Integer)
+2026-05-06T13:46:14.775+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-3] a.x.com.frontend.dao.CartMapper.delete   : <==    Updates: 2
+[Member1] Order created: f42cfdb2a3887cc1633ae446e9966f1e
+2026-05-06T13:46:14.785+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.com.common.dao.DynamicDataSource     : DynamicDataSource routing to: xlong
+2026-05-06T13:46:14.785+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.dao.OrderMapper.selectById       : ==>  Preparing: SELECT id,order_type,order_status,product_type,total_money,actual_pay_money,pay_money,create_time,modify_time FROM t_order WHERE id=?
+2026-05-06T13:46:14.785+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.dao.OrderMapper.selectById       : ==> Parameters: f42cfdb2a3887cc1633ae446e9966f1e(String)
+2026-05-06T13:46:14.785+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.dao.OrderMapper.selectById       : <==      Total: 1
+2026-05-06T13:46:14.785+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.com.common.dao.DynamicDataSource     : DynamicDataSource routing to: xlong
+2026-05-06T13:46:14.785+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.d.OrderProductMapper.selectList  : ==>  Preparing: SELECT order_id,product_id,product_type,product_category,name,"desc",price,old_price,main_pictures,picture,detail,sort,create_time,modify_time FROM t_order_products WHERE (order_id = ?)
+2026-05-06T13:46:14.785+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.d.OrderProductMapper.selectList  : ==> Parameters: f42cfdb2a3887cc1633ae446e9966f1e(String)
+2026-05-06T13:46:14.791+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.d.OrderProductMapper.selectList  : <==      Total: 2
+2026-05-06T13:46:14.791+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.com.common.dao.DynamicDataSource     : DynamicDataSource routing to: xlong
+2026-05-06T13:46:14.791+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.d.O.selectList                   : ==>  Preparing: SELECT order_id,sku_id,product_id,product_type,price,old_price,inventory,picture,specs,create_time,modify_time FROM t_order_product_skus WHERE (order_id = ?)
+2026-05-06T13:46:14.791+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.d.O.selectList                   : ==> Parameters: f42cfdb2a3887cc1633ae446e9966f1e(String)
+2026-05-06T13:46:14.791+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.d.O.selectList                   : <==      Total: 2
+2026-05-06T13:46:14.791+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.com.common.dao.DynamicDataSource     : DynamicDataSource routing to: xlong
+2026-05-06T13:46:14.791+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.d.O.selectById                   : ==>  Preparing: SELECT order_id,receiver,contact,province_code,city_code,county_code,address,create_time,modify_time FROM t_order_receiver WHERE order_id=?
+2026-05-06T13:46:14.791+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.d.O.selectById                   : ==> Parameters: f42cfdb2a3887cc1633ae446e9966f1e(String)
+2026-05-06T13:46:14.796+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.d.O.selectById                   : <==      Total: 1
+2026-05-06T13:46:14.796+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.com.common.dao.DynamicDataSource     : DynamicDataSource routing to: xlong
+2026-05-06T13:46:14.796+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.dao.CartMapper.selectList        : ==>  Preparing: SELECT id,sku_id,name,specs,count,price,now_price,picture,selected,create_time,modify_time FROM t_cart
+2026-05-06T13:46:14.796+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.dao.CartMapper.selectList        : ==> Parameters: 
+2026-05-06T13:46:14.796+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.dao.CartMapper.selectList        : <==      Total: 0
+[VERIFY] Order f42cfdb2a3887cc1633ae446e9966f1e verified: 2 products, 2 SKUs, receiver OK, cart cleared
+2026-05-06T13:46:14.806+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-4] a.x.com.common.dao.DynamicDataSource     : DynamicDataSource routing to: xlong
+2026-05-06T13:46:14.806+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-4] a.x.com.frontend.dao.CartMapper.delete   : ==>  Preparing: DELETE FROM t_cart
+2026-05-06T13:46:14.811+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-4] a.x.com.frontend.dao.CartMapper.delete   : ==> Parameters: 
+2026-05-06T13:46:14.811+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-4] a.x.com.frontend.dao.CartMapper.delete   : <==    Updates: 0
+2026-05-06T13:46:14.811+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-4] a.x.com.common.dao.DynamicDataSource     : DynamicDataSource routing to: xlong
+2026-05-06T13:46:14.811+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-4] a.x.com.frontend.dao.CartMapper.insert   : ==>  Preparing: INSERT INTO t_cart ( id, sku_id, name, specs, count, price, now_price, picture, selected, create_time ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )
+2026-05-06T13:46:14.811+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-4] a.x.com.frontend.dao.CartMapper.insert   : ==> Parameters: 71c60982e66ee2c1a26f991e6a236397(String), be870061194c25c4f5d851230dda489c    (String), 妮可露混合膨润土豆腐猫砂杀菌除臭1.5Kg(String), [](PGobject), 1(Integer), 0.00(BigDecimal), 20.00(BigDecimal), (String), 1(Integer), 2026-05-06T13:46:14.811328200(LocalDateTime)
+2026-05-06T13:46:14.816+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-4] a.x.com.frontend.dao.CartMapper.insert   : <==    Updates: 1
+[Member2] Cart updated
+2026-05-06T13:46:14.821+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-5] a.x.com.common.dao.DynamicDataSource     : DynamicDataSource routing to: xlong
+2026-05-06T13:46:14.821+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-5] a.x.c.f.dao.ReceiverMapper.selectById    : ==>  Preparing: SELECT id,receiver,contact,province_code,city_code,county_code,address,is_default,create_time,modify_time FROM t_receiver WHERE id=?
+2026-05-06T13:46:14.821+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-5] a.x.c.f.dao.ReceiverMapper.selectById    : ==> Parameters: 6e17b9dc80f8f92b062301ab1613f714    (String)
+2026-05-06T13:46:14.821+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-5] a.x.c.f.dao.ReceiverMapper.selectById    : <==      Total: 1
+2026-05-06T13:46:14.826+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-5] a.x.c.f.dao.CartMapper.selectList        : ==>  Preparing: SELECT id,sku_id,name,specs,count,price,now_price,picture,selected,create_time,modify_time FROM t_cart WHERE (selected = ?)
+2026-05-06T13:46:14.826+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-5] a.x.c.f.dao.CartMapper.selectList        : ==> Parameters: 1(Integer)
+2026-05-06T13:46:14.826+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-5] a.x.c.f.dao.CartMapper.selectList        : <==      Total: 1
+2026-05-06T13:46:14.826+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-5] a.x.c.f.dao.ProductSkuMapper.selectById  : ==>  Preparing: SELECT id,product_id,product_type,price,old_price,inventory,picture,specs,create_time,modify_time FROM t_product_sku WHERE id=?
+2026-05-06T13:46:14.826+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-5] a.x.c.f.dao.ProductSkuMapper.selectById  : ==> Parameters: be870061194c25c4f5d851230dda489c    (String)
+2026-05-06T13:46:14.826+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-5] a.x.c.f.dao.ProductSkuMapper.selectById  : <==      Total: 1
+2026-05-06T13:46:14.826+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-5] a.x.c.f.dao.ProductMapper.selectById     : ==>  Preparing: SELECT id,product_type,product_category,name,"desc",price,old_price,main_pictures,picture,detail,sort,is_enable,create_time,modify_time FROM t_product WHERE id=?
+2026-05-06T13:46:14.826+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-5] a.x.c.f.dao.ProductMapper.selectById     : ==> Parameters: 64b594c0fa76502211db2804230773d3    (String)
+2026-05-06T13:46:14.826+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-5] a.x.c.f.dao.ProductMapper.selectById     : <==      Total: 1
+2026-05-06T13:46:14.826+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-5] a.x.c.f.dao.ProductSkuMapper.updateById  : ==>  Preparing: UPDATE t_product_sku SET product_id=?, product_type=?, price=?, old_price=?, inventory=?, picture=?, specs=?, create_time=? WHERE id=?
+2026-05-06T13:46:14.832+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-5] a.x.c.f.dao.ProductSkuMapper.updateById  : ==> Parameters: 64b594c0fa76502211db2804230773d3    (String), 0c7b4588c3e31bc6c4e125b398d7ce12    (String), 20.00(BigDecimal), 30.00(BigDecimal), 1(Integer), /uploads/2026/05/05/1baf1918afd64e9cbe14f389846386ec.png(String), [{"name":"默认规格","valueName":"默认规格"}](PGobject), 2026-05-05T16:45:34.711255(LocalDateTime), be870061194c25c4f5d851230dda489c    (String)
+2026-05-06T13:46:14.832+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-5] a.x.c.f.dao.ProductSkuMapper.updateById  : <==    Updates: 1
+2026-05-06T13:46:14.832+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-5] a.x.com.frontend.dao.OrderMapper.insert  : ==>  Preparing: INSERT INTO t_order ( id, order_type, order_status, product_type, total_money, actual_pay_money, pay_money, create_time ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ? )
+2026-05-06T13:46:14.832+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-5] a.x.com.frontend.dao.OrderMapper.insert  : ==> Parameters: 5649f4a977acb8be852a4d111ba42dee(String), 0(Integer), 1(Integer), 0c7b4588c3e31bc6c4e125b398d7ce12    (String), 20.00(BigDecimal), 20.00(BigDecimal), 20.00(BigDecimal), 2026-05-06T13:46:14.832118300(LocalDateTime)
+2026-05-06T13:46:14.832+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-5] a.x.com.frontend.dao.OrderMapper.insert  : <==    Updates: 1
+2026-05-06T13:46:14.832+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-5] a.x.c.f.dao.OrderReceiverMapper.insert   : ==>  Preparing: INSERT INTO t_order_receiver ( order_id, receiver, contact, province_code, city_code, county_code, address, create_time ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ? )
+2026-05-06T13:46:14.832+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-5] a.x.c.f.dao.OrderReceiverMapper.insert   : ==> Parameters: 5649f4a977acb8be852a4d111ba42dee(String), 收货人0001(String), 13810000001(String), 110000(String), 110100(String), 110101(String), 测试街道1号(String), 2026-05-06T13:46:14.832118300(LocalDateTime)
+2026-05-06T13:46:14.832+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-5] a.x.c.f.dao.OrderReceiverMapper.insert   : <==    Updates: 1
+2026-05-06T13:46:14.832+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-5] a.x.c.f.dao.OrderProductMapper.insert    : ==>  Preparing: INSERT INTO t_order_products ( order_id, product_id, product_type, product_category, name, "desc", price, old_price, main_pictures, picture, detail, sort, create_time ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )
+2026-05-06T13:46:14.832+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-5] a.x.c.f.dao.OrderProductMapper.insert    : ==> Parameters: 5649f4a977acb8be852a4d111ba42dee(String), 64b594c0fa76502211db2804230773d3    (String), 0c7b4588c3e31bc6c4e125b398d7ce12    (String), e2133c5a60af040bbfb09e7fbf0894a1    (String), 妮可露混合膨润土豆腐猫砂杀菌除臭1.5Kg(String), 妮可露混合膨润土豆腐猫砂杀菌除臭(String), 20.00(BigDecimal), 0.00(BigDecimal), null(PgArray), /uploads/2026/05/05/48c085be61fd498b987e20bb1a301751.png(String), <p><img src="/uploads/2026/05/05/a23c53d6dab54b49aad80abf6900a097.png" alt="/uploads/2026/05/05/a23c53d6dab54b49aad80abf6900a097.png" data-href="/uploads/2026/05/05/a23c53d6dab54b49aad80abf6900a097.png" style=""/></p>(String), 0(Integer), 2026-05-06T13:46:14.832118300(LocalDateTime)
+2026-05-06T13:46:14.837+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-5] a.x.c.f.dao.OrderProductMapper.insert    : <==    Updates: 1
+2026-05-06T13:46:14.837+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-5] a.x.c.f.d.OrderProductSkuMapper.insert   : ==>  Preparing: INSERT INTO t_order_product_skus ( order_id, sku_id, product_id, product_type, price, old_price, inventory, picture, specs, create_time ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )
+2026-05-06T13:46:14.838+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-5] a.x.c.f.d.OrderProductSkuMapper.insert   : ==> Parameters: 5649f4a977acb8be852a4d111ba42dee(String), be870061194c25c4f5d851230dda489c    (String), 64b594c0fa76502211db2804230773d3    (String), 0c7b4588c3e31bc6c4e125b398d7ce12    (String), 20.00(BigDecimal), 30.00(BigDecimal), 1(Integer), /uploads/2026/05/05/1baf1918afd64e9cbe14f389846386ec.png(String), [{"name":"默认规格","valueName":"默认规格"}](PGobject), 2026-05-06T13:46:14.832118300(LocalDateTime)
+2026-05-06T13:46:14.838+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-5] a.x.c.f.d.OrderProductSkuMapper.insert   : <==    Updates: 1
+2026-05-06T13:46:14.838+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-5] a.x.com.frontend.dao.CartMapper.delete   : ==>  Preparing: DELETE FROM t_cart WHERE (selected = ?)
+2026-05-06T13:46:14.838+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-5] a.x.com.frontend.dao.CartMapper.delete   : ==> Parameters: 1(Integer)
+2026-05-06T13:46:14.838+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-5] a.x.com.frontend.dao.CartMapper.delete   : <==    Updates: 1
+[Member2] Order created: 5649f4a977acb8be852a4d111ba42dee
+2026-05-06T13:46:14.843+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.com.common.dao.DynamicDataSource     : DynamicDataSource routing to: xlong
+2026-05-06T13:46:14.843+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.dao.OrderMapper.selectById       : ==>  Preparing: SELECT id,order_type,order_status,product_type,total_money,actual_pay_money,pay_money,create_time,modify_time FROM t_order WHERE id=?
+2026-05-06T13:46:14.843+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.dao.OrderMapper.selectById       : ==> Parameters: 5649f4a977acb8be852a4d111ba42dee(String)
+2026-05-06T13:46:14.843+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.dao.OrderMapper.selectById       : <==      Total: 1
+2026-05-06T13:46:14.843+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.com.common.dao.DynamicDataSource     : DynamicDataSource routing to: xlong
+2026-05-06T13:46:14.843+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.d.O.selectList                   : ==>  Preparing: SELECT order_id,sku_id,product_id,product_type,price,old_price,inventory,picture,specs,create_time,modify_time FROM t_order_product_skus WHERE (order_id = ?)
+2026-05-06T13:46:14.843+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.d.O.selectList                   : ==> Parameters: 5649f4a977acb8be852a4d111ba42dee(String)
+2026-05-06T13:46:14.843+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.d.O.selectList                   : <==      Total: 1
+2026-05-06T13:46:14.848+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.com.common.dao.DynamicDataSource     : DynamicDataSource routing to: xlong
+2026-05-06T13:46:14.848+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.dao.CartMapper.selectList        : ==>  Preparing: SELECT id,sku_id,name,specs,count,price,now_price,picture,selected,create_time,modify_time FROM t_cart
+2026-05-06T13:46:14.848+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.dao.CartMapper.selectList        : ==> Parameters: 
+2026-05-06T13:46:14.848+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.dao.CartMapper.selectList        : <==      Total: 0
+[VERIFY] Member2 order OK
+2026-05-06T13:46:14.858+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-6] a.x.com.common.dao.DynamicDataSource     : DynamicDataSource routing to: xlong
+2026-05-06T13:46:14.858+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-6] a.x.c.f.dao.ProductSkuMapper.selectById  : ==>  Preparing: SELECT id,product_id,product_type,price,old_price,inventory,picture,specs,create_time,modify_time FROM t_product_sku WHERE id=?
+2026-05-06T13:46:14.863+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-6] a.x.c.f.dao.ProductSkuMapper.selectById  : ==> Parameters: ead0ea0d7a6260cbb80454e0a78d3186    (String)
+2026-05-06T13:46:14.863+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-6] a.x.c.f.dao.ProductSkuMapper.selectById  : <==      Total: 1
+2026-05-06T13:46:14.863+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-6] a.x.com.common.dao.DynamicDataSource     : DynamicDataSource routing to: xlong
+2026-05-06T13:46:14.863+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-6] a.x.c.f.dao.ProductMapper.selectById     : ==>  Preparing: SELECT id,product_type,product_category,name,"desc",price,old_price,main_pictures,picture,detail,sort,is_enable,create_time,modify_time FROM t_product WHERE id=?
+2026-05-06T13:46:14.863+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-6] a.x.c.f.dao.ProductMapper.selectById     : ==> Parameters: bf7e5ee8c46c2b97c0fb685bac17a300    (String)
+2026-05-06T13:46:14.863+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-6] a.x.c.f.dao.ProductMapper.selectById     : <==      Total: 1
+2026-05-06T13:46:14.868+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-6] a.x.com.common.dao.DynamicDataSource     : DynamicDataSource routing to: xlong
+2026-05-06T13:46:14.868+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-6] a.x.c.f.dao.ReceiverMapper.selectList    : ==>  Preparing: SELECT id,receiver,contact,province_code,city_code,county_code,address,is_default,create_time,modify_time FROM t_receiver
+2026-05-06T13:46:14.868+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-6] a.x.c.f.dao.ReceiverMapper.selectList    : ==> Parameters: 
+2026-05-06T13:46:14.876+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-6] a.x.c.f.dao.ReceiverMapper.selectList    : <==      Total: 60
+[Member3] Pre-order now OK
+2026-05-06T13:46:14.899+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-7] a.x.com.common.dao.DynamicDataSource     : DynamicDataSource routing to: xlong
+2026-05-06T13:46:14.899+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-7] a.x.c.f.dao.ReceiverMapper.selectById    : ==>  Preparing: SELECT id,receiver,contact,province_code,city_code,county_code,address,is_default,create_time,modify_time FROM t_receiver WHERE id=?
+2026-05-06T13:46:14.899+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-7] a.x.c.f.dao.ReceiverMapper.selectById    : ==> Parameters: df05462d18b73fcd2afb2aeea53f2211    (String)
+2026-05-06T13:46:14.899+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-7] a.x.c.f.dao.ReceiverMapper.selectById    : <==      Total: 1
+2026-05-06T13:46:14.904+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-7] a.x.c.f.dao.CartMapper.selectList        : ==>  Preparing: SELECT id,sku_id,name,specs,count,price,now_price,picture,selected,create_time,modify_time FROM t_cart WHERE (selected = ?)
+2026-05-06T13:46:14.904+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-7] a.x.c.f.dao.CartMapper.selectList        : ==> Parameters: 1(Integer)
+2026-05-06T13:46:14.904+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-7] a.x.c.f.dao.CartMapper.selectList        : <==      Total: 0
+2026-05-06T13:46:14.904+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-7] a.x.c.f.dao.ProductSkuMapper.selectById  : ==>  Preparing: SELECT id,product_id,product_type,price,old_price,inventory,picture,specs,create_time,modify_time FROM t_product_sku WHERE id=?
+2026-05-06T13:46:14.904+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-7] a.x.c.f.dao.ProductSkuMapper.selectById  : ==> Parameters: ead0ea0d7a6260cbb80454e0a78d3186    (String)
+2026-05-06T13:46:14.904+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-7] a.x.c.f.dao.ProductSkuMapper.selectById  : <==      Total: 1
+2026-05-06T13:46:14.904+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-7] a.x.c.f.dao.ProductMapper.selectById     : ==>  Preparing: SELECT id,product_type,product_category,name,"desc",price,old_price,main_pictures,picture,detail,sort,is_enable,create_time,modify_time FROM t_product WHERE id=?
+2026-05-06T13:46:14.904+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-7] a.x.c.f.dao.ProductMapper.selectById     : ==> Parameters: bf7e5ee8c46c2b97c0fb685bac17a300    (String)
+2026-05-06T13:46:14.904+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-7] a.x.c.f.dao.ProductMapper.selectById     : <==      Total: 1
+2026-05-06T13:46:14.909+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-7] a.x.c.f.dao.ProductSkuMapper.updateById  : ==>  Preparing: UPDATE t_product_sku SET product_id=?, product_type=?, price=?, old_price=?, inventory=?, picture=?, specs=?, create_time=? WHERE id=?
+2026-05-06T13:46:14.909+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-7] a.x.c.f.dao.ProductSkuMapper.updateById  : ==> Parameters: bf7e5ee8c46c2b97c0fb685bac17a300    (String), 4f9d947fd7bb95e5fdb2b8f772883875    (String), 2.00(BigDecimal), 3.00(BigDecimal), 6(Integer), /uploads/2026/05/05/4acf492cd06d4cb2938ea1074152a3d2.png(String), [{"name":"重量","valueName":"80g"},{"name":"成分","valueName":"金枪鱼"}](PGobject), 2026-05-05T23:07:33.785(LocalDateTime), ead0ea0d7a6260cbb80454e0a78d3186    (String)
+2026-05-06T13:46:14.909+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-7] a.x.c.f.dao.ProductSkuMapper.updateById  : <==    Updates: 1
+2026-05-06T13:46:14.909+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-7] a.x.com.frontend.dao.OrderMapper.insert  : ==>  Preparing: INSERT INTO t_order ( id, order_type, order_status, product_type, total_money, actual_pay_money, pay_money, create_time ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ? )
+2026-05-06T13:46:14.909+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-7] a.x.com.frontend.dao.OrderMapper.insert  : ==> Parameters: 1b72d6ab2464daa79f52dc3dfd180674(String), 0(Integer), 1(Integer), 4f9d947fd7bb95e5fdb2b8f772883875    (String), 2.00(BigDecimal), 2.00(BigDecimal), 2.00(BigDecimal), 2026-05-06T13:46:14.909854(LocalDateTime)
+2026-05-06T13:46:14.909+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-7] a.x.com.frontend.dao.OrderMapper.insert  : <==    Updates: 1
+2026-05-06T13:46:14.909+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-7] a.x.c.f.dao.OrderReceiverMapper.insert   : ==>  Preparing: INSERT INTO t_order_receiver ( order_id, receiver, contact, province_code, city_code, county_code, address, create_time ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ? )
+2026-05-06T13:46:14.909+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-7] a.x.c.f.dao.OrderReceiverMapper.insert   : ==> Parameters: 1b72d6ab2464daa79f52dc3dfd180674(String), 收货人0354(String), 13810010354(String), 110000(String), 110100(String), 110101(String), 测试街道30号(String), 2026-05-06T13:46:14.909854(LocalDateTime)
+2026-05-06T13:46:14.909+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-7] a.x.c.f.dao.OrderReceiverMapper.insert   : <==    Updates: 1
+2026-05-06T13:46:14.909+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-7] a.x.c.f.dao.OrderProductMapper.insert    : ==>  Preparing: INSERT INTO t_order_products ( order_id, product_id, product_type, product_category, name, "desc", price, old_price, main_pictures, picture, detail, sort, create_time ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )
+2026-05-06T13:46:14.909+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-7] a.x.c.f.dao.OrderProductMapper.insert    : ==> Parameters: 1b72d6ab2464daa79f52dc3dfd180674(String), bf7e5ee8c46c2b97c0fb685bac17a300    (String), 4f9d947fd7bb95e5fdb2b8f772883875    (String), 4cbe91641eb6e6b57cc19dc74318bc41    (String), 顽皮高营养无添加高蛋白猫咪零食(String), 高营养无添加高蛋白猫咪零食(String), 2.00(BigDecimal), 3.00(BigDecimal), null(PgArray), /uploads/2026/05/05/a109eabf476348c9bfa90b6cc3ac6222.png(String), <p><img src="/uploads/2026/05/05/400c53ab7fa8480799cca6b99cacf807.png" alt="/uploads/2026/05/05/400c53ab7fa8480799cca6b99cacf807.png" data-href="/uploads/2026/05/05/400c53ab7fa8480799cca6b99cacf807.png" style=""/></p>(String), 0(Integer), 2026-05-06T13:46:14.909854(LocalDateTime)
+2026-05-06T13:46:14.915+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-7] a.x.c.f.dao.OrderProductMapper.insert    : <==    Updates: 1
+2026-05-06T13:46:14.915+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-7] a.x.c.f.d.OrderProductSkuMapper.insert   : ==>  Preparing: INSERT INTO t_order_product_skus ( order_id, sku_id, product_id, product_type, price, old_price, inventory, picture, specs, create_time ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )
+2026-05-06T13:46:14.915+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-7] a.x.c.f.d.OrderProductSkuMapper.insert   : ==> Parameters: 1b72d6ab2464daa79f52dc3dfd180674(String), ead0ea0d7a6260cbb80454e0a78d3186    (String), bf7e5ee8c46c2b97c0fb685bac17a300    (String), 4f9d947fd7bb95e5fdb2b8f772883875    (String), 2.00(BigDecimal), 3.00(BigDecimal), 1(Integer), /uploads/2026/05/05/4acf492cd06d4cb2938ea1074152a3d2.png(String), [{"name":"重量","valueName":"80g"},{"name":"成分","valueName":"金枪鱼"}](PGobject), 2026-05-06T13:46:14.909854(LocalDateTime)
+2026-05-06T13:46:14.915+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-7] a.x.c.f.d.OrderProductSkuMapper.insert   : <==    Updates: 1
+2026-05-06T13:46:14.915+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-7] a.x.com.frontend.dao.CartMapper.delete   : ==>  Preparing: DELETE FROM t_cart WHERE (selected = ?)
+2026-05-06T13:46:14.915+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-7] a.x.com.frontend.dao.CartMapper.delete   : ==> Parameters: 1(Integer)
+2026-05-06T13:46:14.915+08:00 DEBUG 30144 --- [mypet-frontend-test] [o-auto-1-exec-7] a.x.com.frontend.dao.CartMapper.delete   : <==    Updates: 0
+[Member3] Direct order created: 1b72d6ab2464daa79f52dc3dfd180674
+2026-05-06T13:46:14.920+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.com.common.dao.DynamicDataSource     : DynamicDataSource routing to: xlong
+2026-05-06T13:46:14.920+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.dao.OrderMapper.selectById       : ==>  Preparing: SELECT id,order_type,order_status,product_type,total_money,actual_pay_money,pay_money,create_time,modify_time FROM t_order WHERE id=?
+2026-05-06T13:46:14.920+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.dao.OrderMapper.selectById       : ==> Parameters: 1b72d6ab2464daa79f52dc3dfd180674(String)
+2026-05-06T13:46:14.920+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.dao.OrderMapper.selectById       : <==      Total: 1
+2026-05-06T13:46:14.920+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.com.common.dao.DynamicDataSource     : DynamicDataSource routing to: xlong
+2026-05-06T13:46:14.920+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.d.O.selectById                   : ==>  Preparing: SELECT order_id,receiver,contact,province_code,city_code,county_code,address,create_time,modify_time FROM t_order_receiver WHERE order_id=?
+2026-05-06T13:46:14.925+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.d.O.selectById                   : ==> Parameters: 1b72d6ab2464daa79f52dc3dfd180674(String)
+2026-05-06T13:46:14.925+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.d.O.selectById                   : <==      Total: 1
+[VERIFY] Member3 direct buy order OK
+2026-05-06T13:46:14.930+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.com.common.dao.DynamicDataSource     : DynamicDataSource routing to: xlong
+2026-05-06T13:46:14.930+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.dao.MemberMapper.selectCount     : ==>  Preparing: SELECT COUNT( * ) AS total FROM t_member
+2026-05-06T13:46:14.930+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.dao.MemberMapper.selectCount     : ==> Parameters: 
+2026-05-06T13:46:14.932+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.dao.MemberMapper.selectCount     : <==      Total: 1
+2026-05-06T13:46:14.932+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.com.common.dao.DynamicDataSource     : DynamicDataSource routing to: xlong
+2026-05-06T13:46:14.932+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.dao.ReceiverMapper.selectCount   : ==>  Preparing: SELECT COUNT( * ) AS total FROM t_receiver
+2026-05-06T13:46:14.932+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.dao.ReceiverMapper.selectCount   : ==> Parameters: 
+2026-05-06T13:46:14.935+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.dao.ReceiverMapper.selectCount   : <==      Total: 1
+2026-05-06T13:46:14.935+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.com.common.dao.DynamicDataSource     : DynamicDataSource routing to: xlong
+2026-05-06T13:46:14.935+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.dao.OrderMapper.selectCount      : ==>  Preparing: SELECT COUNT( * ) AS total FROM t_order
+2026-05-06T13:46:14.935+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.dao.OrderMapper.selectCount      : ==> Parameters: 
+2026-05-06T13:46:14.935+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.dao.OrderMapper.selectCount      : <==      Total: 1
+2026-05-06T13:46:14.935+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.com.common.dao.DynamicDataSource     : DynamicDataSource routing to: xlong
+2026-05-06T13:46:14.935+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.d.O.selectCount                  : ==>  Preparing: SELECT COUNT( * ) AS total FROM t_order_products
+2026-05-06T13:46:14.935+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.d.O.selectCount                  : ==> Parameters: 
+2026-05-06T13:46:14.935+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.d.O.selectCount                  : <==      Total: 1
+2026-05-06T13:46:14.935+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.com.common.dao.DynamicDataSource     : DynamicDataSource routing to: xlong
+2026-05-06T13:46:14.935+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.d.O.selectCount                  : ==>  Preparing: SELECT COUNT( * ) AS total FROM t_order_product_skus
+2026-05-06T13:46:14.935+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.d.O.selectCount                  : ==> Parameters: 
+2026-05-06T13:46:14.935+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.d.O.selectCount                  : <==      Total: 1
+2026-05-06T13:46:14.935+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.com.common.dao.DynamicDataSource     : DynamicDataSource routing to: xlong
+2026-05-06T13:46:14.935+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.d.O.selectCount                  : ==>  Preparing: SELECT COUNT( * ) AS total FROM t_order_receiver
+2026-05-06T13:46:14.935+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.d.O.selectCount                  : ==> Parameters: 
+2026-05-06T13:46:14.941+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.d.O.selectCount                  : <==      Total: 1
+2026-05-06T13:46:14.941+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.com.common.dao.DynamicDataSource     : DynamicDataSource routing to: xlong
+2026-05-06T13:46:14.941+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.dao.CartMapper.selectCount       : ==>  Preparing: SELECT COUNT( * ) AS total FROM t_cart
+2026-05-06T13:46:14.941+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.dao.CartMapper.selectCount       : ==> Parameters: 
+2026-05-06T13:46:14.941+08:00 DEBUG 30144 --- [mypet-frontend-test] [           main] a.x.c.f.dao.CartMapper.selectCount       : <==      Total: 1
+===== FINAL DB STATE =====
+Members:        30
+Addresses:      60
+Orders:         9
+Order Products: 12
+Order SKUs:     12
+Order Receivers:9
+Cart items:     0
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 7.642 s -- in app.xinqianmao.com.frontend.FullFlowTest
+[INFO] 
+[INFO] Results:
+[INFO] 
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  25.024 s
+[INFO] Finished at: 2026-05-06T13:46:15+08:00
+[INFO] ------------------------------------------------------------------------

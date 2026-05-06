@@ -36,6 +36,8 @@ public class OrderListResponse {
     private String cancelTime;
     private String memberAvatar;
     private String memberMobile;
+    private Boolean hasRefundRequest;
+    private String buyerMessage;
 
     @Data
     @Schema(description = "订单SKU简略信息")

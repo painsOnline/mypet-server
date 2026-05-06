@@ -30,4 +30,5 @@ public class Product extends BaseEntity {
     private String picture;
     private String detail;
     private Integer sort;
+    private Integer isEnable;
 }
