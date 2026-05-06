@@ -1,0 +1,88 @@
+/**
+ * File: MiniOrderDetailResponse.java
+ * Author: system
+ * Date: 2026-05-03
+ */
+package app.xinqianmao.com.frontend.common.pojo;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
+
+import java.math.BigDecimal;
+import java.util.List;
+
+/**
+ * Mini-program order detail response.
+ */
+@Data
+@Schema(description = "小程序订单详情")
+public class MiniOrderDetailResponse {
+
+    @Schema(description = "订单ID")
+    private String id;
+
+    @Schema(description = "订单状态")
+    private Integer orderState;
+
+    @Schema(description = "订单状态描述")
+    private String orderStateDesc;
+
+    @Schema(description = "商品清单")
+    private List<SkuItem> skus;
+
+    @Schema(description = "收货人")
+    private String receiverContact;
+
+    @Schema(description = "收货电话")
+    private String receiverMobile;
+
+    @Schema(description = "收货地址")
+    private String receiverAddress;
+
+    @Schema(description = "下单时间")
+    private String createTime;
+
+    @Schema(description = "商品总价")
+    private BigDecimal totalMoney;
+
+    @Schema(description = "应付金额")
+    private BigDecimal payMoney;
+
+    @Schema(description = "实付金额")
+    private BigDecimal actualPayMoney;
+
+    @Schema(description = "总件数")
+    private Integer totalNum;
+
+    /**
+     * Order SKU detail.
+     */
+    @Data
+    @Schema(description = "订单SKU详情")
+    public static class SkuItem {
+
+        @Schema(description = "SKU ID")
+        private String id;
+
+        @Schema(description = "商品ID")
+        private String productId;
+
+        @Schema(description = "商品名称")
+        private String name;
+
+        @Schema(description = "规格文字")
+        private String attrsText;
+
+        @Schema(description = "购买数量")
+        private Integer quantity;
+
+        @Schema(description = "购买时单价")
+        private BigDecimal price;
+
+        @Schema(description = "购买时原价")
+        private BigDecimal oldPrice;
+
+        @Schema(description = "商品图片")
+        private String picture;
+    }
+}

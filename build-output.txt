@@ -1,0 +1,46 @@
+[INFO] Scanning for projects...
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Build Order:
+[INFO] 
+[INFO] mypet-server                                                       [pom]
+[INFO] common                                                             [jar]
+[INFO] admin                                                              [jar]
+[INFO] 
+[INFO] ------------------< app.xinqianmao.com:mypet-server >-------------------
+[INFO] Building mypet-server 1.0.0-SNAPSHOT                               [1/3]
+[INFO]   from pom.xml
+[INFO] --------------------------------[ pom ]---------------------------------
+[INFO] 
+[INFO] ---------------------< app.xinqianmao.com:common >----------------------
+[INFO] Building common 1.0.0-SNAPSHOT                                     [2/3]
+[INFO]   from common\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.4.0:resources (default-resources) @ common ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ common ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] ----------------------< app.xinqianmao.com:admin >----------------------
+[INFO] Building admin 1.0.0-SNAPSHOT                                      [3/3]
+[INFO]   from admin\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.4.0:resources (default-resources) @ admin ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ admin ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Summary for mypet-server 1.0.0-SNAPSHOT:
+[INFO] 
+[INFO] mypet-server ....................................... SUCCESS [  0.005 s]
+[INFO] common ............................................. SUCCESS [  1.492 s]
+[INFO] admin .............................................. SUCCESS [  0.204 s]
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  2.143 s
+[INFO] Finished at: 2026-05-05T00:13:05+08:00
+[INFO] ------------------------------------------------------------------------
