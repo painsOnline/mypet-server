@@ -8,10 +8,13 @@ package app.xinqianmao.com.frontend.web.controller;
 import app.xinqianmao.com.common.auth.UserContext;
 import app.xinqianmao.com.common.result.Result;
 import app.xinqianmao.com.common.utils.DateTimeUtil;
+import app.xinqianmao.com.common.utils.ImageUrlUtil;
 import app.xinqianmao.com.frontend.common.entity.Cart;
 import app.xinqianmao.com.frontend.common.entity.ProductSku;
 import app.xinqianmao.com.frontend.common.pojo.CartItemResponse;
+import app.xinqianmao.com.frontend.common.entity.Product;
 import app.xinqianmao.com.frontend.dao.CartMapper;
+import app.xinqianmao.com.frontend.dao.ProductMapper;
 import app.xinqianmao.com.frontend.dao.ProductSkuMapper;
 import app.xinqianmao.com.frontend.web.controller.HomeController;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -33,6 +36,8 @@ public class MemberCartController {
 
     private final CartMapper cartMapper;
     private final ProductSkuMapper skuMapper;
+    private final ProductMapper productMapper;
+    private final ImageUrlUtil imageUrlUtil;
 
     @Operation(summary = "获取用户购物车")
     @GetMapping
@@ -68,15 +73,20 @@ public class MemberCartController {
         r.setId(cart.getId());
         r.setSkuId(cart.getSkuId());
         r.setName(cart.getName());
-        r.setPicture(cart.getPicture());
+        r.setPicture(imageUrlUtil.fullUrl(cart.getPicture()));
         r.setCount(cart.getCount());
         r.setPrice(cart.getPrice());
         r.setNowPrice(cart.getNowPrice());
         r.setSelected(cart.getSelected() != null && cart.getSelected() == 1);
-        r.setIsEffective(true);
-        // Get current stock
+        // Get current stock and check if product is still enabled
         ProductSku sku = skuMapper.selectById(cart.getSkuId());
         r.setStock(sku != null ? sku.getInventory() : 0);
+        boolean effective = true;
+        if (sku != null) {
+            Product product = productMapper.selectById(sku.getProductId());
+            effective = product != null && product.getIsEnable() != null && product.getIsEnable() == 1;
+        }
+        r.setIsEffective(effective);
         r.setAttrsText(extractAttrsText(cart.getSpecs()));
         return r;
     }

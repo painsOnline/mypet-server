@@ -5,8 +5,10 @@
  */
 package app.xinqianmao.com.frontend.web.controller;
 
+import app.xinqianmao.com.common.annotation.NoAuth;
 import app.xinqianmao.com.common.result.PageResult;
 import app.xinqianmao.com.common.result.Result;
+import app.xinqianmao.com.common.utils.ImageUrlUtil;
 import app.xinqianmao.com.frontend.common.entity.*;
 import app.xinqianmao.com.frontend.common.pojo.BannerResponse;
 import app.xinqianmao.com.frontend.common.pojo.GoodsDetailResponse;
@@ -34,7 +36,9 @@ public class HomeController {
     private final ProductSkuMapper skuMapper;
     private final ProductPropertyMapper propertyMapper;
     private final ProductSpecsMapper specsMapper;
+    private final ImageUrlUtil imageUrlUtil;
 
+    @NoAuth
     @Operation(summary = "获取Banner轮播图")
     @GetMapping("/home/banner")
     public Result<List<BannerResponse>> banners(@RequestParam(defaultValue = "1") Integer distributionSite) {
@@ -46,7 +50,7 @@ public class HomeController {
         for (int i = 0; i < bannerUrls.size(); i++) {
             BannerResponse b = new BannerResponse();
             b.setId("banner-" + (i + 1));
-            b.setImgUrl(bannerUrls.get(i));
+            b.setImgUrl(imageUrlUtil.fullUrl(bannerUrls.get(i)));
             b.setHrefUrl("/pages/product/product?id=xxx");
             b.setType(distributionSite);
             result.add(b);
@@ -54,6 +58,7 @@ public class HomeController {
         return Result.ok(result);
     }
 
+    @NoAuth
     @Operation(summary = "热门推荐商品列表")
     @GetMapping("/home/hot")
     public Result<PageResult<GoodsDetailResponse>> hotProducts(
@@ -80,10 +85,10 @@ public class HomeController {
         r.setDesc(product.getDesc());
         r.setPrice(product.getPrice());
         r.setOldPrice(product.getOldPrice());
-        r.setPicture(product.getPicture());
-        r.setMainPictures(product.getMainPictures() != null ? product.getMainPictures() : List.of());
+        r.setPicture(imageUrlUtil.fullUrl(product.getPicture()));
+        r.setMainPictures(imageUrlUtil.fullUrls(product.getMainPictures()));
 
-        // Details: properties + pictures from detail (treat detail as pictures list)
+        // Details: properties + pictures + detail HTML
         GoodsDetailResponse.DetailInfo details = new GoodsDetailResponse.DetailInfo();
         List<ProductProperty> props = propertyMapper.selectList(
                 new LambdaQueryWrapper<ProductProperty>().eq(ProductProperty::getProductId, product.getId()));
@@ -94,6 +99,7 @@ public class HomeController {
             return pi;
         }).collect(Collectors.toList()));
         details.setPictures(new ArrayList<>());
+        details.setDetail(imageUrlUtil.fullUrlsInHtml(product.getDetail()));
         r.setDetails(details);
 
         // SKUs
@@ -104,7 +110,7 @@ public class HomeController {
             gs.setId(sku.getId());
             gs.setInventory(sku.getInventory());
             gs.setOldPrice(sku.getOldPrice());
-            gs.setPicture(sku.getPicture());
+            gs.setPicture(imageUrlUtil.fullUrl(sku.getPicture()));
             gs.setPrice(sku.getPrice());
             gs.setSkuCode("S" + sku.getId().substring(0, 8));
             gs.setSpecs(parseSpecValues(sku.getSpecs()));

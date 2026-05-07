@@ -99,6 +99,9 @@ CREATE TABLE IF NOT EXISTS t_order (
     total_money NUMERIC(8,2) NOT NULL,
     actual_pay_money NUMERIC(8,2) NOT NULL,
     pay_money NUMERIC(8,2) NOT NULL,
+    delivery_time VARCHAR(255),
+    pay_channel SMALLINT NOT NULL DEFAULT 1,
+    pay_type SMALLINT NOT NULL DEFAULT 1,
     create_time TIMESTAMP NOT NULL DEFAULT now()::timestamp(0),
     modify_time TIMESTAMP
 );

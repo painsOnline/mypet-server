@@ -26,4 +26,7 @@ public class Order extends BaseEntity {
     private BigDecimal totalMoney;
     private BigDecimal actualPayMoney;
     private BigDecimal payMoney;
+    private String deliveryTime;
+    private Integer payChannel;
+    private Integer payType;
 }

@@ -11,6 +11,7 @@ import app.xinqianmao.com.common.exception.BizException;
 import app.xinqianmao.com.common.result.PageResult;
 import app.xinqianmao.com.common.result.Result;
 import app.xinqianmao.com.common.utils.DateTimeUtil;
+import app.xinqianmao.com.common.utils.ImageUrlUtil;
 import app.xinqianmao.com.frontend.common.entity.*;
 import app.xinqianmao.com.frontend.common.pojo.*;
 import app.xinqianmao.com.frontend.dao.*;
@@ -46,6 +47,7 @@ public class MemberOrderController {
     private final ProductMapper productMapper;
     private final ProductSkuMapper skuMapper;
     private final HomeController homeController;
+    private final ImageUrlUtil imageUrlUtil;
 
     @Operation(summary = "获取订单列表")
     @GetMapping
@@ -97,7 +99,7 @@ public class MemberOrderController {
             si.setQuantity(os.getInventory());
             si.setPrice(os.getPrice());
             si.setOldPrice(os.getOldPrice());
-            si.setPicture(os.getPicture());
+            si.setPicture(imageUrlUtil.fullUrl(os.getPicture()));
             return si;
         }).collect(Collectors.toList()));
         resp.setTotalNum(skus.stream().mapToInt(os -> os.getInventory() != null ? os.getInventory() : 0).sum());
@@ -169,7 +171,7 @@ public class MemberOrderController {
             pp.setCount(cart.getCount());
             pp.setPrice(cart.getPrice());
             pp.setPayPrice(cart.getNowPrice());
-            pp.setPicture(cart.getPicture());
+            pp.setPicture(imageUrlUtil.fullUrl(cart.getPicture()));
             BigDecimal itemTotal = cart.getPrice().multiply(BigDecimal.valueOf(cart.getCount()));
             BigDecimal itemPayTotal = cart.getNowPrice().multiply(BigDecimal.valueOf(cart.getCount()));
             pp.setTotalPrice(itemTotal);
@@ -224,7 +226,7 @@ public class MemberOrderController {
         pp.setCount(count);
         pp.setPrice(sku.getPrice());
         pp.setPayPrice(sku.getPrice());
-        pp.setPicture(sku.getPicture());
+        pp.setPicture(imageUrlUtil.fullUrl(sku.getPicture()));
         pp.setTotalPrice(sku.getPrice().multiply(BigDecimal.valueOf(count)));
         pp.setTotalPayPrice(sku.getPrice().multiply(BigDecimal.valueOf(count)));
         resp.setProducts(List.of(pp));
@@ -284,7 +286,7 @@ public class MemberOrderController {
             pp.setCount(ops.getInventory());
             pp.setPrice(ops.getPrice());
             pp.setPayPrice(currentPrice);
-            pp.setPicture(ops.getPicture());
+            pp.setPicture(imageUrlUtil.fullUrl(ops.getPicture()));
             BigDecimal itemTotal = ops.getPrice().multiply(BigDecimal.valueOf(ops.getInventory()));
             BigDecimal itemPayTotal = currentPrice.multiply(BigDecimal.valueOf(ops.getInventory()));
             pp.setTotalPrice(itemTotal);
@@ -364,7 +366,7 @@ public class MemberOrderController {
             ops.setPrice(sku.getPrice());
             ops.setOldPrice(sku.getOldPrice());
             ops.setInventory(pi.getCount());
-            ops.setPicture(sku.getPicture());
+            ops.setPicture(imageUrlUtil.fullUrl(sku.getPicture()));
             ops.setSpecs(sku.getSpecs() != null ? sku.getSpecs() : "[]");
             ops.setCreateTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
             orderSkus.add(ops);
@@ -381,7 +383,7 @@ public class MemberOrderController {
                 op.setPrice(product.getPrice());
                 op.setOldPrice(product.getOldPrice());
                 op.setMainPictures(product.getMainPictures());
-                op.setPicture(product.getPicture());
+                op.setPicture(imageUrlUtil.fullUrl(product.getPicture()));
                 op.setDetail(product.getDetail());
                 op.setSort(product.getSort());
                 op.setCreateTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
@@ -397,6 +399,9 @@ public class MemberOrderController {
         order.setTotalMoney(totalMoney);
         order.setPayMoney(payMoney);
         order.setActualPayMoney(payMoney);
+        order.setDeliveryTime(request.getDeliveryTime());
+        order.setPayChannel(request.getPayChannel() != null ? request.getPayChannel() : 1);
+        order.setPayType(request.getPayType() != null ? request.getPayType() : 1);
         order.setCreateTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
         orderMapper.insert(order);
 
@@ -457,7 +462,7 @@ public class MemberOrderController {
             si.setQuantity(sku.getInventory());
             si.setPrice(sku.getPrice());
             si.setOldPrice(sku.getOldPrice());
-            si.setPicture(sku.getPicture());
+            si.setPicture(imageUrlUtil.fullUrl(sku.getPicture()));
             return si;
         }).collect(Collectors.toList()));
         r.setTotalNum(skus.stream().mapToInt(OrderProductSku::getInventory).sum());

@@ -39,8 +39,11 @@ public class GoodsDetailResponse {
     @Schema(description = "轮播图")
     private List<String> mainPictures;
 
-    @Schema(description = "详情信息")
+    @Schema(description = "详情信息（属性+图片）")
     private DetailInfo details;
+
+    @Schema(description = "商品详情HTML")
+    private String detail;
 
     @Schema(description = "SKU列表")
     private List<SkuItem> skus;
@@ -60,6 +63,9 @@ public class GoodsDetailResponse {
 
         @Schema(description = "详情图片列表")
         private List<String> pictures;
+
+        @Schema(description = "商品详情HTML")
+        private String detail;
     }
 
     /**

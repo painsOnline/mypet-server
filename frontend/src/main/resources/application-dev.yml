@@ -5,6 +5,9 @@ mypet:
     port: 1800
     user: postgres
     password: mypg123abc
+  base-url: http://localhost:8080
+  upload:
+    path: F:/MyWorkspace/project/mypet/uploads
 
 logging:
   level:

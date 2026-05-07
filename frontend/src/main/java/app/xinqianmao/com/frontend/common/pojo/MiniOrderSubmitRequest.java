@@ -22,8 +22,8 @@ public class MiniOrderSubmitRequest {
     @Schema(description = "收货地址ID", example = "1")
     private String addressId;
 
-    @Schema(description = "配送时间：1=不限，2=工作日，3=周末", example = "1")
-    private Integer deliveryTimeType;
+    @Schema(description = "配送时间：不限/工作日/周末")
+    private String deliveryTime;
 
     @Schema(description = "订单备注")
     private String buyerMessage;

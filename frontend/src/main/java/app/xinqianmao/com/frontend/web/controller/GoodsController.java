@@ -5,6 +5,7 @@
  */
 package app.xinqianmao.com.frontend.web.controller;
 
+import app.xinqianmao.com.common.annotation.NoAuth;
 import app.xinqianmao.com.common.exception.BizException;
 import app.xinqianmao.com.common.result.Result;
 import app.xinqianmao.com.frontend.common.entity.Product;
@@ -23,6 +24,7 @@ public class GoodsController {
     private final ProductMapper productMapper;
     private final HomeController homeController;
 
+    @NoAuth
     @Operation(summary = "获取商品详情")
     @GetMapping("/goods")
     public Result<GoodsDetailResponse> detail(@RequestParam String id) {

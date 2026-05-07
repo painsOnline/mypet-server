@@ -5,6 +5,7 @@
  */
 package app.xinqianmao.com.frontend.web.controller;
 
+import app.xinqianmao.com.common.annotation.NoAuth;
 import app.xinqianmao.com.common.result.PageResult;
 import app.xinqianmao.com.common.result.Result;
 import app.xinqianmao.com.frontend.common.entity.Product;
@@ -33,6 +34,7 @@ public class CategoryController {
     private final ProductMapper productMapper;
     private final HomeController homeController;
 
+    @NoAuth
     @Operation(summary = "获取一级分类")
     @GetMapping("/list")
     public Result<List<ProductCategory>> listAll() {
@@ -40,6 +42,7 @@ public class CategoryController {
                 new LambdaQueryWrapper<ProductCategory>().orderByAsc(ProductCategory::getSort)));
     }
 
+    @NoAuth
     @Operation(summary = "分类商品列表")
     @GetMapping("/product/list")
     public Result<PageResult<GoodsDetailResponse>> productsByCategory(

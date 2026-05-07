@@ -1,0 +1,113 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] --------------------< app.xinqianmao.com:frontend >---------------------
+[INFO] Building frontend 1.0.0-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+Downloading from bigdata-snapshot: https://nexus.mypaas.com.cn/repository/bigdata-maven-host-snapshot/app/xinqianmao/com/common/1.0.0-SNAPSHOT/maven-metadata.xml
+Downloading from bigdata-released: https://nexus.mypaas.com.cn/repository/bigdata-maven-host-relased/app/xinqianmao/com/common/1.0.0-SNAPSHOT/maven-metadata.xml
+[WARNING] Could not transfer metadata app.xinqianmao.com:common:1.0.0-SNAPSHOT/maven-metadata.xml from/to bigdata-released (https://nexus.mypaas.com.cn/repository/bigdata-maven-host-relased/): Connect to nexus.mypaas.com.cn:443 [nexus.mypaas.com.cn/139.9.43.187] failed: Connect timed out
+[WARNING] Could not transfer metadata app.xinqianmao.com:common:1.0.0-SNAPSHOT/maven-metadata.xml from/to bigdata-snapshot (https://nexus.mypaas.com.cn/repository/bigdata-maven-host-snapshot/): Connect to nexus.mypaas.com.cn:443 [nexus.mypaas.com.cn/139.9.43.187] failed: Connect timed out
+[WARNING] app.xinqianmao.com:common:1.0.0-SNAPSHOT/maven-metadata.xml failed to transfer from https://nexus.mypaas.com.cn/repository/bigdata-maven-host-relased/ during a previous attempt. This failure was cached in the local repository and resolution will not be reattempted until the update interval of bigdata-released has elapsed or updates are forced. Original error: Could not transfer metadata app.xinqianmao.com:common:1.0.0-SNAPSHOT/maven-metadata.xml from/to bigdata-released (https://nexus.mypaas.com.cn/repository/bigdata-maven-host-relased/): Connect to nexus.mypaas.com.cn:443 [nexus.mypaas.com.cn/139.9.43.187] failed: Connect timed out
+[WARNING] app.xinqianmao.com:common:1.0.0-SNAPSHOT/maven-metadata.xml failed to transfer from https://nexus.mypaas.com.cn/repository/bigdata-maven-host-snapshot/ during a previous attempt. This failure was cached in the local repository and resolution will not be reattempted until the update interval of bigdata-snapshot has elapsed or updates are forced. Original error: Could not transfer metadata app.xinqianmao.com:common:1.0.0-SNAPSHOT/maven-metadata.xml from/to bigdata-snapshot (https://nexus.mypaas.com.cn/repository/bigdata-maven-host-snapshot/): Connect to nexus.mypaas.com.cn:443 [nexus.mypaas.com.cn/139.9.43.187] failed: Connect timed out
+Downloading from bigdata-released: https://nexus.mypaas.com.cn/repository/bigdata-maven-host-relased/app/xinqianmao/com/mypet-server/1.0.0-SNAPSHOT/maven-metadata.xml
+Downloading from bigdata-snapshot: https://nexus.mypaas.com.cn/repository/bigdata-maven-host-snapshot/app/xinqianmao/com/mypet-server/1.0.0-SNAPSHOT/maven-metadata.xml
+[WARNING] Could not transfer metadata app.xinqianmao.com:mypet-server:1.0.0-SNAPSHOT/maven-metadata.xml from/to bigdata-released (https://nexus.mypaas.com.cn/repository/bigdata-maven-host-relased/): Connect to nexus.mypaas.com.cn:443 [nexus.mypaas.com.cn/139.9.43.187] failed: Connect timed out
+[WARNING] Could not transfer metadata app.xinqianmao.com:mypet-server:1.0.0-SNAPSHOT/maven-metadata.xml from/to bigdata-snapshot (https://nexus.mypaas.com.cn/repository/bigdata-maven-host-snapshot/): Connect to nexus.mypaas.com.cn:443 [nexus.mypaas.com.cn/139.9.43.187] failed: Connect timed out
+[INFO] 
+[INFO] --- resources:3.4.0:resources (default-resources) @ frontend ---
+[INFO] Copying 3 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ frontend ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.4.0:testResources (default-testResources) @ frontend ---
+[INFO] Copying 1 resource from src\test\resources to target\test-classes
+[INFO] 
+[INFO] --- compiler:3.13.0:testCompile (default-testCompile) @ frontend ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- surefire:3.5.2:test (default-test) @ frontend ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running app.xinqianmao.com.frontend.FullFlowTest
+[OK] Database exists: mypet_config
+[OK] Database exists: mypet_empty
+[OK] Database exists: mypet_xlong
+[DbInit] Running F:/MyWorkspace/project/mypet/java/mypet-server/sql/init-config.sql on jdbc:postgresql://127.0.0.1:1800/mypet_config
+[DbInit] Done F:/MyWorkspace/project/mypet/java/mypet-server/sql/init-config.sql: 4 statements executed
+[DbInit] Running F:/MyWorkspace/project/mypet/java/mypet-server/sql/init-empty.sql on jdbc:postgresql://127.0.0.1:1800/mypet_empty
+[DbInit] Done F:/MyWorkspace/project/mypet/java/mypet-server/sql/init-empty.sql: 27 statements executed
+[DbInit] Running F:/MyWorkspace/project/mypet/java/mypet-server/sql/init-empty.sql on jdbc:postgresql://127.0.0.1:1800/mypet_xlong
+[DbInit] Done F:/MyWorkspace/project/mypet/java/mypet-server/sql/init-empty.sql: 27 statements executed
+[MIG] OK: ALTER TABLE t_product ADD COLUMN IF NOT EXISTS is_enable SMALLINT NOT NULL DEFAU...
+[MIG] OK: ALTER TABLE t_product ADD COLUMN IF NOT EXISTS is_enable SMALLINT NOT NULL DEFAU...
+[DbInit] All databases initialized (existing data preserved)
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v3.4.1)
+
+2026-05-07T09:47:11.638+08:00  INFO 23488 --- [mypet-frontend-test] [           main] a.xinqianmao.com.frontend.FullFlowTest   : Starting FullFlowTest using Java 21.0.11 with PID 23488 (started by 91461 in F:\MyWorkspace\project\mypet\java\mypet-server\frontend)
+2026-05-07T09:47:11.647+08:00 DEBUG 23488 --- [mypet-frontend-test] [           main] a.xinqianmao.com.frontend.FullFlowTest   : Running with Spring Boot v3.4.1, Spring v6.2.1
+2026-05-07T09:47:11.649+08:00  INFO 23488 --- [mypet-frontend-test] [           main] a.xinqianmao.com.frontend.FullFlowTest   : No active profile set, falling back to 1 default profile: "default"
+2026-05-07T09:47:15.268+08:00  INFO 23488 --- [mypet-frontend-test] [           main] a.x.c.c.dao.TenantDataSourceManager      : Config DataSource initialized: mypet_config
+ _ _   |_  _ _|_. ___ _ |    _ 
+| | |\/|_)(_| | |_\  |_)||_|_\ 
+     /               |         
+                        3.5.9 
+2026-05-07T09:47:16.159+08:00  WARN 23488 --- [mypet-frontend-test] [           main] c.b.m.core.metadata.TableInfoHelper      : Can not find table primary key in Class: "app.xinqianmao.com.frontend.common.entity.Shop".
+2026-05-07T09:47:16.165+08:00  WARN 23488 --- [mypet-frontend-test] [           main] c.b.m.core.injector.DefaultSqlInjector   : class app.xinqianmao.com.frontend.common.entity.Shop ,Not found @TableId annotation, Cannot use Mybatis-Plus 'xxById' Method.
+2026-05-07T09:47:16.184+08:00  WARN 23488 --- [mypet-frontend-test] [           main] c.b.m.core.metadata.TableInfoHelper      : Can not find table primary key in Class: "app.xinqianmao.com.frontend.common.entity.HotProduct".
+2026-05-07T09:47:16.184+08:00  WARN 23488 --- [mypet-frontend-test] [           main] c.b.m.core.injector.DefaultSqlInjector   : class app.xinqianmao.com.frontend.common.entity.HotProduct ,Not found @TableId annotation, Cannot use Mybatis-Plus 'xxById' Method.
+2026-05-07T09:47:16.457+08:00  WARN 23488 --- [mypet-frontend-test] [           main] c.b.m.core.metadata.TableInfoHelper      : Can not find table primary key in Class: "app.xinqianmao.com.frontend.common.entity.OrderProduct".
+2026-05-07T09:47:16.457+08:00  WARN 23488 --- [mypet-frontend-test] [           main] c.b.m.core.injector.DefaultSqlInjector   : class app.xinqianmao.com.frontend.common.entity.OrderProduct ,Not found @TableId annotation, Cannot use Mybatis-Plus 'xxById' Method.
+2026-05-07T09:47:16.480+08:00  WARN 23488 --- [mypet-frontend-test] [           main] c.b.m.core.metadata.TableInfoHelper      : Can not find table primary key in Class: "app.xinqianmao.com.frontend.common.entity.OrderProductSku".
+2026-05-07T09:47:16.480+08:00  WARN 23488 --- [mypet-frontend-test] [           main] c.b.m.core.injector.DefaultSqlInjector   : class app.xinqianmao.com.frontend.common.entity.OrderProductSku ,Not found @TableId annotation, Cannot use Mybatis-Plus 'xxById' Method.
+2026-05-07T09:47:17.678+08:00  INFO 23488 --- [mypet-frontend-test] [           main] a.xinqianmao.com.frontend.FullFlowTest   : Started FullFlowTest in 6.908 seconds (process running for 9.752)
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build what is described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (D:\maven\repo\net\bytebuddy\byte-buddy-agent\1.15.11\byte-buddy-agent-1.15.11.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+2026-05-07T09:47:18.946+08:00 DEBUG 23488 --- [mypet-frontend-test] [           main] a.x.com.common.dao.DynamicDataSource     : DynamicDataSource routing to: xlong
+2026-05-07T09:47:18.947+08:00  INFO 23488 --- [mypet-frontend-test] [           main] a.x.com.common.dao.DynamicDataSource     : Creating DataSource for tenant: xlong
+2026-05-07T09:47:19.005+08:00  INFO 23488 --- [mypet-frontend-test] [           main] a.x.c.c.dao.TenantDataSourceManager      : Tenant database 'mypet_xlong' already exists
+2026-05-07T09:47:19.034+08:00 DEBUG 23488 --- [mypet-frontend-test] [           main] a.x.c.f.dao.MemberMapper.selectList      : ==>  Preparing: SELECT id,account,mobile,avatar,nickname,create_time,modify_time FROM t_member ORDER BY create_time ASC
+2026-05-07T09:47:19.051+08:00 DEBUG 23488 --- [mypet-frontend-test] [           main] a.x.c.f.dao.MemberMapper.selectList      : ==> Parameters: 
+2026-05-07T09:47:19.078+08:00 DEBUG 23488 --- [mypet-frontend-test] [           main] a.x.c.f.dao.MemberMapper.selectList      : <==      Total: 30
+Members: 4b3cb39267ed4a928b4e964e4c840273     / 5c0ef5021f264be78258e7495b66621d     / 7dca5519e30342538b81404640357050    
+2026-05-07T09:47:19.221+08:00 DEBUG 23488 --- [mypet-frontend-test] [           main] a.x.com.common.dao.DynamicDataSource     : DynamicDataSource routing to: xlong
+2026-05-07T09:47:19.222+08:00 DEBUG 23488 --- [mypet-frontend-test] [           main] a.x.c.f.dao.ProductMapper.selectList     : ==>  Preparing: SELECT id,product_type,product_category,name,"desc",price,old_price,main_pictures,picture,detail,sort,is_enable,create_time,modify_time FROM t_product WHERE (is_enable = ?)
+2026-05-07T09:47:19.223+08:00 DEBUG 23488 --- [mypet-frontend-test] [           main] a.x.c.f.dao.ProductMapper.selectList     : ==> Parameters: 1(Integer)
+2026-05-07T09:47:19.238+08:00 DEBUG 23488 --- [mypet-frontend-test] [           main] a.x.c.f.dao.ProductMapper.selectList     : <==      Total: 4
+2026-05-07T09:47:19.239+08:00 DEBUG 23488 --- [mypet-frontend-test] [           main] a.x.com.common.dao.DynamicDataSource     : DynamicDataSource routing to: xlong
+2026-05-07T09:47:19.239+08:00 DEBUG 23488 --- [mypet-frontend-test] [           main] a.x.c.f.dao.ProductSkuMapper.selectList  : ==>  Preparing: SELECT id,product_id,product_type,price,old_price,inventory,picture,specs,create_time,modify_time FROM t_product_sku WHERE (product_id = ?)
+2026-05-07T09:47:19.240+08:00 DEBUG 23488 --- [mypet-frontend-test] [           main] a.x.c.f.dao.ProductSkuMapper.selectList  : ==> Parameters: 64b594c0fa76502211db2804230773d3    (String)
+2026-05-07T09:47:19.248+08:00 DEBUG 23488 --- [mypet-frontend-test] [           main] a.x.c.f.dao.ProductSkuMapper.selectList  : <==      Total: 1
+2026-05-07T09:47:19.250+08:00 DEBUG 23488 --- [mypet-frontend-test] [           main] a.x.com.common.dao.DynamicDataSource     : DynamicDataSource routing to: xlong
+2026-05-07T09:47:19.250+08:00 DEBUG 23488 --- [mypet-frontend-test] [           main] a.x.c.f.dao.ProductSkuMapper.selectList  : ==>  Preparing: SELECT id,product_id,product_type,price,old_price,inventory,picture,specs,create_time,modify_time FROM t_product_sku WHERE (product_id = ?)
+2026-05-07T09:47:19.250+08:00 DEBUG 23488 --- [mypet-frontend-test] [           main] a.x.c.f.dao.ProductSkuMapper.selectList  : ==> Parameters: 582ef1dc2f2d32e078f11138b094135e    (String)
+2026-05-07T09:47:19.252+08:00 DEBUG 23488 --- [mypet-frontend-test] [           main] a.x.c.f.dao.ProductSkuMapper.selectList  : <==      Total: 4
+Products: ÄÝ¿ÉÂ¶»ìºÏÅòÈóÍÁ¶¹¸¯Ã¨É°É±¾ú³ý³ô1.5Kg (SKU:be870061194c25c4f5d851230dda489c    ) / ÂóµÑ¸£¾«Æ·½ø¿Ú¸ßÆ·ÖÊ¸ßµ°°×Í¨ÓÃÃ¨Á¸ (SKU:679ca869e932879cb0322e117c16ed16    )
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 10.10 s -- in app.xinqianmao.com.frontend.FullFlowTest
+[INFO] 
+[INFO] Results:
+[INFO] 
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  39.405 s
+[INFO] Finished at: 2026-05-07T09:47:19+08:00
+[INFO] ------------------------------------------------------------------------

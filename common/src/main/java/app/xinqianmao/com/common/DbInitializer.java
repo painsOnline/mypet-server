@@ -119,6 +119,9 @@ public final class DbInitializer {
         List<String> emptyAndTenant = List.of("mypet_empty", "mypet_xlong");
         for (String dbName : emptyAndTenant) {
             executeMigration(BASE_URL + dbName, "ALTER TABLE t_product ADD COLUMN IF NOT EXISTS is_enable SMALLINT NOT NULL DEFAULT 1");
+            executeMigration(BASE_URL + dbName, "ALTER TABLE t_order ADD COLUMN IF NOT EXISTS delivery_time VARCHAR(255)");
+            executeMigration(BASE_URL + dbName, "ALTER TABLE t_order ADD COLUMN IF NOT EXISTS pay_channel SMALLINT NOT NULL DEFAULT 1");
+            executeMigration(BASE_URL + dbName, "ALTER TABLE t_order ADD COLUMN IF NOT EXISTS pay_type SMALLINT NOT NULL DEFAULT 1");
         }
     }
 

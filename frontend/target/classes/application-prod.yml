@@ -5,6 +5,9 @@ mypet:
     port: ${DB_PORT:1800}
     user: ${DB_USER:postgres}
     password: ${DB_PASSWORD:mypg123abc}
+  base-url: ${BASE_URL:https://app.xinqianmao.com}
+  upload:
+    path: ${UPLOAD_PATH:/data/mypet/uploads}
 
 logging:
   level:
