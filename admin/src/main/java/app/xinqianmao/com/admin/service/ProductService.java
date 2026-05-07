@@ -342,7 +342,7 @@ public class ProductService {
             hp.setCreateTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
             hotProductMapper.insert(hp);
         } else {
-            hotProductMapper.deleteById(existing.get(0).getProductId());
+            hotProductMapper.delete(new LambdaQueryWrapper<HotProduct>().eq(HotProduct::getProductId, productId));
         }
     }
 

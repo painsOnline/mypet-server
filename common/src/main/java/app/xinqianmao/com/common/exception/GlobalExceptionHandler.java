@@ -12,6 +12,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 /**
  * Global exception handler for all controllers.
@@ -36,6 +37,13 @@ public class GlobalExceptionHandler {
                 .orElse("Invalid argument");
         log.warn("Validation error: {}", msg);
         return Result.error("400", msg);
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    @ResponseStatus(HttpStatus.OK)
+    public Result<Void> handleMaxUploadSize(MaxUploadSizeExceededException e) {
+        log.warn("Upload size exceeded: {}", e.getMessage());
+        return Result.error("413", "上传文件过大，单个文件最大1MB");
     }
 
     @ExceptionHandler(Exception.class)

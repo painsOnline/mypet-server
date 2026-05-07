@@ -72,7 +72,9 @@ public class HomeController {
         }
         Page<Product> p = Page.of(page, pageSize);
         IPage<Product> productPage = productMapper.selectPage(p,
-                new LambdaQueryWrapper<Product>().in(Product::getId, productIds));
+                new LambdaQueryWrapper<Product>()
+                        .in(Product::getId, productIds)
+                        .eq(Product::getIsEnable, 1));
         List<GoodsDetailResponse> items = productPage.getRecords().stream()
                 .map(this::buildGoodsDetail).collect(Collectors.toList());
         return Result.ok(PageResult.of(items, productPage.getTotal(), page, productPage.getPages(), pageSize));
