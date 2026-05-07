@@ -60,6 +60,7 @@ app\xinqianmao\com\frontend\common\pojo\CancelRequest.class
 app\xinqianmao\com\frontend\common\pojo\CartSyncRequest.class
 app\xinqianmao\com\frontend\common\pojo\PreOrderResponse$Summary.class
 app\xinqianmao\com\frontend\common\pojo\SubmitRequest.class
+app\xinqianmao\com\frontend\web\controller\SearchController.class
 app\xinqianmao\com\frontend\common\entity\ProductSku.class
 app\xinqianmao\com\frontend\web\controller\MemberOrderController.class
 app\xinqianmao\com\frontend\common\pojo\MiniOrderListResponse.class

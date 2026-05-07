@@ -32,7 +32,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
     /** API path patterns that require tenant + auth headers */
     private static final String[] PROTECTED_PATHS = {
-            "/admin/**", "/member/**", "/home/**", "/category/**", "/goods/**"
+            "/admin/**", "/member/**", "/home/**", "/category/**", "/goods/**", "/search/**"
     };
 
     /** Login paths excluded from auth */
