@@ -27,7 +27,7 @@ class CategoryTest extends BaseFrontendTest {
     @BeforeEach
     void ensureCategoryData() throws Exception {
         // First try to get an existing category
-        var result = mockMvc.perform(memberGetNoAuth("/category/list"))
+        var result = mockMvc.perform(memberGetNoAuth("/frontend/category/list"))
                 .andExpect(status().isOk()).andReturn();
 
         String resultJson = extractResult(result);
@@ -43,7 +43,7 @@ class CategoryTest extends BaseFrontendTest {
     @Order(1)
     @DisplayName("List all categories")
     void listCategories() throws Exception {
-        mockMvc.perform(memberGetNoAuth("/category/list"))
+        mockMvc.perform(memberGetNoAuth("/frontend/category/list"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value("200"))
                 .andExpect(jsonPath("$.result").isArray());
@@ -55,7 +55,7 @@ class CategoryTest extends BaseFrontendTest {
     void productsByCategory() throws Exception {
         if (existingCategoryId == null) return;
 
-        mockMvc.perform(memberGetNoAuth("/category/product/list?id=" + existingCategoryId + "&page=1&pageSize=6"))
+        mockMvc.perform(memberGetNoAuth("/frontend/category/product/list?id=" + existingCategoryId + "&page=1&pageSize=6"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value("200"))
                 .andExpect(jsonPath("$.result.items").isArray());
@@ -67,7 +67,7 @@ class CategoryTest extends BaseFrontendTest {
     void productsByCategoryWithPage() throws Exception {
         if (existingCategoryId == null) return;
 
-        mockMvc.perform(memberGetNoAuth("/category/product/list?id=" + existingCategoryId + "&page=1&pageSize=3"))
+        mockMvc.perform(memberGetNoAuth("/frontend/category/product/list?id=" + existingCategoryId + "&page=1&pageSize=3"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.result.pageSize").value(3));
     }
@@ -76,7 +76,7 @@ class CategoryTest extends BaseFrontendTest {
     @Order(4)
     @DisplayName("Missing category id parameter")
     void missingCategoryId() throws Exception {
-        mockMvc.perform(memberGetNoAuth("/category/product/list?page=1&pageSize=6"))
+        mockMvc.perform(memberGetNoAuth("/frontend/category/product/list?page=1&pageSize=6"))
                 .andExpect(status().isBadRequest());
     }
 }

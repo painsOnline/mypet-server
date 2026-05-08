@@ -29,7 +29,7 @@ import java.util.List;
 
 @Tag(name = "用户登录", description = "小程序用户登录接口")
 @RestController
-@RequestMapping("/member/login")
+@RequestMapping("/frontend/member/login")
 @RequiredArgsConstructor
 public class MemberLoginController {
 

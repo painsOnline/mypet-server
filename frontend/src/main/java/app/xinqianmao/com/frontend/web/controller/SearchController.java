@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 
 @Tag(name = "搜索", description = "商品全文搜索")
 @RestController
-@RequestMapping("/search")
+@RequestMapping("/frontend/search")
 @RequiredArgsConstructor
 public class SearchController {
 

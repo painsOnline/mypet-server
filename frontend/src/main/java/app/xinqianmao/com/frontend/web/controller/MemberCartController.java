@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
 
 @Tag(name = "购物车", description = "用户购物车管理")
 @RestController
-@RequestMapping("/member/cart")
+@RequestMapping("/frontend/member/cart")
 @RequiredArgsConstructor
 public class MemberCartController {
 

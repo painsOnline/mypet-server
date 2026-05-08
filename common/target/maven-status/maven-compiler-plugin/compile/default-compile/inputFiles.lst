@@ -13,9 +13,11 @@ F:\MyWorkspace\project\mypet\java\mypet-server\common\src\main\java\app\xinqianm
 F:\MyWorkspace\project\mypet\java\mypet-server\common\src\main\java\app\xinqianmao\com\common\dao\MyBatisPlusConfig.java
 F:\MyWorkspace\project\mypet\java\mypet-server\common\src\main\java\app\xinqianmao\com\common\dao\TenantBaseMapper.java
 F:\MyWorkspace\project\mypet\java\mypet-server\common\src\main\java\app\xinqianmao\com\common\dao\TenantDataSourceManager.java
+F:\MyWorkspace\project\mypet\java\mypet-server\common\src\main\java\app\xinqianmao\com\common\dao\TenantMapper.java
 F:\MyWorkspace\project\mypet\java\mypet-server\common\src\main\java\app\xinqianmao\com\common\dao\TypeHandlerConfig.java
 F:\MyWorkspace\project\mypet\java\mypet-server\common\src\main\java\app\xinqianmao\com\common\DbInitializer.java
 F:\MyWorkspace\project\mypet\java\mypet-server\common\src\main\java\app\xinqianmao\com\common\entity\BaseEntity.java
+F:\MyWorkspace\project\mypet\java\mypet-server\common\src\main\java\app\xinqianmao\com\common\entity\Tenant.java
 F:\MyWorkspace\project\mypet\java\mypet-server\common\src\main\java\app\xinqianmao\com\common\enums\OrderStatusEnum.java
 F:\MyWorkspace\project\mypet\java\mypet-server\common\src\main\java\app\xinqianmao\com\common\enums\OrderTypeEnum.java
 F:\MyWorkspace\project\mypet\java\mypet-server\common\src\main\java\app\xinqianmao\com\common\enums\SpecInputTypeEnum.java

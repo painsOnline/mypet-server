@@ -8,6 +8,7 @@ package app.xinqianmao.com.admin.service;
 import app.xinqianmao.com.admin.common.entity.ProductSpecs;
 import app.xinqianmao.com.admin.common.pojo.SpecsSaveRequest;
 import app.xinqianmao.com.admin.dao.ProductSpecsMapper;
+import app.xinqianmao.com.admin.dao.ProductMapper;
 import app.xinqianmao.com.common.exception.BizException;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +25,7 @@ import java.util.List;
 public class SpecsService {
 
     private final ProductSpecsMapper specsMapper;
+    private final ProductMapper productMapper;
 
     public List<ProductSpecs> listByType(String typeId) {
         return specsMapper.selectList(
@@ -82,6 +84,11 @@ public class SpecsService {
             long skuCount = countSkuSpecsByType(spec.getProductType());
             if (skuCount <= 1) {
                 throw new BizException("400", "每个商品类型至少需要一个SKU规格，无法删除该默认规格");
+            }
+            // Prevent deleting SKU spec if type already has products
+            long productCount = productMapper.countByTypeId(spec.getProductType());
+            if (productCount > 0) {
+                throw new BizException("400", "该类型下已有商品，无法删除SKU规格");
             }
         }
 

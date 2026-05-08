@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
 
 @Tag(name = "订单", description = "用户订单管理")
 @RestController
-@RequestMapping("/member/order")
+@RequestMapping("/frontend/member/order")
 @RequiredArgsConstructor
 public class MemberOrderController {
 

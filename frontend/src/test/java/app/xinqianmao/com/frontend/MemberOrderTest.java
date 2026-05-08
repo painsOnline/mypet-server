@@ -42,7 +42,7 @@ class MemberOrderTest extends BaseFrontendTest {
 
     private void loginTestMember() throws Exception {
         var req = mapOf("phoneNumber", TEST_MEMBER_PHONE);
-        var result = mockMvc.perform(memberPostNoAuth("/member/login/wxMin/simple", req))
+        var result = mockMvc.perform(memberPostNoAuth("/frontend/member/login/wxMin/simple", req))
                 .andExpect(status().isOk()).andReturn();
         String resultJson = extractResult(result);
         var resp = fromJson(resultJson, new TypeReference<Map<String, Object>>() {});
@@ -60,7 +60,7 @@ class MemberOrderTest extends BaseFrontendTest {
                 "address", "星河丹堤花园F区2栋3023",
                 "isDefault", 1);
 
-        var result = mockMvc.perform(memberPost("/member/address", req, testMemberToken))
+        var result = mockMvc.perform(memberPost("/frontend/member/address", req, testMemberToken))
                 .andExpect(status().isOk()).andReturn();
         String resultJson = extractResult(result);
         var resp = fromJson(resultJson, new TypeReference<Map<String, Object>>() {});
@@ -78,7 +78,7 @@ class MemberOrderTest extends BaseFrontendTest {
         // Use admin endpoint to create test data
         // Since we are testing the frontend, we need existing product data
         // Check if we can get products from hot list
-        var result = mockMvc.perform(memberGetNoAuth("/home/hot?page=1&pageSize=1"))
+        var result = mockMvc.perform(memberGetNoAuth("/frontend/home/hot?page=1&pageSize=1"))
                 .andExpect(status().isOk()).andReturn();
 
         String resultJson = extractResult(result);
@@ -111,7 +111,7 @@ class MemberOrderTest extends BaseFrontendTest {
             // Skip if no test products
             return;
         }
-        mockMvc.perform(memberGet("/member/order/pre/now?skuId=" + skuId + "&count=2&addressId=" + receiverId,
+        mockMvc.perform(memberGet("/frontend/member/order/pre/now?skuId=" + skuId + "&count=2&addressId=" + receiverId,
                         testMemberToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value("200"))
@@ -142,12 +142,12 @@ class MemberOrderTest extends BaseFrontendTest {
                 "attrsText", "规格：2.5Kg/袋",
                 "isEffective", true);
 
-        mockMvc.perform(memberPut("/member/cart", List.of(cartItem), testMemberToken))
+        mockMvc.perform(memberPut("/frontend/member/cart", List.of(cartItem), testMemberToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value("200"));
 
         // Get pre-order from cart
-        mockMvc.perform(memberGet("/member/order/pre", testMemberToken))
+        mockMvc.perform(memberGet("/frontend/member/order/pre", testMemberToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value("200"))
                 .andExpect(jsonPath("$.result.products").isArray())
@@ -177,7 +177,7 @@ class MemberOrderTest extends BaseFrontendTest {
                 "selected", true,
                 "attrsText", "规格：2.5Kg/袋",
                 "isEffective", true);
-        mockMvc.perform(memberPut("/member/cart", List.of(cartItem), testMemberToken))
+        mockMvc.perform(memberPut("/frontend/member/cart", List.of(cartItem), testMemberToken))
                 .andExpect(status().isOk());
 
         var submitReq = mapOf(
@@ -189,7 +189,7 @@ class MemberOrderTest extends BaseFrontendTest {
                 "payChannel", 1,
                 "payType", 1);
 
-        var result = mockMvc.perform(memberPost("/member/order", submitReq, testMemberToken))
+        var result = mockMvc.perform(memberPost("/frontend/member/order", submitReq, testMemberToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value("200"))
                 .andExpect(jsonPath("$.result.id").exists())
@@ -207,7 +207,7 @@ class MemberOrderTest extends BaseFrontendTest {
     @Order(4)
     @DisplayName("List all orders with pagination")
     void listOrders() throws Exception {
-        mockMvc.perform(memberGet("/member/order?page=1&pageSize=5&orderState=0", testMemberToken))
+        mockMvc.perform(memberGet("/frontend/member/order?page=1&pageSize=5&orderState=0", testMemberToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value("200"))
                 .andExpect(jsonPath("$.result.items").isArray());
@@ -217,7 +217,7 @@ class MemberOrderTest extends BaseFrontendTest {
     @Order(5)
     @DisplayName("Filter orders by status = 1 (pending)")
     void listPendingOrders() throws Exception {
-        mockMvc.perform(memberGet("/member/order?page=1&pageSize=5&orderState=1", testMemberToken))
+        mockMvc.perform(memberGet("/frontend/member/order?page=1&pageSize=5&orderState=1", testMemberToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value("200"));
     }
@@ -229,7 +229,7 @@ class MemberOrderTest extends BaseFrontendTest {
     @DisplayName("Get order detail")
     void getOrderDetail() throws Exception {
         if (orderId == null) return;
-        mockMvc.perform(memberGet("/member/order/" + orderId, testMemberToken))
+        mockMvc.perform(memberGet("/frontend/member/order/" + orderId, testMemberToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value("200"))
                 .andExpect(jsonPath("$.result.id").value(orderId));
@@ -244,7 +244,7 @@ class MemberOrderTest extends BaseFrontendTest {
         if (orderId == null) return;
         var cancelReq = mapOf("cancelReason", "不想要了");
 
-        mockMvc.perform(memberPut("/member/order/" + orderId + "/cancel", cancelReq, testMemberToken))
+        mockMvc.perform(memberPut("/frontend/member/order/" + orderId + "/cancel", cancelReq, testMemberToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value("200"))
                 .andExpect(jsonPath("$.result.orderState").value(5));
@@ -257,7 +257,7 @@ class MemberOrderTest extends BaseFrontendTest {
     @DisplayName("Delete cancelled order")
     void deleteOrder() throws Exception {
         if (orderId == null) return;
-        mockMvc.perform(memberDelete("/member/order/" + orderId, testMemberToken))
+        mockMvc.perform(memberDelete("/frontend/member/order/" + orderId, testMemberToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value("200"))
                 .andExpect(jsonPath("$.result").value(true));
@@ -278,7 +278,7 @@ class MemberOrderTest extends BaseFrontendTest {
                 "count", 1, "price", BigDecimal.valueOf(128.00),
                 "nowPrice", BigDecimal.valueOf(99.00), "stock", 80,
                 "selected", true, "attrsText", "规格：2.5Kg/袋", "isEffective", true);
-        mockMvc.perform(memberPut("/member/cart", List.of(cartItem), testMemberToken))
+        mockMvc.perform(memberPut("/frontend/member/cart", List.of(cartItem), testMemberToken))
                 .andExpect(status().isOk());
 
         // Submit
@@ -288,7 +288,7 @@ class MemberOrderTest extends BaseFrontendTest {
                 "products", List.of(mapOf("skuId", skuId, "count", 1)),
                 "payChannel", 1, "payType", 1);
 
-        var submitResult = mockMvc.perform(memberPost("/member/order", submitReq, testMemberToken))
+        var submitResult = mockMvc.perform(memberPost("/frontend/member/order", submitReq, testMemberToken))
                 .andExpect(status().isOk()).andReturn();
         String newOrderId = (String) fromJson(extractResult(submitResult),
                 new TypeReference<Map<String, Object>>() {}).get("id");
@@ -302,7 +302,7 @@ class MemberOrderTest extends BaseFrontendTest {
         Assertions.assertNotNull(newOrderId);
 
         // Get the order detail to verify
-        mockMvc.perform(memberGet("/member/order/" + newOrderId, testMemberToken))
+        mockMvc.perform(memberGet("/frontend/member/order/" + newOrderId, testMemberToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.result.orderState").value(1));
     }

@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 
 @Tag(name = "首页", description = "首页Banner和热门推荐")
 @RestController
+@RequestMapping("/frontend")
 @RequiredArgsConstructor
 public class HomeController {
 

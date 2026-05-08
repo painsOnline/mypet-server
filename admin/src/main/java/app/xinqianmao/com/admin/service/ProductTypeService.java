@@ -12,16 +12,15 @@ import app.xinqianmao.com.admin.common.pojo.TypeWithSpecsResponse;
 import app.xinqianmao.com.admin.dao.ProductTypeMapper;
 import app.xinqianmao.com.admin.dao.ProductSpecsMapper;
 import app.xinqianmao.com.admin.dao.ProductMapper;
+import app.xinqianmao.com.admin.dao.ProductSkuMapper;
 import app.xinqianmao.com.common.exception.BizException;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -30,6 +29,7 @@ public class ProductTypeService {
     private final ProductTypeMapper typeMapper;
     private final ProductSpecsMapper specsMapper;
     private final ProductMapper productMapper;
+    private final ProductSkuMapper skuMapper;
 
     public List<TypeWithSpecsResponse> listAllWithSpecs() {
         List<ProductType> types = typeMapper.selectList(
@@ -49,7 +49,30 @@ public class ProductTypeService {
         return types.stream()
                 .map(t -> {
                     long count = productMapper.countByTypeId(t.getId());
-                    return TypeWithSpecsResponse.from(t, specsByType.getOrDefault(t.getId(), List.of()), count);
+                    List<ProductSpecs> specs = specsByType.getOrDefault(t.getId(), List.of());
+
+                    // Populate usedOptions for SKU specs that have products
+                    if (count > 0) {
+                        // Build map: specName → set of used valueNames from existing SKUs
+                        List<Map<String, Object>> usedRows = skuMapper.findUsedSpecValuesByType(t.getId());
+                        Map<String, Set<String>> usedBySpec = new HashMap<>();
+                        for (Map<String, Object> row : usedRows) {
+                            String specName = (String) row.get("specname");
+                            String valueName = (String) row.get("valuename");
+                            if (specName != null && valueName != null) {
+                                usedBySpec.computeIfAbsent(specName, k -> new HashSet<>()).add(valueName);
+                            }
+                        }
+                        // Set usedOptions on each SKU spec
+                        for (ProductSpecs spec : specs) {
+                            if (spec.getType() == 1) {
+                                Set<String> used = usedBySpec.get(spec.getName());
+                                spec.setUsedOptions(used != null ? new ArrayList<>(used) : List.of());
+                            }
+                        }
+                    }
+
+                    return TypeWithSpecsResponse.from(t, specs, count);
                 })
                 .toList();
     }

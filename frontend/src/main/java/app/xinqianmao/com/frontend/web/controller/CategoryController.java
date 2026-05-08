@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 
 @Tag(name = "分类", description = "商品分类浏览")
 @RestController
-@RequestMapping("/category")
+@RequestMapping("/frontend/category")
 @RequiredArgsConstructor
 public class CategoryController {
 

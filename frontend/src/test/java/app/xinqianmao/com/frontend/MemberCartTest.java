@@ -27,7 +27,7 @@ class MemberCartTest extends BaseFrontendTest {
     void ensureLogin() throws Exception {
         if (testMemberId == null) {
             var req = mapOf("phoneNumber", TEST_MEMBER_PHONE);
-            var result = mockMvc.perform(memberPostNoAuth("/member/login/wxMin/simple", req))
+            var result = mockMvc.perform(memberPostNoAuth("/frontend/member/login/wxMin/simple", req))
                     .andExpect(status().isOk()).andReturn();
             var resp = fromJson(extractResult(result), new TypeReference<Map<String, Object>>() {});
             testMemberId = (String) resp.get("id");
@@ -39,7 +39,7 @@ class MemberCartTest extends BaseFrontendTest {
     @Order(1)
     @DisplayName("Get empty cart initially")
     void getEmptyCart() throws Exception {
-        mockMvc.perform(memberGet("/member/cart", testMemberToken))
+        mockMvc.perform(memberGet("/frontend/member/cart", testMemberToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value("200"))
                 .andExpect(jsonPath("$.result").isArray());
@@ -75,13 +75,13 @@ class MemberCartTest extends BaseFrontendTest {
                         "attrsText", "口味：鸡肉味",
                         "isEffective", true));
 
-        mockMvc.perform(memberPut("/member/cart", items, testMemberToken))
+        mockMvc.perform(memberPut("/frontend/member/cart", items, testMemberToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value("200"))
                 .andExpect(jsonPath("$.result").value(true));
 
         // Verify cart
-        mockMvc.perform(memberGet("/member/cart", testMemberToken))
+        mockMvc.perform(memberGet("/frontend/member/cart", testMemberToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.result.length()").value(2));
     }
@@ -90,11 +90,11 @@ class MemberCartTest extends BaseFrontendTest {
     @Order(3)
     @DisplayName("Sync cart to empty clears all items")
     void syncEmptyCart() throws Exception {
-        mockMvc.perform(memberPut("/member/cart", List.of(), testMemberToken))
+        mockMvc.perform(memberPut("/frontend/member/cart", List.of(), testMemberToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.result").value(true));
 
-        mockMvc.perform(memberGet("/member/cart", testMemberToken))
+        mockMvc.perform(memberGet("/frontend/member/cart", testMemberToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.result").isArray());
         // Note: result length may still be > 0 if other test data persists

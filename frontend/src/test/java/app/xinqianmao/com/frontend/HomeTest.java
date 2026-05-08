@@ -22,7 +22,7 @@ class HomeTest extends BaseFrontendTest {
     @Order(1)
     @DisplayName("Get banner with default distribution site")
     void getBanner() throws Exception {
-        mockMvc.perform(memberGetNoAuth("/home/banner"))
+        mockMvc.perform(memberGetNoAuth("/frontend/home/banner"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value("200"))
                 .andExpect(jsonPath("$.result").isArray());
@@ -32,7 +32,7 @@ class HomeTest extends BaseFrontendTest {
     @Order(2)
     @DisplayName("Get banner with distributionSite=2")
     void getBannerType2() throws Exception {
-        mockMvc.perform(memberGetNoAuth("/home/banner?distributionSite=2"))
+        mockMvc.perform(memberGetNoAuth("/frontend/home/banner?distributionSite=2"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value("200"));
     }
@@ -41,7 +41,7 @@ class HomeTest extends BaseFrontendTest {
     @Order(3)
     @DisplayName("Get hot products with default pagination")
     void getHotProducts() throws Exception {
-        mockMvc.perform(memberGetNoAuth("/home/hot"))
+        mockMvc.perform(memberGetNoAuth("/frontend/home/hot"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value("200"))
                 .andExpect(jsonPath("$.result").exists());
@@ -51,7 +51,7 @@ class HomeTest extends BaseFrontendTest {
     @Order(4)
     @DisplayName("Get hot products with page and pageSize")
     void getHotProductsWithPagination() throws Exception {
-        mockMvc.perform(memberGetNoAuth("/home/hot?page=1&pageSize=3"))
+        mockMvc.perform(memberGetNoAuth("/frontend/home/hot?page=1&pageSize=3"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value("200"))
                 .andExpect(jsonPath("$.result.page").value(1))
@@ -62,7 +62,7 @@ class HomeTest extends BaseFrontendTest {
     @Order(5)
     @DisplayName("Home endpoints require tenant header")
     void missingTenantHeader() throws Exception {
-        mockMvc.perform(memberGetNoAuth("/home/banner"))
+        mockMvc.perform(memberGetNoAuth("/frontend/home/banner"))
                 .andExpect(status().isBadRequest());
     }
 }

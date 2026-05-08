@@ -3,7 +3,7 @@
  * Author: system
  * Date: 2026-05-04
  *
- * Product/goods detail test.
+ * Product/frontend/goods detail test.
  */
 package app.xinqianmao.com.frontend;
 
@@ -23,7 +23,7 @@ class GoodsTest extends BaseFrontendTest {
     @DisplayName("Get product detail by id")
     void getProductDetail() throws Exception {
         // Use a known non-existent ID first to test 404
-        mockMvc.perform(memberGetNoAuth("/goods?id=non-existent-id"))
+        mockMvc.perform(memberGetNoAuth("/frontend/goods?id=non-existent-id"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value("404"));
     }
@@ -32,7 +32,7 @@ class GoodsTest extends BaseFrontendTest {
     @Order(2)
     @DisplayName("Missing id parameter returns 400")
     void missingId() throws Exception {
-        mockMvc.perform(memberGetNoAuth("/goods"))
+        mockMvc.perform(memberGetNoAuth("/frontend/goods"))
                 .andExpect(status().isBadRequest());
     }
 }

@@ -196,7 +196,7 @@ class FullFlowTest {
                 headers.set("Tenant", TENANT);
                 headers.set("Authorization", "Bearer " + token);
 
-                ResponseEntity<Map> resp = rt.exchange(baseUrl + "/member/address",
+                ResponseEntity<Map> resp = rt.exchange(baseUrl + "/frontend/member/address",
                         HttpMethod.POST, new HttpEntity<>(addr, headers), Map.class);
 
                 assertEquals("200", String.valueOf(resp.getBody().get("code")),
@@ -228,7 +228,7 @@ class FullFlowTest {
         String baseUrl = "http://localhost:" + port;
         RestTemplate rt = new RestTemplate();
 
-        // Step 2a: Add items to cart via PUT /member/cart (full replacement)
+        // Step 2a: Add items to cart via PUT /frontend/member/cart (full replacement)
         List<Map<String, Object>> cartItems = new ArrayList<>();
 
         Map<String, Object> item1 = new LinkedHashMap<>();
@@ -256,7 +256,7 @@ class FullFlowTest {
         headers.set("Tenant", TENANT);
         headers.set("Authorization", "Bearer " + member1Token);
 
-        ResponseEntity<Map> cartResp = rt.exchange(baseUrl + "/member/cart",
+        ResponseEntity<Map> cartResp = rt.exchange(baseUrl + "/frontend/member/cart",
                 HttpMethod.PUT, new HttpEntity<>(cartItems, headers), Map.class);
         assertEquals("200", String.valueOf(cartResp.getBody().get("code")));
         System.out.println("[Member1] Cart updated with 2 items");
@@ -268,8 +268,8 @@ class FullFlowTest {
             assertEquals(2, cart.size(), "Member1 should have 2 cart items");
         } finally { TenantContext.clear(); }
 
-        // Step 2b: Pre-order from cart (GET /member/order/pre)
-        ResponseEntity<Map> preResp = rt.exchange(baseUrl + "/member/order/pre",
+        // Step 2b: Pre-order from cart (GET /frontend/member/order/pre)
+        ResponseEntity<Map> preResp = rt.exchange(baseUrl + "/frontend/member/order/pre",
                 HttpMethod.GET, new HttpEntity<>(null, headers), Map.class);
         assertEquals("200", String.valueOf(preResp.getBody().get("code")));
         System.out.println("[Member1] Pre-order OK");
@@ -288,7 +288,7 @@ class FullFlowTest {
         products.add(op2);
         orderReq.put("products", products);
 
-        ResponseEntity<Map> orderResp = rt.exchange(baseUrl + "/member/order",
+        ResponseEntity<Map> orderResp = rt.exchange(baseUrl + "/frontend/member/order",
                 HttpMethod.POST, new HttpEntity<>(orderReq, headers), Map.class);
         assertEquals("200", String.valueOf(orderResp.getBody().get("code")));
         Map<String, Object> orderResult = (Map<String, Object>) orderResp.getBody().get("result");
@@ -353,7 +353,7 @@ class FullFlowTest {
         headers.set("Tenant", TENANT);
         headers.set("Authorization", "Bearer " + member2Token);
 
-        ResponseEntity<Map> cartResp = rt.exchange(baseUrl + "/member/cart",
+        ResponseEntity<Map> cartResp = rt.exchange(baseUrl + "/frontend/member/cart",
                 HttpMethod.PUT, new HttpEntity<>(cartItems, headers), Map.class);
         assertEquals("200", String.valueOf(cartResp.getBody().get("code")));
         System.out.println("[Member2] Cart updated");
@@ -368,7 +368,7 @@ class FullFlowTest {
         products.add(op);
         orderReq.put("products", products);
 
-        ResponseEntity<Map> orderResp = rt.exchange(baseUrl + "/member/order",
+        ResponseEntity<Map> orderResp = rt.exchange(baseUrl + "/frontend/member/order",
                 HttpMethod.POST, new HttpEntity<>(orderReq, headers), Map.class);
         assertEquals("200", String.valueOf(orderResp.getBody().get("code")));
         order2Id = (String) ((Map<String, Object>) orderResp.getBody().get("result")).get("id");
@@ -404,7 +404,7 @@ class FullFlowTest {
 
         // Pre-order now (direct buy)
         ResponseEntity<Map> preResp = rt.exchange(
-                baseUrl + "/member/order/pre/now?skuId=" + product2SkuId + "&count=1",
+                baseUrl + "/frontend/member/order/pre/now?skuId=" + product2SkuId + "&count=1",
                 HttpMethod.GET, new HttpEntity<>(null, headers), Map.class);
         assertEquals("200", String.valueOf(preResp.getBody().get("code")));
         System.out.println("[Member3] Pre-order now OK");
@@ -419,7 +419,7 @@ class FullFlowTest {
         products.add(op);
         orderReq.put("products", products);
 
-        ResponseEntity<Map> orderResp = rt.exchange(baseUrl + "/member/order",
+        ResponseEntity<Map> orderResp = rt.exchange(baseUrl + "/frontend/member/order",
                 HttpMethod.POST, new HttpEntity<>(orderReq, headers), Map.class);
         assertEquals("200", String.valueOf(orderResp.getBody().get("code")));
         order3Id = (String) ((Map<String, Object>) orderResp.getBody().get("result")).get("id");

@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 
 @Tag(name = "地址管理", description = "用户收货地址管理")
 @RestController
-@RequestMapping("/member/address")
+@RequestMapping("/frontend/member/address")
 @RequiredArgsConstructor
 public class MemberAddressController {
 

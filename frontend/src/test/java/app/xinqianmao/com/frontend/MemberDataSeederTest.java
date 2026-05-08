@@ -56,7 +56,7 @@ class MemberDataSeederTest extends BaseFrontendTest {
             SimpleLoginRequest req = new SimpleLoginRequest();
             req.setPhoneNumber(phoneNumber);
 
-            var result = mockMvc.perform(memberPostNoAuth("/member/login/wxMin/simple", req))
+            var result = mockMvc.perform(memberPostNoAuth("/frontend/member/login/wxMin/simple", req))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.code").value("200"))
                     .andExpect(jsonPath("$.result.token").exists())
@@ -119,7 +119,7 @@ class MemberDataSeederTest extends BaseFrontendTest {
             SimpleLoginRequest req = new SimpleLoginRequest();
             req.setPhoneNumber(mobile);
 
-            var result = mockMvc.perform(memberPostNoAuth("/member/login/wxMin/simple", req))
+            var result = mockMvc.perform(memberPostNoAuth("/frontend/member/login/wxMin/simple", req))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.code").value("200"))
                     .andExpect(jsonPath("$.result.mobile").value(mobile))
@@ -149,7 +149,7 @@ class MemberDataSeederTest extends BaseFrontendTest {
         req.setAccount("brandnewuser99");
         req.setPassword("test");
 
-        var result = mockMvc.perform(memberPostNoAuth("/member/login", req))
+        var result = mockMvc.perform(memberPostNoAuth("/frontend/member/login", req))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value("200"))
                 .andExpect(jsonPath("$.result.token").exists())

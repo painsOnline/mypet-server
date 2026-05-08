@@ -23,8 +23,10 @@ app\xinqianmao\com\common\web\TenantInterceptor.class
 app\xinqianmao\com\common\enums\SpecInputTypeEnum.class
 app\xinqianmao\com\common\web\WebMvcConfig.class
 app\xinqianmao\com\common\dao\ConfigBaseMapper.class
+app\xinqianmao\com\common\dao\TenantMapper.class
 app\xinqianmao\com\common\exception\GlobalExceptionHandler.class
 app\xinqianmao\com\common\auth\JwtUtil.class
+app\xinqianmao\com\common\entity\Tenant.class
 app\xinqianmao\com\common\utils\ImageUrlUtil.class
 app\xinqianmao\com\common\dao\TenantBaseMapper.class
 app\xinqianmao\com\common\entity\BaseEntity.class

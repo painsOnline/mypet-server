@@ -116,6 +116,15 @@ public final class DbInitializer {
     // All must be idempotent (use IF NOT EXISTS / IF EXISTS where possible).
 
     private static void runMigrations() {
+        // Config DB migrations
+        executeMigration(BASE_URL + "mypet_config",
+                "ALTER TABLE c_tenant ADD COLUMN IF NOT EXISTS code VARCHAR(255)");
+        executeMigration(BASE_URL + "mypet_config",
+                "ALTER TABLE c_tenant ADD COLUMN IF NOT EXISTS name VARCHAR(255)");
+        executeMigration(BASE_URL + "mypet_config",
+                "UPDATE c_tenant SET code = 'xlong', name = 'xlong宠物社区私域' WHERE id = '00000000-0000-0000-0000-000000000010' AND code IS NULL");
+
+        // Tenant DB migrations
         List<String> emptyAndTenant = List.of("mypet_empty", "mypet_xlong");
         for (String dbName : emptyAndTenant) {
             executeMigration(BASE_URL + dbName, "ALTER TABLE t_product ADD COLUMN IF NOT EXISTS is_enable SMALLINT NOT NULL DEFAULT 1");

@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "商品", description = "商品详情")
 @RestController
+@RequestMapping("/frontend")
 @RequiredArgsConstructor
 public class GoodsController {
 

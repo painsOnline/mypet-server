@@ -26,7 +26,7 @@ class MemberLoginTest extends BaseFrontendTest {
         SimpleLoginRequest req = new SimpleLoginRequest();
         req.setPhoneNumber(TEST_MEMBER_PHONE);
 
-        var result = mockMvc.perform(memberPostNoAuth("/member/login/wxMin/simple", req))
+        var result = mockMvc.perform(memberPostNoAuth("/frontend/member/login/wxMin/simple", req))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value("200"))
                 .andExpect(jsonPath("$.result.token").exists())
@@ -48,7 +48,7 @@ class MemberLoginTest extends BaseFrontendTest {
         SimpleLoginRequest req = new SimpleLoginRequest();
         req.setPhoneNumber(TEST_MEMBER_PHONE);
 
-        mockMvc.perform(memberPostNoAuth("/member/login/wxMin/simple", req))
+        mockMvc.perform(memberPostNoAuth("/frontend/member/login/wxMin/simple", req))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.result.mobile").value(TEST_MEMBER_PHONE));
     }
@@ -61,7 +61,7 @@ class MemberLoginTest extends BaseFrontendTest {
         req.setAccount("13900001111");
         req.setPassword("test");
 
-        mockMvc.perform(memberPostNoAuth("/member/login", req))
+        mockMvc.perform(memberPostNoAuth("/frontend/member/login", req))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value("200"))
                 .andExpect(jsonPath("$.result.token").exists())
@@ -73,7 +73,7 @@ class MemberLoginTest extends BaseFrontendTest {
     @DisplayName("Auth-required endpoint without token should return 401")
     void missingAuth() throws Exception {
         mockMvc.perform(
-                get("/member/cart")
+                get("/frontend/member/cart")
                         .header("Tenant", TENANT_CODE))
                 .andExpect(status().isUnauthorized());
     }

@@ -31,4 +31,8 @@ public class ProductSpecs extends BaseEntity {
     @TableField("\"desc\"")
     private String desc;
     private Integer sort;
+
+    /** Transient: option values already referenced by existing SKUs (non-persistent) */
+    @TableField(exist = false)
+    private List<String> usedOptions;
 }

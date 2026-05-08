@@ -54,10 +54,40 @@ public class TenantDataSourceManager {
 
     /**
      * Get or create DataSource for a tenant.
-     * On first access, clones mypet_empty to create the tenant DB if it doesn't exist.
+     * Validates tenant code against c_tenant, then creates/clones the tenant DB.
      */
     public DataSource getOrCreateTenantDataSource(String tenantCode) {
+        // Validate tenant exists and is not disabled
+        lookupTenant(tenantCode);
         return dataSourceCache.computeIfAbsent(tenantCode, this::createTenantDataSource);
+    }
+
+    /**
+     * Look up tenant by code from c_tenant in config DB.
+     * Validates the tenant exists and is not disabled.
+     */
+    private void lookupTenant(String tenantCode) {
+        String sql = "SELECT code, name, is_disable FROM c_tenant WHERE code = '" +
+                tenantCode.replace("'", "''") + "'";
+        try (Connection conn = configDataSource.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            if (rs.next()) {
+                int disabled = rs.getInt("is_disable");
+                if (disabled == 1) {
+                    throw new RuntimeException("Tenant '" + tenantCode + "' has been disabled");
+                }
+                log.info("Tenant '{}' ({}) validated", tenantCode, rs.getString("name"));
+            } else {
+                throw new RuntimeException("Unknown tenant: '" + tenantCode +
+                        "'. Please check the Tenant header.");
+            }
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Failed to look up tenant '{}'", tenantCode, e);
+            throw new RuntimeException("Cannot validate tenant: " + tenantCode, e);
+        }
     }
 
     private DruidDataSource createTenantDataSource(String tenantCode) {

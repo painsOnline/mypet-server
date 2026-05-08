@@ -28,7 +28,7 @@ class MemberAddressTest extends BaseFrontendTest {
     void ensureLogin() throws Exception {
         if (testMemberId == null) {
             var req = mapOf("phoneNumber", TEST_MEMBER_PHONE);
-            var result = mockMvc.perform(memberPostNoAuth("/member/login/wxMin/simple", req))
+            var result = mockMvc.perform(memberPostNoAuth("/frontend/member/login/wxMin/simple", req))
                     .andExpect(status().isOk()).andReturn();
             var resp = fromJson(extractResult(result), new TypeReference<Map<String, Object>>() {});
             testMemberId = (String) resp.get("id");
@@ -40,7 +40,7 @@ class MemberAddressTest extends BaseFrontendTest {
     @Order(1)
     @DisplayName("List all addresses (may be empty initially)")
     void listAddresses() throws Exception {
-        mockMvc.perform(memberGet("/member/address", testMemberToken))
+        mockMvc.perform(memberGet("/frontend/member/address", testMemberToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value("200"))
                 .andExpect(jsonPath("$.result").isArray());
@@ -59,7 +59,7 @@ class MemberAddressTest extends BaseFrontendTest {
                 "address", "星河丹堤花园F区2栋3023",
                 "isDefault", 1);
 
-        var result = mockMvc.perform(memberPost("/member/address", req, testMemberToken))
+        var result = mockMvc.perform(memberPost("/frontend/member/address", req, testMemberToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value("200"))
                 .andExpect(jsonPath("$.result.id").exists())
@@ -76,7 +76,7 @@ class MemberAddressTest extends BaseFrontendTest {
     @Order(3)
     @DisplayName("Get address detail")
     void getAddressDetail() throws Exception {
-        mockMvc.perform(memberGet("/member/address/" + addressId, testMemberToken))
+        mockMvc.perform(memberGet("/frontend/member/address/" + addressId, testMemberToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.result.id").value(addressId))
                 .andExpect(jsonPath("$.result.receiver").value("曹某人"));
@@ -95,7 +95,7 @@ class MemberAddressTest extends BaseFrontendTest {
                 "address", "朝阳公园路1号",
                 "isDefault", 0);
 
-        mockMvc.perform(memberPut("/member/address/" + addressId, req, testMemberToken))
+        mockMvc.perform(memberPut("/frontend/member/address/" + addressId, req, testMemberToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.result.receiver").value("李某人"))
                 .andExpect(jsonPath("$.result.contact").value("13812345678"));
@@ -105,13 +105,13 @@ class MemberAddressTest extends BaseFrontendTest {
     @Order(5)
     @DisplayName("Delete address")
     void deleteAddress() throws Exception {
-        mockMvc.perform(memberDelete("/member/address/" + addressId, testMemberToken))
+        mockMvc.perform(memberDelete("/frontend/member/address/" + addressId, testMemberToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value("200"))
                 .andExpect(jsonPath("$.result").value(addressId));
 
         // Verify deleted - get detail should fail
-        mockMvc.perform(memberGet("/member/address/" + addressId, testMemberToken))
+        mockMvc.perform(memberGet("/frontend/member/address/" + addressId, testMemberToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value("404"));
     }
