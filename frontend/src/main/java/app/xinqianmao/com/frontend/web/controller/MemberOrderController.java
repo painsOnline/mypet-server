@@ -188,7 +188,8 @@ public class MemberOrderController {
         resp.setSummary(summary);
 
         // Addresses
-        List<Receiver> receivers = receiverMapper.selectList(new LambdaQueryWrapper<>());
+        List<Receiver> receivers = receiverMapper.selectList(
+                new LambdaQueryWrapper<Receiver>().eq(Receiver::getMemberId, UserContext.getRequiredUserId()));
         resp.setUserAddresses(receivers.stream().map(r -> {
             AddressResponse ar = new AddressResponse();
             ar.setId(r.getId());
@@ -237,7 +238,8 @@ public class MemberOrderController {
         summary.setTotalPayPrice(sku.getPrice().multiply(BigDecimal.valueOf(count)));
         resp.setSummary(summary);
 
-        List<Receiver> receivers = receiverMapper.selectList(new LambdaQueryWrapper<>());
+        List<Receiver> receivers = receiverMapper.selectList(
+                new LambdaQueryWrapper<Receiver>().eq(Receiver::getMemberId, UserContext.getRequiredUserId()));
         resp.setUserAddresses(receivers.stream().map(r -> {
             AddressResponse ar = new AddressResponse();
             ar.setId(r.getId());
@@ -302,7 +304,8 @@ public class MemberOrderController {
         summary.setTotalPayPrice(totalPayPrice);
         resp.setSummary(summary);
 
-        List<Receiver> receivers = receiverMapper.selectList(new LambdaQueryWrapper<>());
+        List<Receiver> receivers = receiverMapper.selectList(
+                new LambdaQueryWrapper<Receiver>().eq(Receiver::getMemberId, UserContext.getRequiredUserId()));
         resp.setUserAddresses(receivers.stream().map(r -> {
             AddressResponse ar = new AddressResponse();
             ar.setId(r.getId());
@@ -325,9 +328,13 @@ public class MemberOrderController {
     @PostMapping
     @Transactional
     public Result<MiniOrderSubmitResponse> submit(@Valid @RequestBody MiniOrderSubmitRequest request) {
-        // Validate address
+        // Validate address exists and belongs to current user
         Receiver receiver = receiverMapper.selectById(request.getAddressId());
         if (receiver == null) throw new BizException("400", "收货地址不存在");
+        String memberId = UserContext.getRequiredUserId();
+        if (!memberId.equals(receiver.getMemberId())) {
+            throw new BizException("400", "收货地址不属于当前用户");
+        }
 
         // Build order from request products
         List<Cart> selectedCarts = cartMapper.selectList(

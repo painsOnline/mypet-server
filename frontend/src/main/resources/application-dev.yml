@@ -1,4 +1,8 @@
 # 开发环境配置
+wechat:
+  app-id: ${WECHAT_APP_ID:}      # 微信小程序 AppID（开发/生产共用真实值）
+  secret: ${WECHAT_SECRET:}       # 微信小程序 Secret
+
 mypet:
   db:
     host: 127.0.0.1

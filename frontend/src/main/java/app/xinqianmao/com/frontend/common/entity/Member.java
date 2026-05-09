@@ -14,6 +14,7 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 @TableName("t_member")
 public class Member extends BaseEntity {
+    private String openid;
     private String account;
     private String mobile;
     private String avatar;

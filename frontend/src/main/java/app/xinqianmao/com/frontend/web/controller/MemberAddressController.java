@@ -5,6 +5,7 @@
  */
 package app.xinqianmao.com.frontend.web.controller;
 
+import app.xinqianmao.com.common.auth.UserContext;
 import app.xinqianmao.com.common.exception.BizException;
 import app.xinqianmao.com.common.result.Result;
 import app.xinqianmao.com.common.utils.DateTimeUtil;
@@ -31,19 +32,25 @@ public class MemberAddressController {
 
     private final ReceiverMapper receiverMapper;
 
-    @Operation(summary = "获取用户所有地址")
+    private String currentMemberId() {
+        return UserContext.getRequiredUserId();
+    }
+
+    @Operation(summary = "获取当前用户所有地址")
     @GetMapping
     public Result<List<AddressResponse>> listAll() {
+        String memberId = currentMemberId();
         List<Receiver> list = receiverMapper.selectList(
-                new LambdaQueryWrapper<Receiver>().orderByDesc(Receiver::getIsDefault));
+                new LambdaQueryWrapper<Receiver>()
+                        .eq(Receiver::getMemberId, memberId)
+                        .orderByDesc(Receiver::getIsDefault));
         return Result.ok(list.stream().map(this::toResponse).collect(Collectors.toList()));
     }
 
     @Operation(summary = "获取单个地址")
     @GetMapping("/{id}")
     public Result<AddressResponse> detail(@PathVariable String id) {
-        Receiver r = receiverMapper.selectById(id);
-        if (r == null) throw new BizException("404", "地址不存在");
+        Receiver r = getOwnedAddress(id);
         return Result.ok(toResponse(r));
     }
 
@@ -51,6 +58,7 @@ public class MemberAddressController {
     @PostMapping
     public Result<AddressResponse> create(@Valid @RequestBody AddressSaveRequest request) {
         Receiver r = new Receiver();
+        r.setMemberId(currentMemberId());
         r.setReceiver(request.getReceiver());
         r.setContact(request.getContact());
         r.setProvinceCode(request.getProvinceCode());
@@ -66,8 +74,7 @@ public class MemberAddressController {
     @Operation(summary = "修改收货地址")
     @PutMapping("/{id}")
     public Result<AddressResponse> update(@PathVariable String id, @Valid @RequestBody AddressSaveRequest request) {
-        Receiver r = receiverMapper.selectById(id);
-        if (r == null) throw new BizException("404", "地址不存在");
+        Receiver r = getOwnedAddress(id);
         r.setReceiver(request.getReceiver());
         r.setContact(request.getContact());
         r.setProvinceCode(request.getProvinceCode());
@@ -83,8 +90,21 @@ public class MemberAddressController {
     @Operation(summary = "删除收货地址")
     @DeleteMapping("/{id}")
     public Result<String> delete(@PathVariable String id) {
+        getOwnedAddress(id);
         receiverMapper.deleteById(id);
         return Result.ok(id);
+    }
+
+    /**
+     * 获取地址并校验归属当前用户，非本人地址返回 404。
+     */
+    private Receiver getOwnedAddress(String id) {
+        Receiver r = receiverMapper.selectById(id);
+        if (r == null) throw new BizException("404", "地址不存在");
+        if (!currentMemberId().equals(r.getMemberId())) {
+            throw new BizException("404", "地址不存在");
+        }
+        return r;
     }
 
     private AddressResponse toResponse(Receiver r) {

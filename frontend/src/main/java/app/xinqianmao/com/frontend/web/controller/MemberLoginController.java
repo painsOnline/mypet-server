@@ -12,21 +12,21 @@ import app.xinqianmao.com.common.result.Result;
 import app.xinqianmao.com.common.utils.DateTimeUtil;
 import app.xinqianmao.com.common.utils.UUIDUtil;
 import app.xinqianmao.com.frontend.common.entity.Member;
-import app.xinqianmao.com.frontend.common.pojo.AccountLoginRequest;
 import app.xinqianmao.com.frontend.common.pojo.MemberLoginResponse;
-import app.xinqianmao.com.frontend.common.pojo.SimpleLoginRequest;
 import app.xinqianmao.com.frontend.common.pojo.WxLoginRequest;
 import app.xinqianmao.com.frontend.dao.MemberMapper;
+import app.xinqianmao.com.frontend.service.WechatService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Slf4j
 @Tag(name = "用户登录", description = "小程序用户登录接口")
 @RestController
 @RequestMapping("/frontend/member/login")
@@ -35,59 +35,45 @@ public class MemberLoginController {
 
     private final MemberMapper memberMapper;
     private final JwtUtil jwtUtil;
+    private final WechatService wechatService;
 
     @NoAuth
-    @Operation(summary = "微信授权登录")
-    @PostMapping("/wxMin")
-    public Result<MemberLoginResponse> wxLogin(@RequestBody WxLoginRequest request) {
-        // Dev mode: use encryptedData phone number or mock
-        Member member = findOrCreateMember("13800000000");
+    @Operation(summary = "微信快速登录",
+            description = "wx.login() code 换 openid，openid 为唯一标识完成登录/注册")
+    @PostMapping("/wxMin/quick")
+    public Result<MemberLoginResponse> quickLogin(@RequestBody WxLoginRequest request) {
+        String openid = resolveOpenid(request.getCode());
+        Member member = findOrCreateByOpenid(openid);
         return Result.ok(buildLoginResponse(member));
     }
 
-    @NoAuth
-    @Operation(summary = "内测版快捷登录", description = "开发阶段直接用手机号登录")
-    @PostMapping("/wxMin/simple")
-    public Result<MemberLoginResponse> simpleLogin(@Valid @RequestBody SimpleLoginRequest request) {
-        Member member = findOrCreateMember(request.getPhoneNumber());
-        return Result.ok(buildLoginResponse(member));
+    private String resolveOpenid(String code) {
+        if (code != null && !code.isBlank()) {
+            WechatService.WechatSession session = wechatService.code2Session(code);
+            if (session != null && session.openid != null && !session.openid.isBlank()) {
+                return session.openid;
+            }
+        }
+        throw new RuntimeException("微信登录失败：无法获取 openid，请检查 wechat.app-id / wechat.secret 配置是否正确");
     }
 
-    @NoAuth
-    @Operation(summary = "账号密码登录")
-    @PostMapping
-    public Result<MemberLoginResponse> accountLogin(@Valid @RequestBody AccountLoginRequest request) {
-        List<Member> members = memberMapper.selectList(
-                new LambdaQueryWrapper<Member>().eq(Member::getAccount, request.getAccount()));
-        if (members.isEmpty()) {
-            Member member = new Member();
-            member.setId(UUIDUtil.uuid());
-            member.setAccount(request.getAccount());
-            member.setMobile(request.getAccount());
-            member.setAvatar("");
-            member.setNickname("用户" + (request.getAccount().length() > 4 ? request.getAccount().substring(request.getAccount().length() - 4) : request.getAccount()));
-            member.setCreateTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
-            memberMapper.insert(member);
-            return Result.ok(buildLoginResponse(member));
+    private Member findOrCreateByOpenid(String openid) {
+        if (openid != null && !openid.isBlank()) {
+            List<Member> byOpenid = memberMapper.selectList(
+                    new LambdaQueryWrapper<Member>().eq(Member::getOpenid, openid));
+            if (!byOpenid.isEmpty()) return byOpenid.get(0);
         }
-        return Result.ok(buildLoginResponse(members.get(0)));
-    }
-
-    private Member findOrCreateMember(String phoneNumber) {
-        List<Member> members = memberMapper.selectList(
-                new LambdaQueryWrapper<Member>().eq(Member::getMobile, phoneNumber));
-        if (members.isEmpty()) {
-            Member member = new Member();
-            member.setId(UUIDUtil.uuid());
-            member.setAccount(phoneNumber);
-            member.setMobile(phoneNumber);
-            member.setAvatar("");
-            member.setNickname("用户" + (phoneNumber.length() > 4 ? phoneNumber.substring(phoneNumber.length() - 4) : phoneNumber));
-            member.setCreateTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
-            memberMapper.insert(member);
-            return member;
-        }
-        return members.get(0);
+        String uid = UUIDUtil.uuid().substring(0, 8);
+        Member member = new Member();
+        member.setId(UUIDUtil.uuid());
+        member.setOpenid(openid);
+        member.setAccount(uid);
+        member.setMobile("");
+        member.setAvatar("");
+        member.setNickname("用户" + uid.substring(uid.length() - 4));
+        member.setCreateTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
+        memberMapper.insert(member);
+        return member;
     }
 
     private MemberLoginResponse buildLoginResponse(Member member) {

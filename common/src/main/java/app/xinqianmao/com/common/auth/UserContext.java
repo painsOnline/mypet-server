@@ -28,6 +28,17 @@ public final class UserContext {
         return info != null ? info.getUserId() : null;
     }
 
+    /**
+     * Get userId or throw — for endpoints that require login.
+     */
+    public static String getRequiredUserId() {
+        String userId = getUserId();
+        if (userId == null) {
+            throw new RuntimeException("未登录");
+        }
+        return userId;
+    }
+
     public static String getTenantCode() {
         UserAuthInfo info = get();
         return info != null ? info.getTenantCode() : null;

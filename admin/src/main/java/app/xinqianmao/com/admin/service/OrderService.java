@@ -73,9 +73,9 @@ public class OrderService {
             if (end != null) wrapper.le(Order::getCreateTime, end);
         }
         if (req.getUserPhone() != null && !req.getUserPhone().isBlank()) {
-            // Join with receiver or member to filter by phone
-            // For simplicity, filter by receiver contact
-            wrapper.exists("SELECT 1 FROM t_order_receiver r WHERE r.order_id = t_order.id AND r.contact LIKE '%" + req.getUserPhone() + "%'");
+            // 参数化查询：用 CONCAT 拼 LIKE 避免 SQL 注入
+            wrapper.apply("EXISTS (SELECT 1 FROM t_order_receiver r WHERE r.order_id = t_order.id AND r.contact LIKE CONCAT('%', {0}, '%'))",
+                    req.getUserPhone().replaceAll("[%_]", "\\\\$0"));
         }
 
         // Sort

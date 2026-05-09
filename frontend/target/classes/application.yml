@@ -14,6 +14,15 @@ jwt:
   secret: mypet-jwt-secret-key-2026-minimum-32chars!!
   expiration: 86400000
 
+wechat:
+  app-id: ${WECHAT_APP_ID:}
+  secret: ${WECHAT_SECRET:}
+
+# 上传文件路径（开发环境默认值）
+mypet:
+  upload:
+    path: ${UPLOAD_PATH:F:/MyWorkspace/project/mypet/uploads}
+
 springdoc:
   api-docs:
     path: /api-docs

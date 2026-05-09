@@ -147,6 +147,7 @@ CREATE INDEX IF NOT EXISTS idx_ops_order ON t_order_product_skus(order_id);
 -- 10. Member (mini-program user)
 CREATE TABLE IF NOT EXISTS t_member (
     id CHAR(36) PRIMARY KEY,
+    openid VARCHAR(100),
     account VARCHAR(100) NOT NULL,
     mobile VARCHAR(100) NOT NULL,
     avatar VARCHAR(255) NOT NULL DEFAULT '',
@@ -155,10 +156,12 @@ CREATE TABLE IF NOT EXISTS t_member (
     modify_time TIMESTAMP
 );
 CREATE INDEX IF NOT EXISTS idx_member_mobile ON t_member(mobile);
+CREATE INDEX IF NOT EXISTS idx_member_openid ON t_member(openid);
 
 -- 11. Receiver Address
 CREATE TABLE IF NOT EXISTS t_receiver (
     id CHAR(36) PRIMARY KEY,
+    member_id CHAR(36) NOT NULL,
     receiver VARCHAR(100) NOT NULL,
     contact VARCHAR(100) NOT NULL,
     province_code VARCHAR(100) NOT NULL,
@@ -169,6 +172,7 @@ CREATE TABLE IF NOT EXISTS t_receiver (
     create_time TIMESTAMP NOT NULL DEFAULT now()::timestamp(0),
     modify_time TIMESTAMP
 );
+CREATE INDEX IF NOT EXISTS idx_receiver_member ON t_receiver(member_id);
 
 -- 12. Cart
 CREATE TABLE IF NOT EXISTS t_cart (

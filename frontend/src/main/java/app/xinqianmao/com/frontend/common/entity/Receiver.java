@@ -14,6 +14,7 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 @TableName("t_receiver")
 public class Receiver extends BaseEntity {
+    private String memberId;
     private String receiver;
     private String contact;
     private String provinceCode;

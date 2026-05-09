@@ -12,7 +12,6 @@ F:\MyWorkspace\project\mypet\java\mypet-server\frontend\src\main\java\app\xinqia
 F:\MyWorkspace\project\mypet\java\mypet-server\frontend\src\main\java\app\xinqianmao\com\frontend\common\entity\ProductSpecs.java
 F:\MyWorkspace\project\mypet\java\mypet-server\frontend\src\main\java\app\xinqianmao\com\frontend\common\entity\Receiver.java
 F:\MyWorkspace\project\mypet\java\mypet-server\frontend\src\main\java\app\xinqianmao\com\frontend\common\entity\Shop.java
-F:\MyWorkspace\project\mypet\java\mypet-server\frontend\src\main\java\app\xinqianmao\com\frontend\common\pojo\AccountLoginRequest.java
 F:\MyWorkspace\project\mypet\java\mypet-server\frontend\src\main\java\app\xinqianmao\com\frontend\common\pojo\AddressResponse.java
 F:\MyWorkspace\project\mypet\java\mypet-server\frontend\src\main\java\app\xinqianmao\com\frontend\common\pojo\AddressSaveRequest.java
 F:\MyWorkspace\project\mypet\java\mypet-server\frontend\src\main\java\app\xinqianmao\com\frontend\common\pojo\BannerResponse.java
@@ -30,7 +29,6 @@ F:\MyWorkspace\project\mypet\java\mypet-server\frontend\src\main\java\app\xinqia
 F:\MyWorkspace\project\mypet\java\mypet-server\frontend\src\main\java\app\xinqianmao\com\frontend\common\pojo\MiniOrderSubmitRequest.java
 F:\MyWorkspace\project\mypet\java\mypet-server\frontend\src\main\java\app\xinqianmao\com\frontend\common\pojo\MiniOrderSubmitResponse.java
 F:\MyWorkspace\project\mypet\java\mypet-server\frontend\src\main\java\app\xinqianmao\com\frontend\common\pojo\PreOrderResponse.java
-F:\MyWorkspace\project\mypet\java\mypet-server\frontend\src\main\java\app\xinqianmao\com\frontend\common\pojo\SimpleLoginRequest.java
 F:\MyWorkspace\project\mypet\java\mypet-server\frontend\src\main\java\app\xinqianmao\com\frontend\common\pojo\SubmitRequest.java
 F:\MyWorkspace\project\mypet\java\mypet-server\frontend\src\main\java\app\xinqianmao\com\frontend\common\pojo\WxLoginRequest.java
 F:\MyWorkspace\project\mypet\java\mypet-server\frontend\src\main\java\app\xinqianmao\com\frontend\dao\CartMapper.java
@@ -50,10 +48,9 @@ F:\MyWorkspace\project\mypet\java\mypet-server\frontend\src\main\java\app\xinqia
 F:\MyWorkspace\project\mypet\java\mypet-server\frontend\src\main\java\app\xinqianmao\com\frontend\service\CategoryService.java
 F:\MyWorkspace\project\mypet\java\mypet-server\frontend\src\main\java\app\xinqianmao\com\frontend\service\GoodsService.java
 F:\MyWorkspace\project\mypet\java\mypet-server\frontend\src\main\java\app\xinqianmao\com\frontend\service\HomeService.java
-F:\MyWorkspace\project\mypet\java\mypet-server\frontend\src\main\java\app\xinqianmao\com\frontend\service\MemberAddressService.java
 F:\MyWorkspace\project\mypet\java\mypet-server\frontend\src\main\java\app\xinqianmao\com\frontend\service\MemberCartService.java
 F:\MyWorkspace\project\mypet\java\mypet-server\frontend\src\main\java\app\xinqianmao\com\frontend\service\MemberLoginService.java
-F:\MyWorkspace\project\mypet\java\mypet-server\frontend\src\main\java\app\xinqianmao\com\frontend\service\MemberOrderService.java
+F:\MyWorkspace\project\mypet\java\mypet-server\frontend\src\main\java\app\xinqianmao\com\frontend\service\WechatService.java
 F:\MyWorkspace\project\mypet\java\mypet-server\frontend\src\main\java\app\xinqianmao\com\frontend\web\controller\CategoryController.java
 F:\MyWorkspace\project\mypet\java\mypet-server\frontend\src\main\java\app\xinqianmao\com\frontend\web\controller\GoodsController.java
 F:\MyWorkspace\project\mypet\java\mypet-server\frontend\src\main\java\app\xinqianmao\com\frontend\web\controller\HomeController.java

@@ -12,9 +12,11 @@ package app.xinqianmao.com.common;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 public final class DbInitializer {
 
@@ -128,6 +130,8 @@ public final class DbInitializer {
         List<String> emptyAndTenant = List.of("mypet_empty", "mypet_xlong");
         for (String dbName : emptyAndTenant) {
             executeMigration(BASE_URL + dbName, "ALTER TABLE t_product ADD COLUMN IF NOT EXISTS is_enable SMALLINT NOT NULL DEFAULT 1");
+            executeMigration(BASE_URL + dbName, "ALTER TABLE t_member ADD COLUMN IF NOT EXISTS openid VARCHAR(100)");
+            executeMigration(BASE_URL + dbName, "ALTER TABLE t_receiver ADD COLUMN IF NOT EXISTS member_id CHAR(36)");
             executeMigration(BASE_URL + dbName, "ALTER TABLE t_order ADD COLUMN IF NOT EXISTS delivery_time VARCHAR(255)");
             executeMigration(BASE_URL + dbName, "ALTER TABLE t_order ADD COLUMN IF NOT EXISTS pay_channel SMALLINT NOT NULL DEFAULT 1");
             executeMigration(BASE_URL + dbName, "ALTER TABLE t_order ADD COLUMN IF NOT EXISTS pay_type SMALLINT NOT NULL DEFAULT 1");
@@ -136,14 +140,24 @@ public final class DbInitializer {
 
     // ---- Helpers ----
 
+    private static final Pattern DB_NAME = Pattern.compile("^[a-zA-Z0-9_-]{1,64}$");
+
     private static void ensureDatabaseExists(String dbName) {
+        if (!DB_NAME.matcher(dbName).matches()) {
+            throw new RuntimeException("Invalid database name: " + dbName);
+        }
+        // Use PreparedStatement for the existence check
         try (Connection conn = DriverManager.getConnection(POSTGRES_URL, USER, PASSWORD);
-             Statement stmt = conn.createStatement()) {
-            String checkSql = "SELECT 1 FROM pg_database WHERE datname = '" + dbName + "'";
-            boolean exists = false;
-            try (var rs = stmt.executeQuery(checkSql)) { exists = rs.next(); }
+             PreparedStatement ps = conn.prepareStatement(
+                     "SELECT 1 FROM pg_database WHERE datname = ?")) {
+            ps.setString(1, dbName);
+            boolean exists;
+            try (var rs = ps.executeQuery()) { exists = rs.next(); }
             if (!exists) {
-                stmt.execute("CREATE DATABASE \"" + dbName + "\"");
+                // DDL: dbName already validated by DB_NAME pattern above
+                try (Statement stmt = conn.createStatement()) {
+                    stmt.execute("CREATE DATABASE \"" + dbName + "\"");
+                }
                 System.out.println("[OK] Created database: " + dbName);
             } else {
                 System.out.println("[OK] Database exists: " + dbName);

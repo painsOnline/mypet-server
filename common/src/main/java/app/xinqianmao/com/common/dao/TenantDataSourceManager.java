@@ -13,10 +13,12 @@ import org.springframework.stereotype.Component;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Pattern;
 
 /**
  * Manages tenant DataSource lifecycle.
@@ -62,25 +64,34 @@ public class TenantDataSourceManager {
         return dataSourceCache.computeIfAbsent(tenantCode, this::createTenantDataSource);
     }
 
+    /** Tenant code must match this pattern (alphanumeric + underscore + hyphen) */
+    private static final Pattern TENANT_CODE_PATTERN = Pattern.compile("^[a-zA-Z0-9_-]{1,64}$");
+
     /**
      * Look up tenant by code from c_tenant in config DB.
      * Validates the tenant exists and is not disabled.
      */
     private void lookupTenant(String tenantCode) {
-        String sql = "SELECT code, name, is_disable FROM c_tenant WHERE code = '" +
-                tenantCode.replace("'", "''") + "'";
+        // Validate tenantCode format before any DB access
+        if (!TENANT_CODE_PATTERN.matcher(tenantCode).matches()) {
+            throw new RuntimeException("Invalid tenant code format: '" +
+                    tenantCode.replaceAll("[\r\n]", "") + "'");
+        }
+        String sql = "SELECT code, name, is_disable FROM c_tenant WHERE code = ?";
         try (Connection conn = configDataSource.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-            if (rs.next()) {
-                int disabled = rs.getInt("is_disable");
-                if (disabled == 1) {
-                    throw new RuntimeException("Tenant '" + tenantCode + "' has been disabled");
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, tenantCode);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    int disabled = rs.getInt("is_disable");
+                    if (disabled == 1) {
+                        throw new RuntimeException("Tenant '" + tenantCode + "' has been disabled");
+                    }
+                    log.info("Tenant '{}' ({}) validated", tenantCode, rs.getString("name"));
+                } else {
+                    throw new RuntimeException("Unknown tenant: '" + tenantCode +
+                            "'. Please check the Tenant header.");
                 }
-                log.info("Tenant '{}' ({}) validated", tenantCode, rs.getString("name"));
-            } else {
-                throw new RuntimeException("Unknown tenant: '" + tenantCode +
-                        "'. Please check the Tenant header.");
             }
         } catch (RuntimeException e) {
             throw e;
@@ -96,26 +107,38 @@ public class TenantDataSourceManager {
         return createDataSource(dbName);
     }
 
+    /** Database name pattern: mypet_ followed by tenant code (alphanumeric + underscore + hyphen) */
+    private static final Pattern DB_NAME_PATTERN = Pattern.compile("^mypet_[a-zA-Z0-9_-]{1,64}$");
+
     /**
      * Ensure the tenant database exists. If not, clone from mypet_empty.
      */
     private void ensureTenantDatabaseExists(String dbName) {
-        String checkSql = "SELECT 1 FROM pg_database WHERE datname = '" + dbName + "'";
-        String createSql = "CREATE DATABASE \"" + dbName + "\" TEMPLATE mypet_empty";
+        // Validate dbName format before any DB operation
+        if (!DB_NAME_PATTERN.matcher(dbName).matches()) {
+            throw new RuntimeException("Invalid database name: '" +
+                    dbName.replaceAll("[\r\n]", "") + "'");
+        }
 
+        // PreparedStatement works for SELECT on pg_database
+        String checkSql = "SELECT 1 FROM pg_database WHERE datname = ?";
         try (Connection conn = configDataSource.getConnection();
-             Statement stmt = conn.createStatement()) {
-            ResultSet rs = stmt.executeQuery(checkSql);
-            if (rs.next()) {
-                log.info("Tenant database '{}' already exists", dbName);
-                return;
+             PreparedStatement ps = conn.prepareStatement(checkSql)) {
+            ps.setString(1, dbName);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    log.info("Tenant database '{}' already exists", dbName);
+                    return;
+                }
             }
         } catch (Exception e) {
             log.warn("Error checking database existence for '{}': {}", dbName, e.getMessage());
         }
 
-        // Database doesn't exist — clone from template
-        // We need a connection to the default 'postgres' database for CREATE DATABASE
+        // Database doesn't exist — clone from template.
+        // dbName already validated by DB_NAME_PATTERN above, safe for DDL.
+        // DDL does not support PreparedStatement in PostgreSQL.
+        String createSql = "CREATE DATABASE \"" + dbName + "\" TEMPLATE mypet_empty";
         DruidDataSource postgresDs = createDataSource("postgres");
         try (Connection conn = postgresDs.getConnection();
              Statement stmt = conn.createStatement()) {

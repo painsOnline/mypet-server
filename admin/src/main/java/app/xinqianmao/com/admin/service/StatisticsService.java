@@ -38,14 +38,19 @@ public class StatisticsService {
         long daysBetween = ChronoUnit.DAYS.between(start, end);
         boolean byMonth = daysBetween > 31;
 
-        String dateFormat = byMonth ? "YYYY-MM" : "YYYY-MM-DD";
-        String orderByFormat = byMonth ? "YYYY-MM" : "YYYY-MM-DD";
-        String sql = "SELECT TO_CHAR(o.create_time AT TIME ZONE 'Asia/Shanghai', '" + dateFormat + "') AS date_key, "
-                + "COUNT(*) AS order_count, COALESCE(SUM(o.actual_pay_money), 0) AS total_amount "
-                + "FROM t_order o "
-                + "WHERE o.create_time AT TIME ZONE 'Asia/Shanghai' >= ?::date "
-                + "AND o.create_time AT TIME ZONE 'Asia/Shanghai' < (?::date + INTERVAL '1 day') "
-                + "GROUP BY date_key ORDER BY date_key";
+        String sql = byMonth
+                ? "SELECT TO_CHAR(o.create_time AT TIME ZONE 'Asia/Shanghai', 'YYYY-MM') AS date_key, "
+                  + "COUNT(*) AS order_count, COALESCE(SUM(o.actual_pay_money), 0) AS total_amount "
+                  + "FROM t_order o "
+                  + "WHERE o.create_time AT TIME ZONE 'Asia/Shanghai' >= ?::date "
+                  + "AND o.create_time AT TIME ZONE 'Asia/Shanghai' < (?::date + INTERVAL '1 day') "
+                  + "GROUP BY date_key ORDER BY date_key"
+                : "SELECT TO_CHAR(o.create_time AT TIME ZONE 'Asia/Shanghai', 'YYYY-MM-DD') AS date_key, "
+                  + "COUNT(*) AS order_count, COALESCE(SUM(o.actual_pay_money), 0) AS total_amount "
+                  + "FROM t_order o "
+                  + "WHERE o.create_time AT TIME ZONE 'Asia/Shanghai' >= ?::date "
+                  + "AND o.create_time AT TIME ZONE 'Asia/Shanghai' < (?::date + INTERVAL '1 day') "
+                  + "GROUP BY date_key ORDER BY date_key";
 
         List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql, start.toString(), end.toString());
 
