@@ -305,12 +305,12 @@ class FullFlowTest {
 
             // Verify order products
             List<OrderProduct> oProducts = orderProductMapper.selectList(
-                    new LambdaQueryWrapper<OrderProduct>().eq(OrderProduct::getOrderId, order1Id));
+                    new LambdaQueryWrapper<OrderProduct>().eq(OrderProduct::getOrderNo, order1Id));
             assertEquals(2, oProducts.size());
 
             // Verify order SKUs
             List<OrderProductSku> oSkus = orderProductSkuMapper.selectList(
-                    new LambdaQueryWrapper<OrderProductSku>().eq(OrderProductSku::getOrderId, order1Id));
+                    new LambdaQueryWrapper<OrderProductSku>().eq(OrderProductSku::getOrderNo, order1Id));
             assertEquals(2, oSkus.size());
 
             // Verify receiver snapshot
@@ -380,7 +380,7 @@ class FullFlowTest {
         try {
             assertNotNull(orderMapper.selectById(order2Id));
             List<OrderProductSku> oSkus = orderProductSkuMapper.selectList(
-                    new LambdaQueryWrapper<OrderProductSku>().eq(OrderProductSku::getOrderId, order2Id));
+                    new LambdaQueryWrapper<OrderProductSku>().eq(OrderProductSku::getOrderNo, order2Id));
             assertEquals(1, oSkus.size());
             List<Cart> cart = cartMapper.selectList(new LambdaQueryWrapper<>());
             assertEquals(0, cart.size());
@@ -432,7 +432,7 @@ class FullFlowTest {
             assertNotNull(orderMapper.selectById(order3Id));
             app.xinqianmao.com.frontend.common.entity.OrderReceiver receiver = orderReceiverMapper.selectById(order3Id);
             assertNotNull(receiver);
-            assertNotNull(receiver.getOrderId());
+            assertNotNull(receiver.getOrderNo());
             System.out.println("[VERIFY] Member3 direct buy order OK");
         } finally { TenantContext.clear(); }
     }

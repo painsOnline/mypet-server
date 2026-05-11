@@ -5,7 +5,7 @@
  */
 package app.xinqianmao.com.common.dao;
 
-import app.xinqianmao.com.common.constant.GlobalConstants;
+import app.xinqianmao.com.common.utils.CryptoUtil;
 import com.alibaba.druid.pool.DruidDataSource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,6 +25,7 @@ import java.util.regex.Pattern;
  * - Looks up tenant DB connection info from mypet_config
  * - Creates/clones tenant DB from mypet_empty template on first access
  * - Caches DruidDataSource instances per tenant
+ * - Decrypts DB passwords from c_database_instance using JWT secret
  */
 @Slf4j
 @Component
@@ -36,6 +37,10 @@ public class TenantDataSourceManager {
     private final int port;
     private final String user;
     private final String password;
+
+    /** JWT secret used as encryption/decryption key for DB passwords in c_database_instance */
+    @Value("${jwt.secret}")
+    private String jwtSecret;
 
     /** Config DB DataSource — used to query tenant registry */
     private final DruidDataSource configDataSource;
@@ -101,10 +106,35 @@ public class TenantDataSourceManager {
         }
     }
 
+    /**
+     * Get the decrypted database password for a tenant from c_database_instance.
+     * Joins c_tenant → c_database_instance to find the encrypted password,
+     * then decrypts it using the JWT secret.
+     */
+    private String getDecryptedDbPassword(String tenantCode) {
+        String sql = "SELECT di.\"password\" FROM c_database_instance di " +
+                     "JOIN c_tenant t ON t.database_instance_id = di.id " +
+                     "WHERE t.code = ?";
+        try (Connection conn = configDataSource.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, tenantCode);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    String encryptedPassword = rs.getString("password");
+                    return CryptoUtil.decrypt(encryptedPassword, jwtSecret);
+                }
+            }
+        } catch (Exception e) {
+            log.error("Failed to get DB password for tenant '{}'", tenantCode, e);
+        }
+        throw new RuntimeException("Cannot get database password for tenant: " + tenantCode);
+    }
+
     private DruidDataSource createTenantDataSource(String tenantCode) {
         String dbName = "mypet_" + tenantCode;
         ensureTenantDatabaseExists(dbName);
-        return createDataSource(dbName);
+        String decryptedPassword = getDecryptedDbPassword(tenantCode);
+        return createDataSource(dbName, decryptedPassword);
     }
 
     /** Database name pattern: mypet_ followed by tenant code (alphanumeric + underscore + hyphen) */
@@ -153,13 +183,14 @@ public class TenantDataSourceManager {
     }
 
     /**
-     * Create a DruidDataSource for a given database name.
+     * Create a DruidDataSource for a given database name with explicit password.
+     * Used for tenant databases (password decrypted from c_database_instance).
      */
-    private DruidDataSource createDataSource(String dbName) {
+    private DruidDataSource createDataSource(String dbName, String dbPassword) {
         DruidDataSource ds = new DruidDataSource();
         ds.setUrl("jdbc:postgresql://" + host + ":" + port + "/" + dbName);
         ds.setUsername(user);
-        ds.setPassword(password);
+        ds.setPassword(dbPassword);
         ds.setDriverClassName("org.postgresql.Driver");
 
         // Pool settings
@@ -174,6 +205,14 @@ public class TenantDataSourceManager {
         ds.setTimeBetweenEvictionRunsMillis(60000);
         ds.setMinEvictableIdleTimeMillis(300000);
         return ds;
+    }
+
+    /**
+     * Create a DruidDataSource for a given database name using default password.
+     * Used for config database bootstrap (mypet_config) and postgres connections.
+     */
+    private DruidDataSource createDataSource(String dbName) {
+        return createDataSource(dbName, this.password);
     }
 
     /**

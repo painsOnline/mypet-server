@@ -27,7 +27,9 @@ public class CategoryService {
 
     public List<CategoryListResponse> listAll() {
         List<ProductCategory> cats = categoryMapper.selectList(
-                new LambdaQueryWrapper<ProductCategory>().orderByAsc(ProductCategory::getSort));
+                new LambdaQueryWrapper<ProductCategory>()
+                        .eq(ProductCategory::getIsDelete, 0)
+                        .orderByAsc(ProductCategory::getSort));
         return cats.stream().map(cat -> {
             long count = productMapper.countByCategoryId(cat.getId());
             return CategoryListResponse.from(cat, count);
@@ -55,10 +57,11 @@ public class CategoryService {
     }
 
     public void delete(String id) {
+        ProductCategory cat = categoryMapper.selectById(id);
+        if (cat == null) throw new BizException("404", "分类不存在");
         long count = productMapper.countByCategoryId(id);
-        if (count > 0) {
-            throw new BizException("400", "该分类下有" + count + "个商品，无法删除");
-        }
-        categoryMapper.deleteById(id);
+        if (count > 0) throw new BizException("400", "该分类下有" + count + "个商品，无法删除");
+        cat.setIsDelete(1);
+        categoryMapper.updateById(cat);
     }
 }

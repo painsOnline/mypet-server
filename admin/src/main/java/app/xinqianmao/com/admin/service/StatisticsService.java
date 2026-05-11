@@ -40,13 +40,15 @@ public class StatisticsService {
 
         String sql = byMonth
                 ? "SELECT TO_CHAR(o.create_time AT TIME ZONE 'Asia/Shanghai', 'YYYY-MM') AS date_key, "
-                  + "COUNT(*) AS order_count, COALESCE(SUM(o.actual_pay_money), 0) AS total_amount "
+                  + "COUNT(*) AS order_count, COALESCE(SUM(o.actual_pay_money), 0) AS total_amount, "
+                  + "COALESCE(SUM(o.profit_money), 0) AS profit_amount "
                   + "FROM t_order o "
                   + "WHERE o.create_time AT TIME ZONE 'Asia/Shanghai' >= ?::date "
                   + "AND o.create_time AT TIME ZONE 'Asia/Shanghai' < (?::date + INTERVAL '1 day') "
                   + "GROUP BY date_key ORDER BY date_key"
                 : "SELECT TO_CHAR(o.create_time AT TIME ZONE 'Asia/Shanghai', 'YYYY-MM-DD') AS date_key, "
-                  + "COUNT(*) AS order_count, COALESCE(SUM(o.actual_pay_money), 0) AS total_amount "
+                  + "COUNT(*) AS order_count, COALESCE(SUM(o.actual_pay_money), 0) AS total_amount, "
+                  + "COALESCE(SUM(o.profit_money), 0) AS profit_amount "
                   + "FROM t_order o "
                   + "WHERE o.create_time AT TIME ZONE 'Asia/Shanghai' >= ?::date "
                   + "AND o.create_time AT TIME ZONE 'Asia/Shanghai' < (?::date + INTERVAL '1 day') "
@@ -61,6 +63,7 @@ public class StatisticsService {
             p.setDateKey((String) row.get("date_key"));
             p.setOrderCount(((Number) row.get("order_count")).longValue());
             p.setTotalAmount((BigDecimal) row.get("total_amount"));
+            p.setProfitAmount((BigDecimal) row.get("profit_amount"));
             points.add(p);
         }
         r.setPoints(points);
@@ -74,9 +77,9 @@ public class StatisticsService {
         LocalDate end = endDate != null ? LocalDate.parse(endDate) : LocalDate.now(DateTimeUtil.ZONE_BEIJING);
         LocalDate start = startDate != null ? LocalDate.parse(startDate) : end.minusDays(6);
 
-        String sql = "SELECT ops.product_id, p.name AS product_name, SUM(ops.inventory) AS total_sales "
+        String sql = "SELECT ops.product_id, p.name AS product_name, SUM(ops.count) AS total_sales "
                 + "FROM t_order_product_skus ops "
-                + "JOIN t_order o ON ops.order_id = o.id "
+                + "JOIN t_order o ON ops.order_no = o.order_no "
                 + "JOIN t_product p ON ops.product_id = p.id "
                 + "WHERE o.create_time AT TIME ZONE 'Asia/Shanghai' >= ?::date "
                 + "AND o.create_time AT TIME ZONE 'Asia/Shanghai' < (?::date + INTERVAL '1 day') "

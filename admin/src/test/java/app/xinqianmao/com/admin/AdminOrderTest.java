@@ -131,7 +131,7 @@ class AdminOrderTest extends BaseAdminTest {
 
         app.xinqianmao.com.admin.common.entity.Product product = productMapper.selectById(productId);
         OrderProduct op = new OrderProduct();
-        op.setOrderId(orderId); op.setProductId(productId);
+        op.setOrderNo(orderId); op.setProductId(productId);
         op.setProductType(product.getProductType()); op.setProductCategory(product.getProductCategory());
         op.setName(product.getName()); op.setDesc(product.getDesc());
         op.setPrice(product.getPrice()); op.setOldPrice(product.getOldPrice());
@@ -141,10 +141,10 @@ class AdminOrderTest extends BaseAdminTest {
 
         OrderProductSku ops = new OrderProductSku();
         ProductSku sku = skuMapper.selectById(skuId);
-        ops.setOrderId(orderId); ops.setSkuId(skuId); ops.setProductId(productId);
+        ops.setOrderNo(orderId); ops.setSkuId(skuId); ops.setProductId(productId);
         ops.setProductType(sku.getProductType());
         ops.setPrice(sku.getPrice()); ops.setOldPrice(sku.getOldPrice());
-        ops.setInventory(2); ops.setPicture(sku.getPicture()); ops.setSpecs(sku.getSpecs());
+        ops.setCount(2); ops.setPicture(sku.getPicture()); ops.setSpecs(sku.getSpecs());
         ops.setCreateTime(LocalDateTime.now()); orderProductSkuMapper.insert(ops);
     }
 

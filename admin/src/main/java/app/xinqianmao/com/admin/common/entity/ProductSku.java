@@ -25,7 +25,9 @@ public class ProductSku extends BaseEntity {
     private String productType;
     private BigDecimal price;
     private BigDecimal oldPrice;
+    private BigDecimal costPrice;
     private Integer inventory;
+    private String barcode;
     private String picture;
     /** JSON string: [{name, valueName}] */
     @TableField(typeHandler = app.xinqianmao.com.common.dao.JsonTypeHandler.class)

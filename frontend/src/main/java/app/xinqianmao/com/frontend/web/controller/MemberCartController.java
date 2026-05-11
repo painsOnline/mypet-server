@@ -39,20 +39,28 @@ public class MemberCartController {
     private final ProductMapper productMapper;
     private final ImageUrlUtil imageUrlUtil;
 
+    private String currentMemberId() {
+        return UserContext.getRequiredUserId();
+    }
+
     @Operation(summary = "获取用户购物车")
     @GetMapping
     public Result<List<CartItemResponse>> getCart() {
-        List<Cart> carts = cartMapper.selectList(new LambdaQueryWrapper<>());
+        String memberId = currentMemberId();
+        List<Cart> carts = cartMapper.selectList(
+                new LambdaQueryWrapper<Cart>().eq(Cart::getMemberId, memberId));
         return Result.ok(carts.stream().map(this::toCartItemResponse).collect(Collectors.toList()));
     }
 
     @Operation(summary = "全量覆盖购物车")
     @PutMapping
     public Result<Boolean> syncCart(@RequestBody List<CartItemResponse> items) {
-        cartMapper.delete(new LambdaQueryWrapper<>());
+        String memberId = currentMemberId();
+        cartMapper.delete(new LambdaQueryWrapper<Cart>().eq(Cart::getMemberId, memberId));
         if (items != null) {
             for (CartItemResponse item : items) {
                 Cart cart = new Cart();
+                cart.setMemberId(memberId);
                 cart.setSkuId(item.getSkuId());
                 cart.setName(item.getName());
                 cart.setPicture(item.getPicture() != null ? item.getPicture() : "");

@@ -25,5 +25,7 @@ public class OrderTrendResponse {
         private Long orderCount;
         @Schema(description = "订单实付总金额")
         private java.math.BigDecimal totalAmount;
+        @Schema(description = "订单总毛利润")
+        private java.math.BigDecimal profitAmount;
     }
 }

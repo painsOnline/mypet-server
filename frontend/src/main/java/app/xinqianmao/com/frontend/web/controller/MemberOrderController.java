@@ -11,7 +11,9 @@ import app.xinqianmao.com.common.exception.BizException;
 import app.xinqianmao.com.common.result.PageResult;
 import app.xinqianmao.com.common.result.Result;
 import app.xinqianmao.com.common.utils.DateTimeUtil;
+import app.xinqianmao.com.common.utils.RegionUtil;
 import app.xinqianmao.com.common.utils.ImageUrlUtil;
+import app.xinqianmao.com.common.utils.OrderNoUtil;
 import app.xinqianmao.com.frontend.common.entity.*;
 import app.xinqianmao.com.frontend.common.pojo.*;
 import app.xinqianmao.com.frontend.dao.*;
@@ -46,7 +48,10 @@ public class MemberOrderController {
     private final CartMapper cartMapper;
     private final ProductMapper productMapper;
     private final ProductSkuMapper skuMapper;
+    private final ProductPropertyMapper propertyMapper;
+    private final OrderProductPropertyMapper orderProductPropertyMapper;
     private final HomeController homeController;
+    private final InventoryLogMapper inventoryLogMapper;
     private final ImageUrlUtil imageUrlUtil;
 
     @Operation(summary = "获取订单列表")
@@ -55,23 +60,28 @@ public class MemberOrderController {
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "5") Integer pageSize,
             @RequestParam(required = false) Integer orderState) {
+        String memberId = UserContext.getRequiredUserId();
         LambdaQueryWrapper<Order> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Order::getMemberId, memberId);
         if (orderState != null && orderState != 0) {
             wrapper.eq(Order::getOrderStatus, orderState);
         }
-        wrapper.orderByDesc(Order::getId);
+        wrapper.orderByDesc(Order::getCreateTime);
         Page<Order> p = Page.of(page, pageSize);
         IPage<Order> orderPage = orderMapper.selectPage(p, wrapper);
         return Result.ok(PageResult.of(orderPage.convert(this::toListResponse)));
     }
 
     @Operation(summary = "获取订单详情")
-    @GetMapping("/{id}")
-    public Result<MiniOrderDetailResponse> detail(@PathVariable String id) {
-        Order order = orderMapper.selectById(id);
+    @GetMapping("/{orderNo}")
+    public Result<MiniOrderDetailResponse> detail(@PathVariable String orderNo) {
+        Order order = getOrderByOrderNo(orderNo);
         if (order == null) throw new BizException("404", "订单不存在");
+        String memberId = UserContext.getRequiredUserId();
+        if (!memberId.equals(order.getMemberId())) throw new BizException("404", "订单不存在");
         MiniOrderDetailResponse resp = new MiniOrderDetailResponse();
         resp.setId(order.getId());
+        resp.setOrderNo(order.getOrderNo());
         resp.setOrderState(order.getOrderStatus());
         OrderStatusEnum statusEnum = OrderStatusEnum.fromCode(order.getOrderStatus());
         resp.setOrderStateDesc(statusEnum != null ? statusEnum.getDesc() : "");
@@ -79,40 +89,44 @@ public class MemberOrderController {
         resp.setTotalMoney(order.getTotalMoney());
         resp.setPayMoney(order.getPayMoney());
         resp.setActualPayMoney(order.getActualPayMoney());
+        resp.setDeliveryTime(order.getDeliveryTime());
+        resp.setBuyerMessage(order.getBuyerMessage());
 
-        OrderReceiver receiver = orderReceiverMapper.selectById(id);
+        OrderReceiver receiver = orderReceiverMapper.selectById(order.getOrderNo());
         if (receiver != null) {
             resp.setReceiverContact(receiver.getReceiver());
             resp.setReceiverMobile(receiver.getContact());
-            resp.setReceiverAddress(receiver.getProvinceCode() + receiver.getCityCode()
-                    + receiver.getCountyCode() + receiver.getAddress());
+            resp.setReceiverAddress(RegionUtil.getName(receiver.getProvinceCode())
+                    + RegionUtil.getName(receiver.getCityCode())
+                    + RegionUtil.getName(receiver.getCountyCode())
+                    + " " + receiver.getAddress());
         }
 
         List<OrderProductSku> skus = orderProductSkuMapper.selectList(
-                new LambdaQueryWrapper<OrderProductSku>().eq(OrderProductSku::getOrderId, id));
+                new LambdaQueryWrapper<OrderProductSku>().eq(OrderProductSku::getOrderNo, order.getOrderNo()));
         resp.setSkus(skus.stream().map(os -> {
             MiniOrderDetailResponse.SkuItem si = new MiniOrderDetailResponse.SkuItem();
             si.setId(os.getSkuId());
             si.setProductId(os.getProductId());
             si.setName(getProductName(os.getProductId()));
             si.setAttrsText(extractAttrsText(os.getSpecs()));
-            si.setQuantity(os.getInventory());
+            si.setQuantity(os.getCount());
             si.setPrice(os.getPrice());
             si.setOldPrice(os.getOldPrice());
             si.setPicture(imageUrlUtil.fullUrl(os.getPicture()));
             return si;
         }).collect(Collectors.toList()));
-        resp.setTotalNum(skus.stream().mapToInt(os -> os.getInventory() != null ? os.getInventory() : 0).sum());
+        resp.setTotalNum(skus.stream().mapToInt(os -> os.getCount() != null ? os.getCount() : 0).sum());
 
         return Result.ok(resp);
     }
 
     @Operation(summary = "确认收货")
-    @PutMapping("/{id}/receipt")
+    @PutMapping("/{orderNo}/receipt")
     @Transactional
-    public Result<MiniOrderListResponse> confirmReceipt(@PathVariable String id) {
-        Order order = orderMapper.selectById(id);
-        if (order == null) throw new BizException("404", "订单不存在");
+    public Result<MiniOrderListResponse> confirmReceipt(@PathVariable String orderNo) {
+        Order order = getOrderByOrderNo(orderNo);
+        if (!UserContext.getRequiredUserId().equals(order.getMemberId())) throw new BizException("404", "订单不存在");
         if (order.getOrderStatus() != 2) throw new BizException("400", "只有配送中的订单才能确认收货");
         order.setOrderStatus(3);
         order.setModifyTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
@@ -121,12 +135,12 @@ public class MemberOrderController {
     }
 
     @Operation(summary = "取消订单")
-    @PutMapping("/{id}/cancel")
+    @PutMapping("/{orderNo}/cancel")
     @Transactional
-    public Result<MiniOrderListResponse> cancel(@PathVariable String id,
+    public Result<MiniOrderListResponse> cancel(@PathVariable String orderNo,
                                                  @Valid @RequestBody MiniOrderCancelRequest request) {
-        Order order = orderMapper.selectById(id);
-        if (order == null) throw new BizException("404", "订单不存在");
+        Order order = getOrderByOrderNo(orderNo);
+        if (!UserContext.getRequiredUserId().equals(order.getMemberId())) throw new BizException("404", "订单不存在");
         if (order.getOrderStatus() != 1) throw new BizException("400", "只有待配送的订单才能取消");
         order.setOrderStatus(5);
         order.setModifyTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
@@ -135,16 +149,16 @@ public class MemberOrderController {
     }
 
     @Operation(summary = "删除订单")
-    @DeleteMapping("/{id}")
-    public Result<Boolean> delete(@PathVariable String id) {
-        Order order = orderMapper.selectById(id);
-        if (order == null) throw new BizException("404", "订单不存在");
+    @DeleteMapping("/{orderNo}")
+    public Result<Boolean> delete(@PathVariable String orderNo) {
+        Order order = getOrderByOrderNo(orderNo);
+        if (!UserContext.getRequiredUserId().equals(order.getMemberId())) throw new BizException("404", "订单不存在");
         if (order.getOrderStatus() != 4 && order.getOrderStatus() != 5) {
             throw new BizException("400", "只有已完成或已取消的订单才能删除");
         }
-        orderMapper.deleteById(id);
-        orderProductMapper.delete(new LambdaQueryWrapper<OrderProduct>().eq(OrderProduct::getOrderId, id));
-        orderProductSkuMapper.delete(new LambdaQueryWrapper<OrderProductSku>().eq(OrderProductSku::getOrderId, id));
+        orderMapper.deleteById(order.getId());
+        orderProductMapper.delete(new LambdaQueryWrapper<OrderProduct>().eq(OrderProduct::getOrderNo, order.getOrderNo()));
+        orderProductSkuMapper.delete(new LambdaQueryWrapper<OrderProductSku>().eq(OrderProductSku::getOrderNo, order.getOrderNo()));
         return Result.ok(true);
     }
 
@@ -225,15 +239,15 @@ public class MemberOrderController {
         pp.setName(product.getName());
         pp.setAttrsText(extractAttrsText(sku.getSpecs()));
         pp.setCount(count);
-        pp.setPrice(sku.getPrice());
+        pp.setPrice(sku.getOldPrice());
         pp.setPayPrice(sku.getPrice());
         pp.setPicture(imageUrlUtil.fullUrl(sku.getPicture()));
-        pp.setTotalPrice(sku.getPrice().multiply(BigDecimal.valueOf(count)));
+        pp.setTotalPrice(sku.getOldPrice().multiply(BigDecimal.valueOf(count)));
         pp.setTotalPayPrice(sku.getPrice().multiply(BigDecimal.valueOf(count)));
         resp.setProducts(List.of(pp));
 
         PreOrderResponse.Summary summary = new PreOrderResponse.Summary();
-        summary.setTotalPrice(sku.getPrice().multiply(BigDecimal.valueOf(count)));
+        summary.setTotalPrice(sku.getOldPrice().multiply(BigDecimal.valueOf(count)));
         summary.setPostFee(BigDecimal.ZERO);
         summary.setTotalPayPrice(sku.getPrice().multiply(BigDecimal.valueOf(count)));
         resp.setSummary(summary);
@@ -258,15 +272,15 @@ public class MemberOrderController {
     }
 
     @Operation(summary = "再次购买预付单")
-    @GetMapping("/repurchase/{id}")
-    public Result<PreOrderResponse> repurchase(@PathVariable String id) {
-        Order order = orderMapper.selectById(id);
+    @GetMapping("/repurchase/{orderNo}")
+    public Result<PreOrderResponse> repurchase(@PathVariable String orderNo) {
+        Order order = getOrderByOrderNo(orderNo);
         if (order == null) throw new BizException("404", "订单不存在");
 
         List<OrderProductSku> orderSkus = orderProductSkuMapper.selectList(
-                new LambdaQueryWrapper<OrderProductSku>().eq(OrderProductSku::getOrderId, id));
+                new LambdaQueryWrapper<OrderProductSku>().eq(OrderProductSku::getOrderNo, orderNo));
         if (orderSkus.isEmpty() && orderProductMapper.selectCount(
-                new LambdaQueryWrapper<OrderProduct>().eq(OrderProduct::getOrderId, id)) > 0) {
+                new LambdaQueryWrapper<OrderProduct>().eq(OrderProduct::getOrderNo, orderNo)) > 0) {
             // Fallback: build from order products
         }
 
@@ -285,12 +299,12 @@ public class MemberOrderController {
             pp.setSkuId(ops.getSkuId());
             pp.setName(product != null ? product.getName() : "");
             pp.setAttrsText(extractAttrsText(ops.getSpecs()));
-            pp.setCount(ops.getInventory());
+            pp.setCount(ops.getCount());
             pp.setPrice(ops.getPrice());
             pp.setPayPrice(currentPrice);
             pp.setPicture(imageUrlUtil.fullUrl(ops.getPicture()));
-            BigDecimal itemTotal = ops.getPrice().multiply(BigDecimal.valueOf(ops.getInventory()));
-            BigDecimal itemPayTotal = currentPrice.multiply(BigDecimal.valueOf(ops.getInventory()));
+            BigDecimal itemTotal = ops.getPrice().multiply(BigDecimal.valueOf(ops.getCount()));
+            BigDecimal itemPayTotal = currentPrice.multiply(BigDecimal.valueOf(ops.getCount()));
             pp.setTotalPrice(itemTotal);
             pp.setTotalPayPrice(itemPayTotal);
             products.add(pp);
@@ -328,21 +342,15 @@ public class MemberOrderController {
     @PostMapping
     @Transactional
     public Result<MiniOrderSubmitResponse> submit(@Valid @RequestBody MiniOrderSubmitRequest request) {
-        // Validate address exists and belongs to current user
+        String memberId = UserContext.getRequiredUserId();
         Receiver receiver = receiverMapper.selectById(request.getAddressId());
         if (receiver == null) throw new BizException("400", "收货地址不存在");
-        String memberId = UserContext.getRequiredUserId();
-        if (!memberId.equals(receiver.getMemberId())) {
-            throw new BizException("400", "收货地址不属于当前用户");
-        }
+        if (!memberId.equals(receiver.getMemberId())) throw new BizException("400", "收货地址不属于当前用户");
 
-        // Build order from request products
-        List<Cart> selectedCarts = cartMapper.selectList(
-                new LambdaQueryWrapper<Cart>().eq(Cart::getSelected, 1));
-
-        // If request has products, use them; otherwise use cart
+        String orderNo = OrderNoUtil.generate();
         BigDecimal totalMoney = BigDecimal.ZERO;
         BigDecimal payMoney = BigDecimal.ZERO;
+        BigDecimal totalCost = BigDecimal.ZERO;
         List<OrderProductSku> orderSkus = new ArrayList<>();
         List<OrderProduct> orderProducts = new ArrayList<>();
         Set<String> processedProductIds = new HashSet<>();
@@ -351,70 +359,63 @@ public class MemberOrderController {
             ProductSku sku = skuMapper.selectById(pi.getSkuId());
             if (sku == null) throw new BizException("400", "SKU不存在: " + pi.getSkuId());
             if (sku.getInventory() < pi.getCount()) throw new BizException("400", "库存不足: " + pi.getSkuId());
-
             Product product = productMapper.selectById(sku.getProductId());
             if (product == null) throw new BizException("400", "商品不存在");
 
-            // Decrement inventory
-            sku.setInventory(sku.getInventory() - pi.getCount());
+            int before = sku.getInventory(); int after = before - pi.getCount();
+            sku.setInventory(after);
             skuMapper.updateById(sku);
+            writeInventoryLog(sku, orderNo, "out", pi.getCount(), before, after);
 
-            BigDecimal itemTotal = product.getPrice().multiply(BigDecimal.valueOf(pi.getCount()));
             BigDecimal itemPay = sku.getPrice().multiply(BigDecimal.valueOf(pi.getCount()));
-            totalMoney = totalMoney.add(itemTotal);
+            BigDecimal itemOrig = sku.getOldPrice().multiply(BigDecimal.valueOf(pi.getCount()));
+            BigDecimal costPrice = sku.getCostPrice() != null ? sku.getCostPrice() : BigDecimal.ZERO;
+            BigDecimal itemCost = costPrice.multiply(BigDecimal.valueOf(pi.getCount()));
+            totalMoney = totalMoney.add(itemOrig);
             payMoney = payMoney.add(itemPay);
+            totalCost = totalCost.add(itemCost);
 
-            // Build order SKU
             OrderProductSku ops = new OrderProductSku();
-            ops.setOrderId(""); // set later
-            ops.setSkuId(sku.getId());
-            ops.setProductId(product.getId());
-            ops.setProductType(product.getProductType());
-            ops.setPrice(sku.getPrice());
-            ops.setOldPrice(sku.getOldPrice());
-            ops.setInventory(pi.getCount());
-            ops.setPicture(imageUrlUtil.fullUrl(sku.getPicture()));
+            ops.setOrderNo(orderNo); ops.setSkuId(sku.getId()); ops.setProductId(product.getId());
+            ops.setBarcode(sku.getBarcode() != null ? sku.getBarcode() : "");
+            ops.setProductType(product.getProductType()); ops.setPrice(sku.getPrice());
+            ops.setOldPrice(sku.getOldPrice()); ops.setCostPrice(costPrice);
+            ops.setProfitMoney(itemPay.subtract(itemCost)); ops.setCount(pi.getCount());
+            ops.setPicture(sku.getPicture());
             ops.setSpecs(sku.getSpecs() != null ? sku.getSpecs() : "[]");
             ops.setCreateTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
             orderSkus.add(ops);
 
-            // Build order product (deduplicate)
             if (processedProductIds.add(product.getId())) {
                 OrderProduct op = new OrderProduct();
-                op.setOrderId(""); // set later
-                op.setProductId(product.getId());
-                op.setProductType(product.getProductType());
-                op.setProductCategory(product.getProductCategory());
-                op.setName(product.getName());
-                op.setDesc(product.getDesc());
-                op.setPrice(product.getPrice());
-                op.setOldPrice(product.getOldPrice());
+                op.setOrderNo(orderNo); op.setProductId(product.getId()); op.setProductType(product.getProductType());
+                op.setProductCategory(product.getProductCategory()); op.setProductBrand(product.getProductBrand());
+                op.setName(product.getName()); op.setDesc(product.getDesc());
+                op.setPrice(product.getPrice()); op.setOldPrice(product.getOldPrice());
                 op.setMainPictures(product.getMainPictures());
-                op.setPicture(imageUrlUtil.fullUrl(product.getPicture()));
-                op.setDetail(product.getDetail());
-                op.setSort(product.getSort());
+                op.setPicture(product.getPicture());
+                op.setDetail(product.getDetail()); op.setSort(product.getSort());
                 op.setCreateTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
                 orderProducts.add(op);
             }
         }
 
-        // Create order
+        BigDecimal profit = payMoney.subtract(totalCost);
         Order order = new Order();
-        order.setOrderType(0);
-        order.setOrderStatus(1);
+        order.setMemberId(memberId);
+        order.setOrderNo(orderNo); order.setOrderType(0); order.setOrderStatus(1);
         order.setProductType(orderProducts.isEmpty() ? "" : orderProducts.get(0).getProductType());
-        order.setTotalMoney(totalMoney);
-        order.setPayMoney(payMoney);
-        order.setActualPayMoney(payMoney);
+        order.setTotalMoney(totalMoney); order.setPayMoney(payMoney);
+        order.setActualPayMoney(payMoney); order.setProfitMoney(profit);
         order.setDeliveryTime(request.getDeliveryTime());
+        order.setBuyerMessage(request.getBuyerMessage());
         order.setPayChannel(request.getPayChannel() != null ? request.getPayChannel() : 1);
         order.setPayType(request.getPayType() != null ? request.getPayType() : 1);
         order.setCreateTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
         orderMapper.insert(order);
 
-        // Snapshot receiver info into t_order_receiver
         OrderReceiver orderReceiver = new OrderReceiver();
-        orderReceiver.setOrderId(order.getId());
+        orderReceiver.setOrderNo(orderNo);
         orderReceiver.setReceiver(receiver.getReceiver());
         orderReceiver.setContact(receiver.getContact());
         orderReceiver.setProvinceCode(receiver.getProvinceCode());
@@ -424,55 +425,68 @@ public class MemberOrderController {
         orderReceiver.setCreateTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
         orderReceiverMapper.insert(orderReceiver);
 
-        // Save order products and SKUs with order ID
-        for (OrderProduct op : orderProducts) {
-            op.setOrderId(order.getId());
-            orderProductMapper.insert(op);
-        }
+        // Save order products and SKUs
+        for (OrderProduct op : orderProducts) { op.setOrderNo(orderNo); orderProductMapper.insert(op); }
+        for (OrderProductSku ops : orderSkus) { ops.setOrderNo(orderNo); orderProductSkuMapper.insert(ops); }
+
+        // Save order product properties snapshot
         for (OrderProductSku ops : orderSkus) {
-            ops.setOrderId(order.getId());
-            orderProductSkuMapper.insert(ops);
+            Product product = productMapper.selectById(ops.getProductId());
+            if (product == null) continue;
+            List<ProductProperty> props = propertyMapper.selectList(
+                    new LambdaQueryWrapper<ProductProperty>().eq(ProductProperty::getProductId, product.getId()));
+            for (ProductProperty pp : props) {
+                OrderProductProperty opp = new OrderProductProperty();
+                opp.setOrderNo(orderNo); opp.setPropertyId(pp.getId()); opp.setProductId(product.getId());
+                opp.setProductType(product.getProductType()); opp.setName(pp.getName());
+                opp.setValueName(pp.getValueName()); opp.setSort(pp.getSort());
+                opp.setCreateTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
+                orderProductPropertyMapper.insert(opp);
+            }
         }
 
-        // Clear selected cart items
-        cartMapper.delete(new LambdaQueryWrapper<Cart>().eq(Cart::getSelected, 1));
+        // Clear user's selected cart items
+        cartMapper.delete(new LambdaQueryWrapper<Cart>()
+                .eq(Cart::getMemberId, memberId).eq(Cart::getSelected, 1));
 
         MiniOrderSubmitResponse resp = new MiniOrderSubmitResponse();
-        resp.setId(order.getId());
+        resp.setId(order.getId()); resp.setOrderNo(orderNo);
         return Result.ok(resp);
     }
 
     private MiniOrderListResponse toListResponse(Order order) {
         MiniOrderListResponse r = new MiniOrderListResponse();
         r.setId(order.getId());
+        r.setOrderNo(order.getOrderNo());
         r.setOrderState(order.getOrderStatus());
         r.setTotalMoney(order.getTotalMoney());
         r.setPayMoney(order.getPayMoney());
         r.setActualPayMoney(order.getActualPayMoney());
         r.setCreateTime(DateTimeUtil.format(order.getCreateTime()));
 
-        OrderReceiver receiver = orderReceiverMapper.selectById(order.getId());
+        String orderNo = order.getOrderNo();
+        OrderReceiver receiver = orderReceiverMapper.selectById(orderNo);
         if (receiver != null) {
             r.setReceiverContact(receiver.getReceiver());
             r.setReceiverMobile(receiver.getContact());
-            r.setReceiverAddress(receiver.getProvinceCode() + receiver.getCityCode() + receiver.getCountyCode() + receiver.getAddress());
+            r.setReceiverAddress(RegionUtil.getName(receiver.getProvinceCode()) + RegionUtil.getName(receiver.getCityCode()) + RegionUtil.getName(receiver.getCountyCode()) + " " + receiver.getAddress());
         }
 
         List<OrderProductSku> skus = orderProductSkuMapper.selectList(
-                new LambdaQueryWrapper<OrderProductSku>().eq(OrderProductSku::getOrderId, order.getId()));
+                new LambdaQueryWrapper<OrderProductSku>().eq(OrderProductSku::getOrderNo, orderNo));
         r.setSkus(skus.stream().map(sku -> {
             MiniOrderListResponse.SkuItem si = new MiniOrderListResponse.SkuItem();
             si.setId(sku.getSkuId());
             si.setProductId(sku.getProductId());
             si.setName(getProductName(sku.getProductId()));
             si.setAttrsText(extractAttrsText(sku.getSpecs()));
-            si.setQuantity(sku.getInventory());
+            si.setQuantity(sku.getCount());
             si.setPrice(sku.getPrice());
             si.setOldPrice(sku.getOldPrice());
             si.setPicture(imageUrlUtil.fullUrl(sku.getPicture()));
             return si;
         }).collect(Collectors.toList()));
-        r.setTotalNum(skus.stream().mapToInt(OrderProductSku::getInventory).sum());
+        r.setTotalNum(skus.stream().mapToInt(OrderProductSku::getCount).sum());
 
         return r;
     }
@@ -493,5 +507,27 @@ public class MemberOrderController {
         if (productId == null) return "";
         Product p = productMapper.selectById(productId);
         return p != null ? p.getName() : "";
+    }
+
+    private Order getOrderByOrderNo(String orderNo) {
+        List<Order> orders = orderMapper.selectList(
+                new LambdaQueryWrapper<Order>().eq(Order::getOrderNo, orderNo));
+        if (orders.isEmpty()) throw new BizException("404", "订单不存在");
+        return orders.get(0);
+    }
+
+    private void writeInventoryLog(ProductSku sku, String orderNo, String changeType,
+                                    int changeNum, int before, int after) {
+        InventoryLog log = new InventoryLog();
+        log.setSkuId(sku.getId());
+        log.setBarcode(sku.getBarcode());
+        log.setOrderNo(orderNo);
+        log.setChangeType(changeType);
+        log.setChangeNum(changeNum);
+        log.setBeforeInventory(before);
+        log.setAfterInventory(after);
+        log.setOperator(UserContext.getUserId());
+        log.setCreateTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
+        inventoryLogMapper.insert(log);
     }
 }

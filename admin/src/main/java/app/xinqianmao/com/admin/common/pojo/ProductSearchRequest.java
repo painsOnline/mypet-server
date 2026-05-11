@@ -32,6 +32,12 @@ public class ProductSearchRequest {
     @Schema(description = "商品类型ID列表（多选）")
     private List<String> typeIds;
 
+    @Schema(description = "商品品牌ID")
+    private String brandId;
+
+    @Schema(description = "条形码（支持后N位模糊匹配）")
+    private String barcode;
+
     @Schema(description = "最低价格")
     private java.math.BigDecimal priceMin;
 

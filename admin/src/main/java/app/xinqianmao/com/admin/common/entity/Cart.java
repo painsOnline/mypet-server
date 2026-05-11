@@ -1,7 +1,7 @@
 /**
  * File: Cart.java
  * Author: system
- * Date: 2026-05-03
+ * Date: 2026-05-10
  */
 package app.xinqianmao.com.admin.common.entity;
 
@@ -19,6 +19,7 @@ import java.math.BigDecimal;
 @EqualsAndHashCode(callSuper = true)
 @TableName("t_cart")
 public class Cart extends BaseEntity {
+    private String memberId;
     private String skuId;
     private String name;
     private String specs;

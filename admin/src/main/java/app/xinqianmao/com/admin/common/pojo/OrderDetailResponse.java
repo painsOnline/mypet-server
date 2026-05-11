@@ -19,13 +19,17 @@ import java.util.List;
 public class OrderDetailResponse {
 
     private String id;
+    private String orderNo;
     private Integer orderStatus;
     private String orderStatusDesc;
     private BigDecimal totalMoney;
     private BigDecimal payMoney;
     private BigDecimal actualPayMoney;
+    private BigDecimal profitMoney;
     private String createTime;
     private String modifyTime;
+    private String deliveryTime;
+    private String buyerMessage;
 
     private MemberInfo member;
     private ReceiverInfo receiver;
@@ -67,6 +71,8 @@ public class OrderDetailResponse {
         private String skuId;
         private BigDecimal price;
         private BigDecimal oldPrice;
+        private BigDecimal costPrice;
+        private BigDecimal profitMoney;
         private Integer quantity;
         private String picture;
         private String attrsText;

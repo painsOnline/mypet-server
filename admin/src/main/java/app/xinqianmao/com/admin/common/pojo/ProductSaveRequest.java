@@ -32,6 +32,10 @@ public class ProductSaveRequest {
     @Schema(description = "商品分类ID")
     private String productCategory;
 
+    @NotBlank(message = "商品品牌不能为空")
+    @Schema(description = "商品品牌ID")
+    private String productBrand;
+
     @Schema(description = "商品简介")
     private String desc;
 
@@ -82,6 +86,10 @@ public class ProductSaveRequest {
         private BigDecimal oldPrice;
         @Schema(description = "库存")
         private Integer inventory;
+        @Schema(description = "成本价")
+        private BigDecimal costPrice;
+        @Schema(description = "条形码")
+        private String barcode;
         @Schema(description = "图片")
         private String picture;
         @Schema(description = "规格组合 JSON")

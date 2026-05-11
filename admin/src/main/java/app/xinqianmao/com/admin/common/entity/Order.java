@@ -20,13 +20,17 @@ import java.math.BigDecimal;
 @EqualsAndHashCode(callSuper = true)
 @TableName("t_order")
 public class Order extends BaseEntity {
+    private String memberId;
+    private String orderNo;
     private Integer orderType;
     private Integer orderStatus;
     private String productType;
     private BigDecimal totalMoney;
     private BigDecimal actualPayMoney;
     private BigDecimal payMoney;
+    private BigDecimal profitMoney;
     private String deliveryTime;
+    private String buyerMessage;
     private Integer payChannel;
     private Integer payType;
 }

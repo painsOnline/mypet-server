@@ -28,6 +28,7 @@ public class ProductDetailResponse {
     private String detail;
     private String productType;
     private String productCategory;
+    private String productBrand;
     private Integer sort;
     private Integer isEnable;
     private List<PropertyItem> properties;
@@ -50,7 +51,9 @@ public class ProductDetailResponse {
         private String id;
         private BigDecimal price;
         private BigDecimal oldPrice;
+        private BigDecimal costPrice;
         private Integer inventory;
+        private String barcode;
         private String picture;
         private List<SpecValue> specs;
     }

@@ -1,7 +1,7 @@
 /**
  * File: OrderProduct.java
  * Author: system
- * Date: 2026-05-03
+ * Date: 2026-05-10
  */
 package app.xinqianmao.com.frontend.common.entity;
 
@@ -16,10 +16,11 @@ import java.util.List;
 @Data
 @TableName("t_order_products")
 public class OrderProduct {
-    private String orderId;
+    private String orderNo;
     private String productId;
     private String productType;
     private String productCategory;
+    private String productBrand;
     private String name;
     @TableField("\"desc\"")
     private String desc;

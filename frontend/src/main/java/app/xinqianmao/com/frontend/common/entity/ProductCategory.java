@@ -17,4 +17,5 @@ public class ProductCategory extends BaseEntity {
     private String name;
     private String picture;
     private Integer sort;
+    private Integer isDelete;
 }

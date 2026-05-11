@@ -21,6 +21,9 @@ public class MiniOrderDetailResponse {
     @Schema(description = "订单ID")
     private String id;
 
+    @Schema(description = "订单号")
+    private String orderNo;
+
     @Schema(description = "订单状态")
     private Integer orderState;
 
@@ -50,6 +53,12 @@ public class MiniOrderDetailResponse {
 
     @Schema(description = "实付金额")
     private BigDecimal actualPayMoney;
+
+    @Schema(description = "配送时间")
+    private String deliveryTime;
+
+    @Schema(description = "订单备注")
+    private String buyerMessage;
 
     @Schema(description = "总件数")
     private Integer totalNum;

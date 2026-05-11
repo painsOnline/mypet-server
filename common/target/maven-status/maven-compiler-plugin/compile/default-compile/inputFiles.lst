@@ -27,9 +27,12 @@ F:\MyWorkspace\project\mypet\java\mypet-server\common\src\main\java\app\xinqianm
 F:\MyWorkspace\project\mypet\java\mypet-server\common\src\main\java\app\xinqianmao\com\common\MemberSeeder.java
 F:\MyWorkspace\project\mypet\java\mypet-server\common\src\main\java\app\xinqianmao\com\common\result\PageResult.java
 F:\MyWorkspace\project\mypet\java\mypet-server\common\src\main\java\app\xinqianmao\com\common\result\Result.java
+F:\MyWorkspace\project\mypet\java\mypet-server\common\src\main\java\app\xinqianmao\com\common\utils\CryptoUtil.java
 F:\MyWorkspace\project\mypet\java\mypet-server\common\src\main\java\app\xinqianmao\com\common\utils\DateTimeUtil.java
 F:\MyWorkspace\project\mypet\java\mypet-server\common\src\main\java\app\xinqianmao\com\common\utils\ImageUrlUtil.java
+F:\MyWorkspace\project\mypet\java\mypet-server\common\src\main\java\app\xinqianmao\com\common\utils\OrderNoUtil.java
 F:\MyWorkspace\project\mypet\java\mypet-server\common\src\main\java\app\xinqianmao\com\common\utils\PasswordUtil.java
+F:\MyWorkspace\project\mypet\java\mypet-server\common\src\main\java\app\xinqianmao\com\common\utils\RegionUtil.java
 F:\MyWorkspace\project\mypet\java\mypet-server\common\src\main\java\app\xinqianmao\com\common\utils\UUIDUtil.java
 F:\MyWorkspace\project\mypet\java\mypet-server\common\src\main\java\app\xinqianmao\com\common\web\AuthInterceptor.java
 F:\MyWorkspace\project\mypet\java\mypet-server\common\src\main\java\app\xinqianmao\com\common\web\TenantInterceptor.java

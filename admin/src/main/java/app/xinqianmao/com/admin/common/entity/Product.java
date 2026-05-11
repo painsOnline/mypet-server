@@ -23,6 +23,7 @@ import java.util.List;
 public class Product extends BaseEntity {
     private String productType;
     private String productCategory;
+    private String productBrand;
     private String name;
     @TableField("\"desc\"")
     private String desc;

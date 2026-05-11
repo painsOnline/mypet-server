@@ -1,14 +1,14 @@
 /**
  * File: FileUploadController.java
  * Author: system
- * Date: 2026-05-04
+ * Date: 2026-05-11
  *
  * File upload controller for admin management backend.
- * Accepts image uploads via drag-and-drop, saves to local filesystem,
- * returns the accessible URL.
+ * Images are stored with tenant isolation: uploads/{tenantCode}/{dateDir}/{uuid}.ext
  */
 package app.xinqianmao.com.admin.web.controller;
 
+import app.xinqianmao.com.common.auth.TenantContext;
 import app.xinqianmao.com.common.result.Result;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -42,42 +42,38 @@ public class FileUploadController {
         }
     }
 
-    @Operation(summary = "上传图片", description = "支持拖拽上传，返回图片访问URL")
+    @Operation(summary = "上传图片", description = "支持拖拽上传，图片按租户隔离存储，返回访问URL")
     @PostMapping("/image")
     public Result<String> uploadImage(@RequestParam("file") MultipartFile file) throws IOException {
-        if (file.isEmpty()) {
-            return Result.error("400", "文件不能为空");
-        }
+        if (file.isEmpty()) return Result.error("400", "文件不能为空");
 
         String originalName = file.getOriginalFilename();
-        if (originalName == null) {
-            return Result.error("400", "文件名不能为空");
-        }
+        if (originalName == null) return Result.error("400", "文件名不能为空");
 
-        // Check file type
         String ext = "";
         int dot = originalName.lastIndexOf('.');
         if (dot > 0) ext = originalName.substring(dot).toLowerCase();
-        if (!ext.matches("\\.(jpg|jpeg|png|gif|webp|bmp)$")) {
+        if (!ext.matches("\\.(jpg|jpeg|png|gif|webp|bmp)$"))
             return Result.error("400", "不支持的图片格式: " + ext);
-        }
 
-        // Check file size (max 10MB)
-        if (file.getSize() > 10 * 1024 * 1024) {
+        if (file.getSize() > 10 * 1024 * 1024)
             return Result.error("400", "图片大小不能超过10MB");
-        }
 
-        // Store with date-based subdirectory
+        // Tenant isolation: uploads/{tenantCode}/{dateDir}/{uuid}.ext
+        String tenantCode = TenantContext.get();
+        if (tenantCode == null || tenantCode.isBlank())
+            return Result.error("400", "缺少租户信息");
+
         String dateDir = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
-        Path targetDir = uploadRoot.resolve(dateDir);
+        Path targetDir = uploadRoot.resolve(tenantCode).resolve(dateDir);
         Files.createDirectories(targetDir);
 
         String newName = UUID.randomUUID().toString().replace("-", "") + ext;
         Path targetFile = targetDir.resolve(newName);
         file.transferTo(targetFile);
 
-        String url = "/uploads/" + dateDir + "/" + newName;
-        log.info("Image uploaded: {} -> {}", originalName, url);
+        String url = "/uploads/" + tenantCode + "/" + dateDir + "/" + newName;
+        log.info("Image uploaded [{}]: {} -> {}", tenantCode, originalName, url);
         return Result.ok(url);
     }
 }

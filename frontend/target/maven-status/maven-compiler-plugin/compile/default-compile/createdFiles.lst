@@ -37,6 +37,7 @@ app\xinqianmao\com\frontend\common\pojo\BannerResponse.class
 app\xinqianmao\com\frontend\web\controller\MemberLoginController.class
 app\xinqianmao\com\frontend\common\pojo\WxLoginRequest.class
 app\xinqianmao\com\frontend\common\pojo\PreOrderResponse.class
+app\xinqianmao\com\frontend\common\entity\ProductBrand.class
 app\xinqianmao\com\frontend\common\pojo\GoodsDetailResponse.class
 app\xinqianmao\com\frontend\common\entity\OrderProductSku.class
 app\xinqianmao\com\frontend\common\pojo\GoodsDetailResponse$DetailInfo.class
@@ -56,16 +57,21 @@ app\xinqianmao\com\frontend\web\FrontendApplication.class
 app\xinqianmao\com\frontend\dao\OrderReceiverMapper.class
 app\xinqianmao\com\frontend\common\pojo\CancelRequest.class
 app\xinqianmao\com\frontend\common\pojo\CartSyncRequest.class
+app\xinqianmao\com\frontend\common\entity\OrderProductProperty.class
 app\xinqianmao\com\frontend\common\pojo\PreOrderResponse$Summary.class
 app\xinqianmao\com\frontend\common\pojo\SubmitRequest.class
 app\xinqianmao\com\frontend\web\controller\SearchController.class
 app\xinqianmao\com\frontend\common\entity\ProductSku.class
+app\xinqianmao\com\frontend\dao\ProductBrandMapper.class
 app\xinqianmao\com\frontend\web\controller\MemberOrderController.class
+app\xinqianmao\com\frontend\common\entity\InventoryLog.class
 app\xinqianmao\com\frontend\common\pojo\MiniOrderListResponse.class
 app\xinqianmao\com\frontend\dao\OrderProductSkuMapper.class
 app\xinqianmao\com\frontend\dao\HotProductMapper.class
+app\xinqianmao\com\frontend\dao\OrderProductPropertyMapper.class
 app\xinqianmao\com\frontend\dao\ProductSpecsMapper.class
 app\xinqianmao\com\frontend\service\GoodsService$2.class
+app\xinqianmao\com\frontend\common\entity\ProductType.class
 app\xinqianmao\com\frontend\dao\ProductSkuMapper.class
 app\xinqianmao\com\frontend\dao\OrderProductMapper.class
 app\xinqianmao\com\frontend\web\controller\CategoryController.class
@@ -78,3 +84,4 @@ app\xinqianmao\com\frontend\dao\MemberMapper.class
 app\xinqianmao\com\frontend\service\GoodsService$1.class
 app\xinqianmao\com\frontend\common\pojo\GoodsDetailResponse$SpecValue.class
 app\xinqianmao\com\frontend\dao\ProductPropertyMapper.class
+app\xinqianmao\com\frontend\dao\InventoryLogMapper.class

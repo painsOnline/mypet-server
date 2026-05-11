@@ -17,4 +17,7 @@ public class MiniOrderSubmitResponse {
 
     @Schema(description = "新生成的订单ID")
     private String id;
+
+    @Schema(description = "订单号")
+    private String orderNo;
 }

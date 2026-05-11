@@ -8,8 +8,8 @@ import java.time.LocalDateTime;
 @Data
 @TableName("t_order_receiver")
 public class OrderReceiver {
-    @TableId
-    private String orderId;
+    @TableId("order_no")
+    private String orderNo;
     private String receiver;
     private String contact;
     private String provinceCode;

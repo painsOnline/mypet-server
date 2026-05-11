@@ -1,3 +1,4 @@
+app\xinqianmao\com\common\utils\RegionUtil.class
 app\xinqianmao\com\common\result\PageResult.class
 app\xinqianmao\com\common\constant\GlobalConstants.class
 app\xinqianmao\com\common\DbInitializer.class
@@ -13,6 +14,7 @@ app\xinqianmao\com\common\auth\UserContext.class
 app\xinqianmao\com\common\MemberSeeder.class
 app\xinqianmao\com\common\utils\UUIDUtil.class
 app\xinqianmao\com\common\dao\DynamicDataSource.class
+app\xinqianmao\com\common\utils\CryptoUtil.class
 app\xinqianmao\com\common\utils\PasswordUtil.class
 app\xinqianmao\com\common\exception\BizException.class
 app\xinqianmao\com\common\enums\OrderStatusEnum.class
@@ -25,6 +27,7 @@ app\xinqianmao\com\common\web\WebMvcConfig.class
 app\xinqianmao\com\common\dao\ConfigBaseMapper.class
 app\xinqianmao\com\common\dao\TenantMapper.class
 app\xinqianmao\com\common\exception\GlobalExceptionHandler.class
+app\xinqianmao\com\common\utils\OrderNoUtil.class
 app\xinqianmao\com\common\auth\JwtUtil.class
 app\xinqianmao\com\common\entity\Tenant.class
 app\xinqianmao\com\common\utils\ImageUrlUtil.class

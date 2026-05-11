@@ -19,6 +19,7 @@ app\xinqianmao\com\admin\dao\ProductSkuMapper.class
 app\xinqianmao\com\admin\common\pojo\ProductSaveRequest$SkuItem$SpecValue.class
 app\xinqianmao\com\admin\common\entity\Product.class
 app\xinqianmao\com\admin\common\pojo\DashboardStatsResponse.class
+app\xinqianmao\com\admin\dao\OrderProductPropertyMapper.class
 app\xinqianmao\com\admin\common\pojo\ProductDetailResponse.class
 app\xinqianmao\com\admin\web\controller\AdminSkuController.class
 app\xinqianmao\com\admin\common\pojo\HotSortRequest$SortItem.class
@@ -40,6 +41,8 @@ app\xinqianmao\com\admin\common\pojo\CategoryListResponse.class
 app\xinqianmao\com\admin\common\pojo\SkuSaveRequest$SpecValueItem.class
 app\xinqianmao\com\admin\dao\ProductTypeMapper.class
 app\xinqianmao\com\admin\common\pojo\OrderDetailResponse.class
+app\xinqianmao\com\admin\dao\InventoryLogMapper.class
+app\xinqianmao\com\admin\common\entity\InventoryLog.class
 app\xinqianmao\com\admin\common\pojo\HotSortRequest.class
 app\xinqianmao\com\admin\common\entity\Order.class
 app\xinqianmao\com\admin\common\entity\ProductProperty.class
@@ -57,6 +60,7 @@ app\xinqianmao\com\admin\common\pojo\ProductDetailResponse$SpecItem.class
 app\xinqianmao\com\admin\common\pojo\ProductSaveRequest$PropertyItem.class
 app\xinqianmao\com\admin\service\HotProductService.class
 app\xinqianmao\com\admin\common\entity\Shop.class
+app\xinqianmao\com\admin\service\BrandService.class
 app\xinqianmao\com\admin\common\entity\ProductType.class
 app\xinqianmao\com\admin\web\AdminApplication.class
 app\xinqianmao\com\admin\common\pojo\TypeWithSpecsResponse.class
@@ -70,6 +74,8 @@ app\xinqianmao\com\admin\service\OrderService.class
 app\xinqianmao\com\admin\common\pojo\OrderListResponse$SkuItem.class
 app\xinqianmao\com\admin\service\SpecsService.class
 app\xinqianmao\com\admin\dao\HotProductMapper.class
+app\xinqianmao\com\admin\web\controller\AdminBrandController.class
+app\xinqianmao\com\admin\dao\ProductBrandMapper.class
 app\xinqianmao\com\admin\web\controller\DashboardController.class
 app\xinqianmao\com\admin\common\pojo\ProductDetailResponse$SpecValue.class
 app\xinqianmao\com\admin\common\entity\OrderReceiver.class
@@ -79,7 +85,9 @@ app\xinqianmao\com\admin\common\pojo\SpecValuesUpdateRequest.class
 app\xinqianmao\com\admin\service\UserService.class
 app\xinqianmao\com\admin\common\pojo\AdminLoginRequest.class
 app\xinqianmao\com\admin\dao\ReceiverMapper.class
+app\xinqianmao\com\admin\common\entity\ProductBrand.class
 app\xinqianmao\com\admin\service\StatisticsService.class
+app\xinqianmao\com\admin\common\entity\OrderProductProperty.class
 app\xinqianmao\com\admin\common\pojo\OrderTrendResponse.class
 app\xinqianmao\com\admin\dao\ProductSpecsMapper.class
 app\xinqianmao\com\admin\service\CategoryService.class

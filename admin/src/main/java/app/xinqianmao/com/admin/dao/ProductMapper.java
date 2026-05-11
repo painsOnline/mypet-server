@@ -22,4 +22,8 @@ public interface ProductMapper extends TenantBaseMapper<Product> {
     /** Count products by type (for delete check) */
     @Select("SELECT COUNT(*) FROM t_product WHERE product_type = #{typeId}")
     Long countByTypeId(String typeId);
+
+    /** Count products by brand (for delete check) */
+    @Select("SELECT COUNT(*) FROM t_product WHERE product_brand = #{brandId}")
+    Long countByBrandId(String brandId);
 }

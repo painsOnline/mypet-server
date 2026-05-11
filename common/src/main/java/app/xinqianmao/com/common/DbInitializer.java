@@ -1,10 +1,10 @@
 /**
  * File: DbInitializer.java
  * Author: system
- * Date: 2026-05-04
+ * Date: 2026-05-11
  *
  * Initializes databases (mypet_config, mypet_empty, mypet_xlong).
- * Per README #22: never drops databases; only adds/modifies in-place. Existing data is preserved.
+ * Drops and recreates all databases for a clean rebuild.
  *
  * Run standalone: mvn exec:java -pl common -Dexec.mainClass="app.xinqianmao.com.common.DbInitializer"
  */
@@ -12,11 +12,8 @@ package app.xinqianmao.com.common;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.PreparedStatement;
 import java.sql.Statement;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Pattern;
 
 public final class DbInitializer {
 
@@ -27,33 +24,33 @@ public final class DbInitializer {
     private static final String BASE_URL = "jdbc:postgresql://" + HOST + ":" + PORT + "/";
     private static final String POSTGRES_URL = BASE_URL + "postgres";
 
-    private static volatile boolean initialized = false;
-
     private DbInitializer() {}
 
     /**
-     * Standalone entry point. Creates databases if missing, runs init scripts, applies migrations.
+     * Standalone entry point. Drops databases, recreates, runs init scripts.
      */
     public static void main(String[] args) {
-        System.out.println("==== MyPet Database Initialization ====");
+        System.out.println("==== MyPet Database Initialization (Clean Rebuild) ====");
         try {
             Class.forName("org.postgresql.Driver");
 
-            // Step 1: Create databases if not exist (no drops)
-            for (String dbName : List.of("mypet_config", "mypet_empty", "mypet_xlong")) {
-                ensureDatabaseExists(dbName);
+            // Step 1: Drop databases in reverse order
+            for (String dbName : List.of("mypet_xlong", "mypet_empty", "mypet_config")) {
+                dropDatabase(dbName);
             }
 
-            // Step 2: Run init scripts (CREATE TABLE IF NOT EXISTS — idempotent)
+            // Step 2: Recreate databases
+            for (String dbName : List.of("mypet_config", "mypet_empty", "mypet_xlong")) {
+                createDatabase(dbName);
+            }
+
+            // Step 3: Run init scripts
             runInitScript(BASE_URL + "mypet_config",
                     "F:/MyWorkspace/project/mypet/java/mypet-server/sql/init-config.sql");
             runInitScript(BASE_URL + "mypet_empty",
                     "F:/MyWorkspace/project/mypet/java/mypet-server/sql/init-empty.sql");
             runInitScript(BASE_URL + "mypet_xlong",
                     "F:/MyWorkspace/project/mypet/java/mypet-server/sql/init-empty.sql");
-
-            // Step 3: Apply migrations (ALTER TABLE etc.)
-            runMigrations();
 
             // Step 4: Verify
             try (Connection conn = DriverManager.getConnection(BASE_URL + "mypet_xlong", USER, PASSWORD)) {
@@ -71,9 +68,8 @@ public final class DbInitializer {
             System.out.println("==== Initialization Complete ====");
             System.out.println("  Config DB : mypet_config");
             System.out.println("  Template  : mypet_empty");
-            System.out.println("  Tenant    : mypet_xlong (code: xlong)");
+            System.out.println("  Tenant    : mypet_xlong (code: xlong, name: 鑫钱猫惠州分店)");
             System.out.println("  Admin     : admin / admin123");
-            System.out.println("  (Existing data preserved)");
         } catch (Exception e) {
             System.err.println("[FATAL] " + e.getMessage());
             e.printStackTrace();
@@ -83,97 +79,29 @@ public final class DbInitializer {
 
     /**
      * Called by tests to ensure all databases and tables exist.
-     * Idempotent — safe to call multiple times.
+     * Performs a clean rebuild (drops and recreates).
      */
     public static synchronized void ensureDatabases() {
-        if (initialized) return;
-        try {
-            Class.forName("org.postgresql.Driver");
-
-            // Create databases if missing
-            for (String dbName : List.of("mypet_config", "mypet_empty", "mypet_xlong")) {
-                ensureDatabaseExists(dbName);
-            }
-
-            // Run init scripts (idempotent with IF NOT EXISTS)
-            runInitScript(BASE_URL + "mypet_config",
-                    "F:/MyWorkspace/project/mypet/java/mypet-server/sql/init-config.sql");
-            runInitScript(BASE_URL + "mypet_empty",
-                    "F:/MyWorkspace/project/mypet/java/mypet-server/sql/init-empty.sql");
-            runInitScript(BASE_URL + "mypet_xlong",
-                    "F:/MyWorkspace/project/mypet/java/mypet-server/sql/init-empty.sql");
-
-            // Apply migrations
-            runMigrations();
-
-            initialized = true;
-            System.out.println("[DbInit] All databases initialized (existing data preserved)");
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to initialize test databases", e);
-        }
+        main(new String[0]);
     }
 
-    // ---- Migration definitions ----
-    // Add new ALTER TABLE / CREATE INDEX etc. statements here.
-    // All must be idempotent (use IF NOT EXISTS / IF EXISTS where possible).
-
-    private static void runMigrations() {
-        // Config DB migrations
-        executeMigration(BASE_URL + "mypet_config",
-                "ALTER TABLE c_tenant ADD COLUMN IF NOT EXISTS code VARCHAR(255)");
-        executeMigration(BASE_URL + "mypet_config",
-                "ALTER TABLE c_tenant ADD COLUMN IF NOT EXISTS name VARCHAR(255)");
-        executeMigration(BASE_URL + "mypet_config",
-                "UPDATE c_tenant SET code = 'xlong', name = 'xlong宠物社区私域' WHERE id = '00000000-0000-0000-0000-000000000010' AND code IS NULL");
-
-        // Tenant DB migrations
-        List<String> emptyAndTenant = List.of("mypet_empty", "mypet_xlong");
-        for (String dbName : emptyAndTenant) {
-            executeMigration(BASE_URL + dbName, "ALTER TABLE t_product ADD COLUMN IF NOT EXISTS is_enable SMALLINT NOT NULL DEFAULT 1");
-            executeMigration(BASE_URL + dbName, "ALTER TABLE t_member ADD COLUMN IF NOT EXISTS openid VARCHAR(100)");
-            executeMigration(BASE_URL + dbName, "ALTER TABLE t_receiver ADD COLUMN IF NOT EXISTS member_id CHAR(36)");
-            executeMigration(BASE_URL + dbName, "ALTER TABLE t_order ADD COLUMN IF NOT EXISTS delivery_time VARCHAR(255)");
-            executeMigration(BASE_URL + dbName, "ALTER TABLE t_order ADD COLUMN IF NOT EXISTS pay_channel SMALLINT NOT NULL DEFAULT 1");
-            executeMigration(BASE_URL + dbName, "ALTER TABLE t_order ADD COLUMN IF NOT EXISTS pay_type SMALLINT NOT NULL DEFAULT 1");
-        }
-    }
-
-    // ---- Helpers ----
-
-    private static final Pattern DB_NAME = Pattern.compile("^[a-zA-Z0-9_-]{1,64}$");
-
-    private static void ensureDatabaseExists(String dbName) {
-        if (!DB_NAME.matcher(dbName).matches()) {
-            throw new RuntimeException("Invalid database name: " + dbName);
-        }
-        // Use PreparedStatement for the existence check
+    private static void dropDatabase(String dbName) {
         try (Connection conn = DriverManager.getConnection(POSTGRES_URL, USER, PASSWORD);
-             PreparedStatement ps = conn.prepareStatement(
-                     "SELECT 1 FROM pg_database WHERE datname = ?")) {
-            ps.setString(1, dbName);
-            boolean exists;
-            try (var rs = ps.executeQuery()) { exists = rs.next(); }
-            if (!exists) {
-                // DDL: dbName already validated by DB_NAME pattern above
-                try (Statement stmt = conn.createStatement()) {
-                    stmt.execute("CREATE DATABASE \"" + dbName + "\"");
-                }
-                System.out.println("[OK] Created database: " + dbName);
-            } else {
-                System.out.println("[OK] Database exists: " + dbName);
-            }
+             Statement stmt = conn.createStatement()) {
+            stmt.execute("DROP DATABASE IF EXISTS \"" + dbName + "\"");
+            System.out.println("[OK] Dropped database (if existed): " + dbName);
         } catch (Exception e) {
-            System.err.println("[WARN] ensureDatabaseExists " + dbName + ": " + e.getMessage());
+            System.err.println("[WARN] dropDatabase " + dbName + ": " + e.getMessage());
         }
     }
 
-    private static void executeMigration(String url, String sql) {
-        try (Connection conn = DriverManager.getConnection(url, USER, PASSWORD);
+    private static void createDatabase(String dbName) {
+        try (Connection conn = DriverManager.getConnection(POSTGRES_URL, USER, PASSWORD);
              Statement stmt = conn.createStatement()) {
-            stmt.execute(sql);
-            System.out.println("[MIG] OK: " + sql.substring(0, Math.min(80, sql.length())) + "...");
+            stmt.execute("CREATE DATABASE \"" + dbName + "\"");
+            System.out.println("[OK] Created database: " + dbName);
         } catch (Exception e) {
-            System.err.println("[MIG] ERROR [" + url + "]: " + e.getMessage());
+            System.err.println("[WARN] createDatabase " + dbName + ": " + e.getMessage());
         }
     }
 

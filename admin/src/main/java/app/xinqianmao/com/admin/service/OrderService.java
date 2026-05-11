@@ -13,6 +13,7 @@ import app.xinqianmao.com.admin.dao.*;
 import app.xinqianmao.com.common.enums.OrderStatusEnum;
 import app.xinqianmao.com.common.exception.BizException;
 import app.xinqianmao.com.common.utils.DateTimeUtil;
+import app.xinqianmao.com.common.utils.RegionUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -99,39 +100,46 @@ public class OrderService {
         Order order = orderMapper.selectById(orderId);
         if (order == null) throw new BizException("404", "订单不存在");
 
+        String orderNo = order.getOrderNo();
         OrderDetailResponse r = new OrderDetailResponse();
         r.setId(order.getId());
+        r.setOrderNo(orderNo);
         r.setOrderStatus(order.getOrderStatus());
         OrderStatusEnum statusEnum = OrderStatusEnum.fromCode(order.getOrderStatus());
         r.setOrderStatusDesc(statusEnum != null ? statusEnum.getDesc() : "");
         r.setTotalMoney(order.getTotalMoney());
         r.setPayMoney(order.getPayMoney());
         r.setActualPayMoney(order.getActualPayMoney());
+        r.setProfitMoney(order.getProfitMoney());
         r.setCreateTime(DateTimeUtil.format(order.getCreateTime()));
         r.setModifyTime(DateTimeUtil.format(order.getModifyTime()));
+        r.setDeliveryTime(order.getDeliveryTime());
+        r.setBuyerMessage(order.getBuyerMessage());
 
         // Receiver info (from snapshot)
-        OrderReceiver receiver = orderReceiverMapper.selectById(order.getId());
+        OrderReceiver receiver = orderReceiverMapper.selectById(order.getOrderNo());
         if (receiver != null) {
             OrderDetailResponse.ReceiverInfo ri = new OrderDetailResponse.ReceiverInfo();
-            ri.setId(receiver.getOrderId());
+            ri.setId(receiver.getOrderNo());
             ri.setReceiver(receiver.getReceiver());
             ri.setContact(receiver.getContact());
             ri.setAddress(receiver.getAddress());
-            ri.setFullLocation(receiver.getProvinceCode() + " " + receiver.getCityCode() + " " + receiver.getCountyCode());
+            ri.setFullLocation(RegionUtil.getName(receiver.getProvinceCode()) + " "
+                + RegionUtil.getName(receiver.getCityCode()) + " "
+                + RegionUtil.getName(receiver.getCountyCode()));
             r.setReceiver(ri);
         }
 
         // Order products and SKUs
         Map<String, List<OrderProductSku>> skusByProduct = new HashMap<>();
         List<OrderProductSku> allSkus = orderProductSkuMapper.selectList(
-                new LambdaQueryWrapper<OrderProductSku>().eq(OrderProductSku::getOrderId, orderId));
+                new LambdaQueryWrapper<OrderProductSku>().eq(OrderProductSku::getOrderNo, orderNo));
         for (OrderProductSku sku : allSkus) {
             skusByProduct.computeIfAbsent(sku.getProductId(), k -> new ArrayList<>()).add(sku);
         }
 
         List<OrderProduct> products = orderProductMapper.selectList(
-                new LambdaQueryWrapper<OrderProduct>().eq(OrderProduct::getOrderId, orderId));
+                new LambdaQueryWrapper<OrderProduct>().eq(OrderProduct::getOrderNo, orderNo));
         r.setProducts(products.stream().map(p -> {
             OrderDetailResponse.ProductItem pi = new OrderDetailResponse.ProductItem();
             pi.setProductId(p.getProductId());
@@ -145,7 +153,9 @@ public class OrderService {
                 sd.setSkuId(sku.getSkuId());
                 sd.setPrice(sku.getPrice());
                 sd.setOldPrice(sku.getOldPrice());
-                sd.setQuantity(sku.getInventory());
+                sd.setCostPrice(sku.getCostPrice());
+                sd.setProfitMoney(sku.getProfitMoney());
+                sd.setQuantity(sku.getCount());
                 sd.setPicture(sku.getPicture());
                 sd.setAttrsText(extractAttrsText(sku.getSpecs()));
                 return sd;
@@ -273,12 +283,14 @@ public class OrderService {
     private OrderListResponse toListResponse(Order order) {
         OrderListResponse r = new OrderListResponse();
         r.setId(order.getId());
+        r.setOrderNo(order.getOrderNo());
         r.setOrderStatus(order.getOrderStatus());
         OrderStatusEnum statusEnum = OrderStatusEnum.fromCode(order.getOrderStatus());
         r.setOrderStatusDesc(statusEnum != null ? statusEnum.getDesc() : "");
         r.setTotalMoney(order.getTotalMoney());
         r.setPayMoney(order.getPayMoney());
         r.setActualPayMoney(order.getActualPayMoney());
+        r.setProfitMoney(order.getProfitMoney());
         r.setCreateTime(DateTimeUtil.format(order.getCreateTime()));
         r.setModifyTime(DateTimeUtil.format(order.getModifyTime()));
 
@@ -287,13 +299,18 @@ public class OrderService {
         if (st != null && st >= 2) r.setDispatchTime(DateTimeUtil.format(order.getModifyTime()));
         if (st != null && st >= 3) r.setReceiptTime(DateTimeUtil.format(order.getModifyTime()));
         if (st != null && st == 5) r.setCancelTime(DateTimeUtil.format(order.getModifyTime()));
+        r.setDeliveryTime(order.getDeliveryTime());
+        r.setBuyerMessage(order.getBuyerMessage());
 
         // Receiver info (from snapshot)
-        OrderReceiver receiver = orderReceiverMapper.selectById(order.getId());
+        OrderReceiver receiver = orderReceiverMapper.selectById(order.getOrderNo());
         if (receiver != null) {
             r.setReceiverName(receiver.getReceiver());
             r.setReceiverPhone(receiver.getContact());
-            r.setReceiverAddress(receiver.getProvinceCode() + receiver.getCityCode() + receiver.getCountyCode() + receiver.getAddress());
+            r.setReceiverAddress(RegionUtil.getName(receiver.getProvinceCode())
+        + RegionUtil.getName(receiver.getCityCode())
+        + RegionUtil.getName(receiver.getCountyCode())
+        + "\n" + receiver.getAddress());
             // Try to find member by matching contact/mobile
             List<Member> members = memberMapper.selectList(
                     new LambdaQueryWrapper<Member>().eq(Member::getMobile, receiver.getContact()));
@@ -306,18 +323,18 @@ public class OrderService {
 
         // SKU summary
         List<OrderProductSku> skus = orderProductSkuMapper.selectList(
-                new LambdaQueryWrapper<OrderProductSku>().eq(OrderProductSku::getOrderId, order.getId()));
+                new LambdaQueryWrapper<OrderProductSku>().eq(OrderProductSku::getOrderNo, order.getOrderNo()));
         r.setSkus(skus.stream().map(sku -> {
             OrderListResponse.SkuItem si = new OrderListResponse.SkuItem();
             si.setSkuId(sku.getSkuId());
             si.setProductId(sku.getProductId());
-            si.setQuantity(sku.getInventory());
+            si.setQuantity(sku.getCount());
             si.setPrice(sku.getPrice());
             si.setPicture(sku.getPicture());
             si.setAttrsText(extractAttrsText(sku.getSpecs()));
             return si;
         }).collect(Collectors.toList()));
-        r.setTotalNum(skus.stream().mapToInt(OrderProductSku::getInventory).sum());
+        r.setTotalNum(skus.stream().mapToInt(OrderProductSku::getCount).sum());
 
         return r;
     }

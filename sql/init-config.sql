@@ -1,12 +1,9 @@
 -- =====================================================
 -- File: init-config.sql
 -- Author: system
--- Date: 2026-05-03
--- Description: Initialize mypet_config database
+-- Date: 2026-05-10
+-- Description: Initialize mypet_config database (v2.0)
 -- =====================================================
-
--- Create config database (run manually as superuser)
--- CREATE DATABASE mypet_config;
 
 -- c_database_instance: database instance connection info
 CREATE TABLE IF NOT EXISTS c_database_instance (
@@ -32,13 +29,12 @@ CREATE TABLE IF NOT EXISTS c_tenant (
 );
 CREATE INDEX IF NOT EXISTS idx_tenant_code ON c_tenant(code);
 
--- Insert default database instance (password matches local PostgreSQL 18 config)
+-- Insert default database instance (password AES-encrypted)
 INSERT INTO c_database_instance (id, host, port, "user", "password", create_time)
-VALUES ('00000000-0000-0000-0000-000000000001', '127.0.0.1', 1800, 'postgres', 'mypg123abc', now()::timestamp(0))
+VALUES ('00000000-0000-0000-0000-000000000001', '127.0.0.1', 1800, 'postgres', 'rNQ/rOH0fCKXGFtML1I6cQ==', now()::timestamp(0))
 ON CONFLICT (id) DO NOTHING;
 
 -- Insert default tenant "xlong"
 INSERT INTO c_tenant (id, code, name, database_instance_id, free_shipping_amount, is_disable, create_time)
-VALUES ('00000000-0000-0000-0000-000000000010', 'xlong', 'xlong宠物社区私域', '00000000-0000-0000-0000-000000000001', 20.00, 0, now()::timestamp(0))
+VALUES ('00000000-0000-0000-0000-000000000010', 'xlong', '鑫钱猫惠州分店', '00000000-0000-0000-0000-000000000001', 20.00, 0, now()::timestamp(0))
 ON CONFLICT (id) DO NOTHING;
-

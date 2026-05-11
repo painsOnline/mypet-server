@@ -1,7 +1,7 @@
 /**
  * File: UserService.java
  * Author: system
- * Date: 2026-05-03
+ * Date: 2026-05-11
  */
 package app.xinqianmao.com.admin.service;
 
@@ -18,12 +18,11 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.*;
 
-/**
- * User management with order statistics.
- */
 @Service
 @RequiredArgsConstructor
 public class UserService {
@@ -33,10 +32,8 @@ public class UserService {
 
     public IPage<UserListResponse> search(UserSearchRequest req) {
         LambdaQueryWrapper<Member> wrapper = new LambdaQueryWrapper<>();
-
-        if (req.getPhone() != null && !req.getPhone().isBlank()) {
+        if (req.getPhone() != null && !req.getPhone().isBlank())
             wrapper.like(Member::getMobile, req.getPhone());
-        }
         if (req.getCreateTimeStart() != null) {
             LocalDateTime start = DateTimeUtil.parse(req.getCreateTimeStart());
             if (start != null) wrapper.ge(Member::getCreateTime, start);
@@ -45,17 +42,23 @@ public class UserService {
             LocalDateTime end = DateTimeUtil.parse(req.getCreateTimeEnd());
             if (end != null) wrapper.le(Member::getCreateTime, end);
         }
-
-        String sortBy = req.getSortBy() != null ? req.getSortBy() : "createTime";
         boolean asc = "asc".equalsIgnoreCase(req.getSortOrder());
-        if (asc) {
-            wrapper.orderByAsc(Member::getCreateTime);
-        } else {
-            wrapper.orderByDesc(Member::getCreateTime);
-        }
+        if (asc) wrapper.orderByAsc(Member::getCreateTime);
+        else wrapper.orderByDesc(Member::getCreateTime);
 
         Page<Member> page = Page.of(req.getPage(), req.getPageSize());
         IPage<Member> memberPage = memberMapper.selectPage(page, wrapper);
+
+        // Load orders for all visible members
+        List<String> memberIds = memberPage.getRecords().stream().map(Member::getId).toList();
+        Map<String, List<Order>> ordersByMember = new HashMap<>();
+        if (!memberIds.isEmpty()) {
+            for (int i = 0; i < memberIds.size(); i += 500) {
+                List<String> batch = memberIds.subList(i, Math.min(i + 500, memberIds.size()));
+                orderMapper.selectList(new LambdaQueryWrapper<Order>().in(Order::getMemberId, batch))
+                        .forEach(o -> ordersByMember.computeIfAbsent(o.getMemberId(), k -> new ArrayList<>()).add(o));
+            }
+        }
 
         return memberPage.convert(member -> {
             UserListResponse r = new UserListResponse();
@@ -65,11 +68,20 @@ public class UserService {
             r.setAvatar(member.getAvatar());
             r.setCreateTime(DateTimeUtil.format(member.getCreateTime()));
 
-            // Simplified order stats
-            r.setOrderCount(0L);
-            r.setTotalOrderAmount(java.math.BigDecimal.ZERO);
-            r.setAvgOrderAmount(java.math.BigDecimal.ZERO);
+            List<Order> orders = ordersByMember.getOrDefault(member.getId(), List.of());
+            long totalCount = orders.size();
+            List<Order> received = orders.stream()
+                    .filter(o -> o.getOrderStatus() != null && (o.getOrderStatus() == 3 || o.getOrderStatus() == 4)).toList();
+            BigDecimal totalAmount = received.stream()
+                    .map(o -> o.getActualPayMoney() != null ? o.getActualPayMoney() : BigDecimal.ZERO)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            long receivedCount = received.size();
 
+            r.setOrderCount(totalCount);
+            r.setTotalOrderAmount(totalAmount);
+            r.setAvgOrderAmount(receivedCount > 0
+                    ? totalAmount.divide(BigDecimal.valueOf(receivedCount), 2, RoundingMode.HALF_UP)
+                    : BigDecimal.ZERO);
             return r;
         });
     }

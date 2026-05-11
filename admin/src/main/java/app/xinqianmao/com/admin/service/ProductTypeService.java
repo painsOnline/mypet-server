@@ -33,7 +33,9 @@ public class ProductTypeService {
 
     public List<TypeWithSpecsResponse> listAllWithSpecs() {
         List<ProductType> types = typeMapper.selectList(
-                new LambdaQueryWrapper<ProductType>().orderByAsc(ProductType::getSort));
+                new LambdaQueryWrapper<ProductType>()
+                        .eq(ProductType::getIsDelete, 0)
+                        .orderByAsc(ProductType::getSort));
         if (types.isEmpty()) return List.of();
 
         List<String> typeIds = types.stream().map(ProductType::getId).toList();
@@ -113,12 +115,12 @@ public class ProductTypeService {
     }
 
     public void delete(String id) {
+        ProductType type = typeMapper.selectById(id);
+        if (type == null) throw new BizException("404", "类型不存在");
         long count = productMapper.countByTypeId(id);
-        if (count > 0) {
-            throw new BizException("400", "该类型下有" + count + "个商品，无法删除");
-        }
-        specsMapper.delete(new LambdaQueryWrapper<ProductSpecs>().eq(ProductSpecs::getProductType, id));
-        typeMapper.deleteById(id);
+        if (count > 0) throw new BizException("400", "该类型下有" + count + "个商品，无法删除");
+        type.setIsDelete(1);
+        typeMapper.updateById(type);
     }
 
     public List<ProductSpecs> getSpecs(String typeId) {

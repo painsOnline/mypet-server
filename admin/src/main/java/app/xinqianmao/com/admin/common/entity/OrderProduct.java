@@ -1,7 +1,7 @@
 /**
  * File: OrderProduct.java
  * Author: system
- * Date: 2026-05-03
+ * Date: 2026-05-10
  */
 package app.xinqianmao.com.admin.common.entity;
 
@@ -13,17 +13,14 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
-/**
- * t_order_products — product snapshot at order time.
- * No single-column id; composite key (order_id, product_id).
- */
 @Data
 @TableName("t_order_products")
 public class OrderProduct {
-    private String orderId;
+    private String orderNo;
     private String productId;
     private String productType;
     private String productCategory;
+    private String productBrand;
     private String name;
     @TableField("\"desc\"")
     private String desc;

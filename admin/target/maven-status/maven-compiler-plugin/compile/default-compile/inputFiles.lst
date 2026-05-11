@@ -1,12 +1,15 @@
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\common\entity\Admin.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\common\entity\Cart.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\common\entity\HotProduct.java
+F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\common\entity\InventoryLog.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\common\entity\Member.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\common\entity\Order.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\common\entity\OrderProduct.java
+F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\common\entity\OrderProductProperty.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\common\entity\OrderProductSku.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\common\entity\OrderReceiver.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\common\entity\Product.java
+F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\common\entity\ProductBrand.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\common\entity\ProductCategory.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\common\entity\ProductProperty.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\common\entity\ProductSku.java
@@ -43,11 +46,14 @@ F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianma
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\dao\AdminMapper.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\dao\CartMapper.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\dao\HotProductMapper.java
+F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\dao\InventoryLogMapper.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\dao\MemberMapper.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\dao\OrderMapper.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\dao\OrderProductMapper.java
+F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\dao\OrderProductPropertyMapper.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\dao\OrderProductSkuMapper.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\dao\OrderReceiverMapper.java
+F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\dao\ProductBrandMapper.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\dao\ProductCategoryMapper.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\dao\ProductMapper.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\dao\ProductPropertyMapper.java
@@ -57,6 +63,7 @@ F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianma
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\dao\ReceiverMapper.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\dao\ShopMapper.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\service\AdminLoginService.java
+F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\service\BrandService.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\service\CategoryService.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\service\DashboardService.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\service\HotProductService.java
@@ -70,6 +77,7 @@ F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianma
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\service\UserService.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\web\AdminApplication.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\web\AdminWebMvcConfig.java
+F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\web\controller\AdminBrandController.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\web\controller\AdminCategoryController.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\web\controller\AdminHotController.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\web\controller\AdminLoginController.java

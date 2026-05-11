@@ -19,4 +19,5 @@ import lombok.EqualsAndHashCode;
 public class ProductType extends BaseEntity {
     private String name;
     private Integer sort;
+    private Integer isDelete;
 }

@@ -19,11 +19,13 @@ import java.util.List;
 public class OrderListResponse {
 
     private String id;
+    private String orderNo;
     private Integer orderStatus;
     private String orderStatusDesc;
     private BigDecimal totalMoney;
     private BigDecimal payMoney;
     private BigDecimal actualPayMoney;
+    private BigDecimal profitMoney;
     private String receiverName;
     private String receiverPhone;
     private String receiverAddress;
@@ -34,10 +36,11 @@ public class OrderListResponse {
     private String dispatchTime;
     private String receiptTime;
     private String cancelTime;
+    private String deliveryTime;
+    private String buyerMessage;
     private String memberAvatar;
     private String memberMobile;
     private Boolean hasRefundRequest;
-    private String buyerMessage;
 
     @Data
     @Schema(description = "订单SKU简略信息")

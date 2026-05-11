@@ -21,6 +21,9 @@ public class MiniOrderListResponse {
     @Schema(description = "订单ID")
     private String id;
 
+    @Schema(description = "订单号")
+    private String orderNo;
+
     @Schema(description = "订单状态：1=待配送 2=配送中 3=已收货 4=已完成 5=已取消")
     private Integer orderState;
 

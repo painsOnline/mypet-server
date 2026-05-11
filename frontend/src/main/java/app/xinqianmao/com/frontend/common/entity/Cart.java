@@ -1,7 +1,7 @@
 /**
  * File: Cart.java
  * Author: system
- * Date: 2026-05-03
+ * Date: 2026-05-10
  */
 package app.xinqianmao.com.frontend.common.entity;
 
@@ -13,10 +13,14 @@ import lombok.EqualsAndHashCode;
 
 import java.math.BigDecimal;
 
+/**
+ * t_cart — shopping cart item.
+ */
 @Data
 @EqualsAndHashCode(callSuper = true)
 @TableName("t_cart")
 public class Cart extends BaseEntity {
+    private String memberId;
     private String skuId;
     private String name;
     @TableField(typeHandler = app.xinqianmao.com.common.dao.JsonTypeHandler.class)

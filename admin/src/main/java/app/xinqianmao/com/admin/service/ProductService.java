@@ -19,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -35,6 +36,7 @@ public class ProductService {
     private final ProductPropertyMapper propertyMapper;
     private final ProductSkuMapper skuMapper;
     private final ProductSpecsMapper specsMapper;
+    private final InventoryLogMapper inventoryLogMapper;
     private final ProductCategoryMapper categoryMapper;
     private final ProductTypeMapper typeMapper;
     private final HotProductMapper hotProductMapper;
@@ -60,6 +62,15 @@ public class ProductService {
             wrapper.in(Product::getProductType, req.getTypeIds());
         } else if (req.getTypeId() != null && !req.getTypeId().isBlank()) {
             wrapper.eq(Product::getProductType, req.getTypeId());
+        }
+        // Brand filter
+        if (req.getBrandId() != null && !req.getBrandId().isBlank()) {
+            wrapper.eq(Product::getProductBrand, req.getBrandId());
+        }
+        // Barcode search: match any SKU's barcode
+        if (req.getBarcode() != null && !req.getBarcode().isBlank()) {
+            wrapper.exists("SELECT 1 FROM t_product_sku s WHERE s.product_id = t_product.id AND s.barcode LIKE CONCAT('%', {0}, '%')",
+                    req.getBarcode().replaceAll("[%_]", "\\\\$0"));
         }
         if (req.getIsEnable() != null) {
             wrapper.eq(Product::getIsEnable, req.getIsEnable());
@@ -152,6 +163,7 @@ public class ProductService {
         r.setDetail(product.getDetail());
         r.setProductType(product.getProductType());
         r.setProductCategory(product.getProductCategory());
+        r.setProductBrand(product.getProductBrand());
         r.setSort(product.getSort());
         r.setIsEnable(product.getIsEnable());
         r.setCreateTime(DateTimeUtil.format(product.getCreateTime()));
@@ -177,7 +189,9 @@ public class ProductService {
             si.setId(sku.getId());
             si.setPrice(sku.getPrice());
             si.setOldPrice(sku.getOldPrice());
+            si.setCostPrice(sku.getCostPrice());
             si.setInventory(sku.getInventory());
+            si.setBarcode(sku.getBarcode());
             si.setPicture(sku.getPicture());
             // Parse specs from JSON string
             si.setSpecs(parseSpecsJson(sku.getSpecs()));
@@ -202,6 +216,7 @@ public class ProductService {
         product.setName(req.getName());
         product.setProductType(req.getProductType());
         product.setProductCategory(req.getProductCategory());
+        product.setProductBrand(req.getProductBrand());
         product.setDesc(req.getDesc());
         product.setPrice(req.getPrice());
         product.setOldPrice(req.getOldPrice());
@@ -239,6 +254,9 @@ public class ProductService {
                 sku.setPrice(si.getPrice());
                 sku.setOldPrice(si.getOldPrice());
                 sku.setInventory(si.getInventory());
+                if (si.getCostPrice() == null) throw new BizException("400", "SKU成本价不能为空");
+                sku.setCostPrice(si.getCostPrice());
+                sku.setBarcode(si.getBarcode() != null ? si.getBarcode() : "");
                 sku.setPicture(si.getPicture());
                 try {
                     sku.setSpecs(mapper.writeValueAsString(si.getSpecs()));
@@ -247,9 +265,25 @@ public class ProductService {
                 }
                 sku.setCreateTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
                 skuMapper.insert(sku);
+                writeInventoryLog(sku, null, "in", sku.getInventory(), 0, sku.getInventory());
         }
 
         return product.getId();
+    }
+
+    private void writeInventoryLog(ProductSku sku, String orderNo, String changeType,
+                                    int changeNum, int before, int after) {
+        InventoryLog log = new InventoryLog();
+        log.setSkuId(sku.getId());
+        log.setBarcode(sku.getBarcode());
+        log.setOrderNo(orderNo);
+        log.setChangeType(changeType);
+        log.setChangeNum(changeNum);
+        log.setBeforeInventory(before);
+        log.setAfterInventory(after);
+        log.setOperator("admin");
+        log.setCreateTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
+        inventoryLogMapper.insert(log);
     }
 
     /**
@@ -264,6 +298,7 @@ public class ProductService {
         product.setName(req.getName());
         product.setProductType(req.getProductType());
         product.setProductCategory(req.getProductCategory());
+        product.setProductBrand(req.getProductBrand());
         product.setDesc(req.getDesc());
         product.setPrice(req.getPrice());
         product.setOldPrice(req.getOldPrice());
@@ -291,6 +326,12 @@ public class ProductService {
         }
 
         // Replace SKUs (at least one required)
+        // Load old SKUs before delete for inventory comparison
+        Map<String, ProductSku> oldSkus = new HashMap<>();
+        List<ProductSku> existingSkus = skuMapper.selectList(
+                new LambdaQueryWrapper<ProductSku>().eq(ProductSku::getProductId, productId));
+        for (ProductSku s : existingSkus) oldSkus.put(s.getId(), s);
+
         skuMapper.delete(new LambdaQueryWrapper<ProductSku>()
                 .eq(ProductSku::getProductId, productId));
         if (req.getSkus() == null || req.getSkus().isEmpty()) {
@@ -304,6 +345,9 @@ public class ProductService {
             sku.setPrice(si.getPrice());
             sku.setOldPrice(si.getOldPrice());
             sku.setInventory(si.getInventory());
+            if (si.getCostPrice() == null) throw new BizException("400", "SKU成本价不能为空");
+            sku.setCostPrice(si.getCostPrice());
+            sku.setBarcode(si.getBarcode() != null ? si.getBarcode() : "");
             sku.setPicture(si.getPicture());
             try {
                 sku.setSpecs(mapper.writeValueAsString(si.getSpecs()));
@@ -312,6 +356,14 @@ public class ProductService {
             }
             sku.setCreateTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
             skuMapper.insert(sku);
+
+            // Inventory change log (adjust)
+            ProductSku oldSku = oldSkus.get(si.getId());
+            int oldInv = oldSku != null && oldSku.getInventory() != null ? oldSku.getInventory() : 0;
+            int newInv = sku.getInventory() != null ? sku.getInventory() : 0;
+            if (oldInv != newInv) {
+                writeInventoryLog(sku, null, "adjust", newInv - oldInv, oldInv, newInv);
+            }
         }
     }
 
