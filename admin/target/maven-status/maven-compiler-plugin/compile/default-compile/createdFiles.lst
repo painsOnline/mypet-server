@@ -92,6 +92,7 @@ app\xinqianmao\com\admin\common\entity\OrderProductProperty.class
 app\xinqianmao\com\admin\common\pojo\OrderTrendResponse.class
 app\xinqianmao\com\admin\dao\ProductSpecsMapper.class
 app\xinqianmao\com\admin\service\CategoryService.class
+app\xinqianmao\com\admin\web\controller\JieshunController.class
 app\xinqianmao\com\admin\common\pojo\OrderSearchRequest.class
 app\xinqianmao\com\admin\common\pojo\HotProductResponse.class
 app\xinqianmao\com\admin\web\controller\AdminCategoryController.class
