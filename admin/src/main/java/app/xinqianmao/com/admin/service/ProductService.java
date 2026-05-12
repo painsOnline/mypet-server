@@ -8,6 +8,7 @@ package app.xinqianmao.com.admin.service;
 import app.xinqianmao.com.admin.common.entity.*;
 import app.xinqianmao.com.admin.common.pojo.*;
 import app.xinqianmao.com.admin.dao.*;
+import app.xinqianmao.com.common.auth.TenantContext;
 import app.xinqianmao.com.common.exception.BizException;
 import app.xinqianmao.com.common.utils.DateTimeUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -41,6 +42,7 @@ public class ProductService {
     private final ProductTypeMapper typeMapper;
     private final HotProductMapper hotProductMapper;
     private final OrderProductSkuMapper orderProductSkuMapper;
+    private final ImageDownloadService imageDownloadService;
 
     /**
      * Search products with filters and pagination.
@@ -222,7 +224,11 @@ public class ProductService {
         product.setOldPrice(req.getOldPrice());
         product.setMainPictures(req.getMainPictures() != null ? req.getMainPictures() : List.of());
         product.setPicture(req.getPicture());
-        product.setDetail(req.getDetail() != null ? req.getDetail() : "");
+        product.setDetail(imageDownloadService.downloadImagesInHtml(req.getDetail() != null ? req.getDetail() : ""));
+        product.setMainPictures(imageDownloadService.downloadImageList(req.getMainPictures() != null ? req.getMainPictures() : List.of()));
+        if (product.getMainPictures() != null && !product.getMainPictures().isEmpty())
+            product.setPicture(product.getMainPictures().get(0));
+        else product.setPicture(req.getPicture());
         product.setSort(req.getSort() != null ? req.getSort() : 0);
         product.setIsEnable(1);
         product.setCreateTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
@@ -304,7 +310,11 @@ public class ProductService {
         product.setOldPrice(req.getOldPrice());
         product.setMainPictures(req.getMainPictures() != null ? req.getMainPictures() : List.of());
         product.setPicture(req.getPicture());
-        product.setDetail(req.getDetail() != null ? req.getDetail() : "");
+        product.setDetail(imageDownloadService.downloadImagesInHtml(req.getDetail() != null ? req.getDetail() : ""));
+        product.setMainPictures(imageDownloadService.downloadImageList(req.getMainPictures() != null ? req.getMainPictures() : List.of()));
+        if (product.getMainPictures() != null && !product.getMainPictures().isEmpty())
+            product.setPicture(product.getMainPictures().get(0));
+        else product.setPicture(req.getPicture());
         product.setSort(req.getSort() != null ? req.getSort() : 0);
         product.setModifyTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
         productMapper.updateById(product);

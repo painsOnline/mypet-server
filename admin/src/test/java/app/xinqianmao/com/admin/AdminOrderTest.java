@@ -122,7 +122,6 @@ class AdminOrderTest extends BaseAdminTest {
         orderId = java.util.UUID.randomUUID().toString();
         app.xinqianmao.com.admin.common.entity.Order order = new app.xinqianmao.com.admin.common.entity.Order();
         order.setId(orderId); order.setOrderType(1); order.setOrderStatus(1);
-        order.setReceiverId(receiverId);
         order.setProductType(skuMapper.selectById(skuId).getProductType());
         order.setTotalMoney(new BigDecimal("256.00"));
         order.setActualPayMoney(new BigDecimal("198.00"));

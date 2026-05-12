@@ -11,12 +11,9 @@ import com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerIntercept
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.EnableAsync;
 
-/**
- * MyBatis-Plus configuration.
- * Configures pagination plugin for PostgreSQL.
- * MapperScan covers all module mapper packages.
- */
+@EnableAsync
 @Configuration
 @MapperScan(basePackages = {
         "app.xinqianmao.com.admin.dao",

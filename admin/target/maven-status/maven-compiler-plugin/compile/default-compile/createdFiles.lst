@@ -3,6 +3,7 @@ app\xinqianmao\com\admin\dao\OrderProductMapper.class
 app\xinqianmao\com\admin\web\controller\StatisticsController.class
 app\xinqianmao\com\admin\common\pojo\OrderTrendResponse$TrendPoint.class
 app\xinqianmao\com\admin\common\pojo\UserListResponse.class
+app\xinqianmao\com\admin\service\ImageDownloadService.class
 app\xinqianmao\com\admin\common\pojo\OrderDetailResponse$MemberInfo.class
 app\xinqianmao\com\admin\service\AdminLoginService.class
 app\xinqianmao\com\admin\common\entity\HotProduct.class
