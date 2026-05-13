@@ -49,6 +49,7 @@ public class MemberOrderController {
     private final ProductMapper productMapper;
     private final ProductSkuMapper skuMapper;
     private final ProductPropertyMapper propertyMapper;
+    private final ProductSpecsMapper specsMapper;
     private final OrderProductPropertyMapper orderProductPropertyMapper;
     private final HomeController homeController;
     private final InventoryLogMapper inventoryLogMapper;
@@ -63,6 +64,7 @@ public class MemberOrderController {
         String memberId = UserContext.getRequiredUserId();
         LambdaQueryWrapper<Order> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Order::getMemberId, memberId);
+        wrapper.eq(Order::getIsDelete, 0);
         if (orderState != null && orderState != 0) {
             wrapper.eq(Order::getOrderStatus, orderState);
         }
@@ -89,7 +91,7 @@ public class MemberOrderController {
         resp.setTotalMoney(order.getTotalMoney());
         resp.setPayMoney(order.getPayMoney());
         resp.setActualPayMoney(order.getActualPayMoney());
-        resp.setDeliveryTime(order.getDeliveryTime());
+        resp.setDeliveryTime(DateTimeUtil.format(order.getDeliveryTime()));
         resp.setBuyerMessage(order.getBuyerMessage());
 
         OrderReceiver receiver = orderReceiverMapper.selectById(order.getOrderNo());
@@ -378,7 +380,7 @@ public class MemberOrderController {
             OrderProductSku ops = new OrderProductSku();
             ops.setOrderNo(orderNo); ops.setSkuId(sku.getId()); ops.setProductId(product.getId());
             ops.setBarcode(sku.getBarcode() != null ? sku.getBarcode() : "");
-            ops.setProductType(product.getProductType()); ops.setPrice(sku.getPrice());
+            ops.setPrice(sku.getPrice());
             ops.setOldPrice(sku.getOldPrice()); ops.setCostPrice(costPrice);
             ops.setProfitMoney(itemPay.subtract(itemCost)); ops.setCount(pi.getCount());
             ops.setPicture(sku.getPicture());
@@ -407,7 +409,7 @@ public class MemberOrderController {
         order.setProductType(orderProducts.isEmpty() ? "" : orderProducts.get(0).getProductType());
         order.setTotalMoney(totalMoney); order.setPayMoney(payMoney);
         order.setActualPayMoney(payMoney); order.setProfitMoney(profit);
-        order.setDeliveryTime(request.getDeliveryTime());
+        order.setDeliveryTime(DateTimeUtil.parse(request.getDeliveryTime()));
         order.setBuyerMessage(request.getBuyerMessage());
         order.setPayChannel(request.getPayChannel() != null ? request.getPayChannel() : 1);
         order.setPayType(request.getPayType() != null ? request.getPayType() : 1);
@@ -434,11 +436,22 @@ public class MemberOrderController {
             Product product = productMapper.selectById(ops.getProductId());
             if (product == null) continue;
             List<ProductProperty> props = propertyMapper.selectList(
-                    new LambdaQueryWrapper<ProductProperty>().eq(ProductProperty::getProductId, product.getId()));
+                    new LambdaQueryWrapper<ProductProperty>().eq(ProductProperty::getProductId, product.getId())
+                            .eq(ProductProperty::getIsDelete, 0));
+            // Resolve spec names from specsId
+            Map<String, String> specNameMap = new HashMap<>();
+            if (!props.isEmpty()) {
+                List<String> specIds = props.stream().map(ProductProperty::getSpecsId)
+                        .filter(Objects::nonNull).distinct().collect(Collectors.toList());
+                if (!specIds.isEmpty()) {
+                    List<ProductSpecs> specList = specsMapper.selectBatchIds(specIds);
+                    specList.forEach(s -> specNameMap.put(s.getId(), s.getName()));
+                }
+            }
             for (ProductProperty pp : props) {
                 OrderProductProperty opp = new OrderProductProperty();
                 opp.setOrderNo(orderNo); opp.setPropertyId(pp.getId()); opp.setProductId(product.getId());
-                opp.setProductType(product.getProductType()); opp.setName(pp.getName());
+                opp.setName(specNameMap.getOrDefault(pp.getSpecsId(), ""));
                 opp.setValueName(pp.getValueName()); opp.setSort(pp.getSort());
                 opp.setCreateTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
                 orderProductPropertyMapper.insert(opp);
@@ -511,7 +524,8 @@ public class MemberOrderController {
 
     private Order getOrderByOrderNo(String orderNo) {
         List<Order> orders = orderMapper.selectList(
-                new LambdaQueryWrapper<Order>().eq(Order::getOrderNo, orderNo));
+                new LambdaQueryWrapper<Order>().eq(Order::getOrderNo, orderNo)
+                        .eq(Order::getIsDelete, 0));
         if (orders.isEmpty()) throw new BizException("404", "订单不存在");
         return orders.get(0);
     }

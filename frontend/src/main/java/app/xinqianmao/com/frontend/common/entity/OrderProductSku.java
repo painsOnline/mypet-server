@@ -19,7 +19,6 @@ public class OrderProductSku {
     private String skuId;
     private String productId;
     private String barcode;
-    private String productType;
     private BigDecimal price;
     private BigDecimal oldPrice;
     private BigDecimal costPrice;

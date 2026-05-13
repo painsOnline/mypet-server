@@ -11,11 +11,12 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 /**
- * t_hot_products — hot/recommended products (no id column).
+ * t_hot_products — hot/recommended products.
  */
 @Data
 @TableName("t_hot_products")
 public class HotProduct {
+    private String id;
     private String productId;
     private Integer sort;
     private LocalDateTime createTime;

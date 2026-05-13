@@ -55,7 +55,8 @@ public class UserService {
         if (!memberIds.isEmpty()) {
             for (int i = 0; i < memberIds.size(); i += 500) {
                 List<String> batch = memberIds.subList(i, Math.min(i + 500, memberIds.size()));
-                orderMapper.selectList(new LambdaQueryWrapper<Order>().in(Order::getMemberId, batch))
+                orderMapper.selectList(new LambdaQueryWrapper<Order>().in(Order::getMemberId, batch)
+                        .eq(Order::getIsDelete, 0))
                         .forEach(o -> ordersByMember.computeIfAbsent(o.getMemberId(), k -> new ArrayList<>()).add(o));
             }
         }

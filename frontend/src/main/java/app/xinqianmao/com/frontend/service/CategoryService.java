@@ -34,6 +34,7 @@ public class CategoryService {
     private final ProductSkuMapper productSkuMapper;
     private final ProductPropertyMapper productPropertyMapper;
     private final ProductSpecsMapper productSpecsMapper;
+    private final ProductTypeSpecRelMapper productTypeSpecRelMapper;
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
@@ -82,7 +83,8 @@ public class CategoryService {
     private Map<String, List<ProductSku>> loadSkusByProductIds(Set<String> productIds) {
         if (productIds.isEmpty()) return Map.of();
         List<ProductSku> skus = productSkuMapper.selectList(
-                new LambdaQueryWrapper<ProductSku>().in(ProductSku::getProductId, productIds));
+                new LambdaQueryWrapper<ProductSku>().in(ProductSku::getProductId, productIds)
+                        .eq(ProductSku::getIsDelete, 0));
         return skus.stream().collect(Collectors.groupingBy(ProductSku::getProductId));
     }
 
@@ -90,6 +92,7 @@ public class CategoryService {
         if (productIds.isEmpty()) return Map.of();
         List<ProductProperty> props = productPropertyMapper.selectList(
                 new LambdaQueryWrapper<ProductProperty>().in(ProductProperty::getProductId, productIds)
+                        .eq(ProductProperty::getIsDelete, 0)
                         .orderByAsc(ProductProperty::getSort));
         return props.stream().collect(Collectors.groupingBy(ProductProperty::getProductId));
     }
@@ -103,17 +106,26 @@ public class CategoryService {
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
         if (typeIds.isEmpty()) return Map.of();
-        List<ProductSpecs> allSpecs = productSpecsMapper.selectList(
-                new LambdaQueryWrapper<ProductSpecs>().in(ProductSpecs::getProductType, typeIds)
+        // Get specs via ProductTypeSpecRel
+        List<ProductTypeSpecRel> rels = productTypeSpecRelMapper.selectList(
+                new LambdaQueryWrapper<ProductTypeSpecRel>().in(ProductTypeSpecRel::getProductType, typeIds));
+        Map<String, List<String>> specsIdsByType = rels.stream()
+                .collect(Collectors.groupingBy(ProductTypeSpecRel::getProductType,
+                        Collectors.mapping(ProductTypeSpecRel::getSpecsId, Collectors.toList())));
+        // Also include global specs (scope=0)
+        List<ProductSpecs> globalSpecs = productSpecsMapper.selectList(
+                new LambdaQueryWrapper<ProductSpecs>().eq(ProductSpecs::getScope, 0)
                         .orderByAsc(ProductSpecs::getSort));
-        Map<String, List<ProductSpecs>> specsByType = allSpecs.stream()
-                .collect(Collectors.groupingBy(ProductSpecs::getProductType));
         Map<String, List<ProductSpecs>> specsByProduct = new LinkedHashMap<>();
         for (String pid : productIds) {
             Product p = productMap.get(pid);
-            if (p != null) {
-                specsByProduct.put(pid, specsByType.getOrDefault(p.getProductType(), List.of()));
+            if (p == null) continue;
+            List<ProductSpecs> list = new ArrayList<>(globalSpecs);
+            List<String> ids = specsIdsByType.get(p.getProductType());
+            if (ids != null && !ids.isEmpty()) {
+                list.addAll(productSpecsMapper.selectBatchIds(ids));
             }
+            specsByProduct.put(pid, list);
         }
         return specsByProduct;
     }
@@ -130,10 +142,15 @@ public class CategoryService {
         r.setPicture(product.getPicture());
         r.setMainPictures(product.getMainPictures());
 
+        // Build specs name map for property name resolution
+        Map<String, String> specsNameMap = specs.stream()
+                .filter(s -> s.getId() != null && s.getName() != null)
+                .collect(Collectors.toMap(ProductSpecs::getId, ProductSpecs::getName, (a, b) -> a));
+
         GoodsDetailResponse.DetailInfo details = new GoodsDetailResponse.DetailInfo();
         details.setProperties(properties.stream().map(prop -> {
             GoodsDetailResponse.PropertyItem pi = new GoodsDetailResponse.PropertyItem();
-            pi.setName(prop.getName());
+            pi.setName(specsNameMap.getOrDefault(prop.getSpecsId(), ""));
             pi.setValue(prop.getValueName());
             return pi;
         }).collect(Collectors.toList()));

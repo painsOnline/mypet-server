@@ -42,4 +42,7 @@ public class SpecsSaveRequest {
 
     @Schema(description = "排序")
     private Integer sort;
+
+    @Schema(description = "作用域 0=全局, 1=共享, 2=私有")
+    private Integer scope;
 }

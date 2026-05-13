@@ -5,6 +5,7 @@
  */
 package app.xinqianmao.com.admin.web.controller;
 
+import app.xinqianmao.com.admin.common.entity.ProductSpecs;
 import app.xinqianmao.com.admin.common.pojo.SpecValuesUpdateRequest;
 import app.xinqianmao.com.admin.common.pojo.SpecsSaveRequest;
 import app.xinqianmao.com.admin.service.SpecsService;
@@ -14,6 +15,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * Specs management controller (nested under product type).
@@ -47,10 +51,23 @@ public class AdminSpecsController {
         return Result.ok();
     }
 
+    @Operation(summary = "列出规格（按作用域筛选）")
+    @GetMapping("/list")
+    public Result<List<ProductSpecs>> list(@RequestParam(required = false) Integer scope) {
+        return Result.ok(specsService.listByScope(scope));
+    }
+
     @Operation(summary = "删除规格")
     @DeleteMapping("/{specId}")
     public Result<Void> delete(@PathVariable String specId) {
         specsService.delete(specId);
+        return Result.ok();
+    }
+
+    @Operation(summary = "引用共享属性到商品类型")
+    @PostMapping("/link")
+    public Result<Void> linkToType(@RequestBody Map<String, String> body) {
+        specsService.linkSpecToType(body.get("typeId"), body.get("specsId"));
         return Result.ok();
     }
 }

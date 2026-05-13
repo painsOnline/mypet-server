@@ -45,6 +45,7 @@ class AdminProductTest extends BaseAdminTest {
     @Autowired private ProductPropertyMapper propertyMapper;
     @Autowired private ProductSkuMapper skuMapper;
     @Autowired private HotProductMapper hotProductMapper;
+    @Autowired private ProductTypeSpecRelMapper typeSpecRelMapper;
     @Autowired private PasswordUtil passwordUtil;
 
     private static String typeId;
@@ -120,9 +121,11 @@ class AdminProductTest extends BaseAdminTest {
         mockMvc.perform(adminPost("/admin/product/type/" + typeId + "/specs", body))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value("200"));
-        // POST /admin/product/type/{typeId}/specs returns Result<Void> — query DB to get created spec
-        List<ProductSpecs> createdSpecs = specsMapper.selectList(
-                new LambdaQueryWrapper<ProductSpecs>().eq(ProductSpecs::getProductType, typeId));
+        // POST /admin/product/type/{typeId}/specs returns Result<Void> — query DB via ProductTypeSpecRel to get created spec
+        List<ProductTypeSpecRel> rels = typeSpecRelMapper.selectList(
+                new LambdaQueryWrapper<ProductTypeSpecRel>().eq(ProductTypeSpecRel::getProductType, typeId));
+        List<String> specIds = rels.stream().map(ProductTypeSpecRel::getSpecsId).toList();
+        List<ProductSpecs> createdSpecs = specsMapper.selectBatchIds(specIds);
         Assertions.assertEquals(1, createdSpecs.size());
         specId = createdSpecs.get(0).getId();
         Assertions.assertNotNull(specId);

@@ -11,10 +11,12 @@ import app.xinqianmao.com.common.result.Result;
 import app.xinqianmao.com.frontend.common.entity.Product;
 import app.xinqianmao.com.frontend.common.entity.ProductProperty;
 import app.xinqianmao.com.frontend.common.entity.ProductSku;
+import app.xinqianmao.com.frontend.common.entity.ProductSpecs;
 import app.xinqianmao.com.frontend.common.pojo.GoodsDetailResponse;
 import app.xinqianmao.com.frontend.dao.ProductMapper;
 import app.xinqianmao.com.frontend.dao.ProductPropertyMapper;
 import app.xinqianmao.com.frontend.dao.ProductSkuMapper;
+import app.xinqianmao.com.frontend.dao.ProductSpecsMapper;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -33,6 +35,7 @@ public class SearchController {
     private final ProductMapper productMapper;
     private final ProductPropertyMapper propertyMapper;
     private final ProductSkuMapper skuMapper;
+    private final ProductSpecsMapper specsMapper;
     private final HomeController homeController;
 
     @NoAuth
@@ -68,16 +71,30 @@ public class SearchController {
                 .eq(Product::getIsEnable, 1))
                 .forEach(p -> productIds.add(p.getId()));
 
-        // 4. Match by property name/value
+        // 4. Match by property value (direct)
         List<ProductProperty> matchedProps = propertyMapper.selectList(
                 new LambdaQueryWrapper<ProductProperty>()
-                        .and(w -> w.like(ProductProperty::getName, kw)
-                                .or().like(ProductProperty::getValueName, kw)));
+                        .eq(ProductProperty::getIsDelete, 0)
+                        .like(ProductProperty::getValueName, kw));
         for (ProductProperty pp : matchedProps) {
             productIds.add(pp.getProductId());
         }
 
-        // 5. Match by SKU specs (JSON text)
+        // 5. Match by spec name (via specsId lookup)
+        List<ProductSpecs> matchedSpecs = specsMapper.selectList(
+                new LambdaQueryWrapper<ProductSpecs>().like(ProductSpecs::getName, kw));
+        if (!matchedSpecs.isEmpty()) {
+            List<String> specsIds = matchedSpecs.stream().map(ProductSpecs::getId).collect(Collectors.toList());
+            List<ProductProperty> propsBySpec = propertyMapper.selectList(
+                    new LambdaQueryWrapper<ProductProperty>()
+                            .eq(ProductProperty::getIsDelete, 0)
+                            .in(ProductProperty::getSpecsId, specsIds));
+            for (ProductProperty pp : propsBySpec) {
+                productIds.add(pp.getProductId());
+            }
+        }
+
+        // 6. Match by SKU specs (JSON text)
         List<ProductSku> allSkus = skuMapper.selectList(new LambdaQueryWrapper<>());
         for (ProductSku sku : allSkus) {
             if (sku.getSpecs() != null && sku.getSpecs().contains(kw)) {

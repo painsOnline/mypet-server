@@ -22,7 +22,6 @@ import java.math.BigDecimal;
 @TableName("t_product_sku")
 public class ProductSku extends BaseEntity {
     private String productId;
-    private String productType;
     private BigDecimal price;
     private BigDecimal oldPrice;
     private BigDecimal costPrice;
@@ -32,4 +31,5 @@ public class ProductSku extends BaseEntity {
     /** JSON string: [{name, valueName}] */
     @TableField(typeHandler = app.xinqianmao.com.common.dao.JsonTypeHandler.class)
     private String specs;
+    private Integer isDelete;
 }

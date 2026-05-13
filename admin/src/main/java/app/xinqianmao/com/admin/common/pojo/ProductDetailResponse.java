@@ -41,6 +41,7 @@ public class ProductDetailResponse {
     @Schema(description = "商品属性")
     public static class PropertyItem {
         private String id;
+        private String specsId;
         private String name;
         private String valueName;
     }

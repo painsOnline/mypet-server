@@ -15,8 +15,8 @@ import lombok.EqualsAndHashCode;
 @TableName("t_product_properties")
 public class ProductProperty extends BaseEntity {
     private String productId;
-    private String productType;
-    private String name;
+    private String specsId;
     private String valueName;
     private Integer sort;
+    private Integer isDelete;
 }

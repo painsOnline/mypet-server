@@ -42,6 +42,7 @@ public class ProductService {
     private final ProductTypeMapper typeMapper;
     private final HotProductMapper hotProductMapper;
     private final OrderProductSkuMapper orderProductSkuMapper;
+    private final ProductTypeSpecRelMapper typeSpecRelMapper;
     private final ImageDownloadService imageDownloadService;
 
     /**
@@ -171,21 +172,33 @@ public class ProductService {
         r.setCreateTime(DateTimeUtil.format(product.getCreateTime()));
         r.setModifyTime(DateTimeUtil.format(product.getModifyTime()));
 
-        // Properties
+        // Properties - look up name from specs via specsId
         List<ProductProperty> props = propertyMapper.selectList(
                 new LambdaQueryWrapper<ProductProperty>().eq(ProductProperty::getProductId, productId)
+                        .eq(ProductProperty::getIsDelete, 0)
                         .orderByAsc(ProductProperty::getSort));
+        // Pre-load specs for name resolution
+        Map<String, String> specsNameMap = new HashMap<>();
+        if (!props.isEmpty()) {
+            List<String> specsIds = props.stream().map(ProductProperty::getSpecsId).filter(Objects::nonNull).distinct().collect(Collectors.toList());
+            if (!specsIds.isEmpty()) {
+                List<ProductSpecs> specsList = specsMapper.selectBatchIds(specsIds);
+                specsList.forEach(s -> specsNameMap.put(s.getId(), s.getName()));
+            }
+        }
         r.setProperties(props.stream().map(prop -> {
             ProductDetailResponse.PropertyItem pi = new ProductDetailResponse.PropertyItem();
             pi.setId(prop.getId());
-            pi.setName(prop.getName());
+            pi.setSpecsId(prop.getSpecsId());
+            pi.setName(specsNameMap.getOrDefault(prop.getSpecsId(), ""));
             pi.setValueName(prop.getValueName());
             return pi;
         }).collect(Collectors.toList()));
 
         // SKUs
         List<ProductSku> skus = skuMapper.selectList(
-                new LambdaQueryWrapper<ProductSku>().eq(ProductSku::getProductId, productId));
+                new LambdaQueryWrapper<ProductSku>().eq(ProductSku::getProductId, productId)
+                        .eq(ProductSku::getIsDelete, 0));
         r.setSkus(skus.stream().map(sku -> {
             ProductDetailResponse.SkuItem si = new ProductDetailResponse.SkuItem();
             si.setId(sku.getId());
@@ -200,10 +213,18 @@ public class ProductService {
             return si;
         }).collect(Collectors.toList()));
 
-        // Specs (from type definition)
-        List<ProductSpecs> specDefs = specsMapper.selectList(
-                new LambdaQueryWrapper<ProductSpecs>().eq(ProductSpecs::getProductType, product.getProductType())
-                        .orderByAsc(ProductSpecs::getSort));
+        // Specs: get from type-spec relation table + global specs
+        List<ProductTypeSpecRel> rels = typeSpecRelMapper.selectList(
+                new LambdaQueryWrapper<ProductTypeSpecRel>().eq(ProductTypeSpecRel::getProductType, product.getProductType()));
+        List<String> relatedSpecIds = rels.stream().map(ProductTypeSpecRel::getSpecsId).collect(Collectors.toList());
+        // Also include global specs (scope=0)
+        List<ProductSpecs> globalSpecs = specsMapper.selectList(
+                new LambdaQueryWrapper<ProductSpecs>().eq(ProductSpecs::getScope, 0).orderByAsc(ProductSpecs::getSort));
+        List<ProductSpecs> specDefs = new ArrayList<>(globalSpecs);
+        if (!relatedSpecIds.isEmpty()) {
+            List<ProductSpecs> typeSpecs = specsMapper.selectBatchIds(relatedSpecIds);
+            specDefs.addAll(typeSpecs);
+        }
         r.setSpecs(buildSpecItems(specDefs));
 
         return r;
@@ -234,13 +255,13 @@ public class ProductService {
         product.setCreateTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
         productMapper.insert(product);
 
-        // Save properties
+        // Save properties - resolve specsId from name
+        Map<String, String> specsNameToId = buildSpecsNameMap(product.getProductType());
         if (req.getProperties() != null) {
             for (ProductSaveRequest.PropertyItem pi : req.getProperties()) {
                 ProductProperty prop = new ProductProperty();
                 prop.setProductId(product.getId());
-                prop.setProductType(product.getProductType());
-                prop.setName(pi.getName());
+                prop.setSpecsId(specsNameToId.get(pi.getName()));
                 prop.setValueName(pi.getValueName());
                 prop.setSort(0);
                 prop.setCreateTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
@@ -256,7 +277,6 @@ public class ProductService {
         for (ProductSaveRequest.SkuItem si : req.getSkus()) {
                 ProductSku sku = new ProductSku();
                 sku.setProductId(product.getId());
-                sku.setProductType(product.getProductType());
                 sku.setPrice(si.getPrice());
                 sku.setOldPrice(si.getOldPrice());
                 sku.setInventory(si.getInventory());
@@ -322,12 +342,12 @@ public class ProductService {
         // Replace properties
         propertyMapper.delete(new LambdaQueryWrapper<ProductProperty>()
                 .eq(ProductProperty::getProductId, productId));
+        Map<String, String> specsNameMap = buildSpecsNameMap(product.getProductType());
         if (req.getProperties() != null) {
             for (ProductSaveRequest.PropertyItem pi : req.getProperties()) {
                 ProductProperty prop = new ProductProperty();
                 prop.setProductId(productId);
-                prop.setProductType(product.getProductType());
-                prop.setName(pi.getName());
+                prop.setSpecsId(specsNameMap.get(pi.getName()));
                 prop.setValueName(pi.getValueName());
                 prop.setSort(0);
                 prop.setCreateTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
@@ -339,11 +359,15 @@ public class ProductService {
         // Load old SKUs before delete for inventory comparison
         Map<String, ProductSku> oldSkus = new HashMap<>();
         List<ProductSku> existingSkus = skuMapper.selectList(
-                new LambdaQueryWrapper<ProductSku>().eq(ProductSku::getProductId, productId));
+                new LambdaQueryWrapper<ProductSku>().eq(ProductSku::getProductId, productId)
+                        .eq(ProductSku::getIsDelete, 0));
         for (ProductSku s : existingSkus) oldSkus.put(s.getId(), s);
 
-        skuMapper.delete(new LambdaQueryWrapper<ProductSku>()
-                .eq(ProductSku::getProductId, productId));
+        // Soft-delete old SKUs
+        for (ProductSku s : existingSkus) {
+            s.setIsDelete(1);
+            skuMapper.updateById(s);
+        }
         if (req.getSkus() == null || req.getSkus().isEmpty()) {
             throw new BizException("400", "至少需要一个SKU");
         }
@@ -351,7 +375,6 @@ public class ProductService {
         for (ProductSaveRequest.SkuItem si : req.getSkus()) {
             ProductSku sku = new ProductSku();
             sku.setProductId(productId);
-            sku.setProductType(product.getProductType());
             sku.setPrice(si.getPrice());
             sku.setOldPrice(si.getOldPrice());
             sku.setInventory(si.getInventory());
@@ -418,6 +441,23 @@ public class ProductService {
         product.setIsEnable(product.getIsEnable() != null && product.getIsEnable() == 1 ? 2 : 1);
         product.setModifyTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
         productMapper.updateById(product);
+    }
+
+    private Map<String, String> buildSpecsNameMap(String productType) {
+        Map<String, String> map = new HashMap<>();
+        // Global specs (scope=0)
+        List<ProductSpecs> globalSpecs = specsMapper.selectList(
+                new LambdaQueryWrapper<ProductSpecs>().eq(ProductSpecs::getScope, 0));
+        globalSpecs.forEach(s -> map.put(s.getName(), s.getId()));
+        // Type-linked specs via rel table
+        List<ProductTypeSpecRel> rels = typeSpecRelMapper.selectList(
+                new LambdaQueryWrapper<ProductTypeSpecRel>().eq(ProductTypeSpecRel::getProductType, productType));
+        if (!rels.isEmpty()) {
+            List<String> ids = rels.stream().map(ProductTypeSpecRel::getSpecsId).collect(Collectors.toList());
+            List<ProductSpecs> typeSpecs = specsMapper.selectBatchIds(ids);
+            typeSpecs.forEach(s -> map.put(s.getName(), s.getId()));
+        }
+        return map;
     }
 
     // --- Helper methods ---

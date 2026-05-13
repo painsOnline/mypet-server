@@ -19,7 +19,6 @@ public class OrderProductProperty {
     private String orderNo;
     private String propertyId;
     private String productId;
-    private String productType;
     private String name;
     private String valueName;
     private Integer sort;

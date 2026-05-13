@@ -55,6 +55,7 @@ public class OrderService {
      */
     public IPage<OrderListResponse> search(OrderSearchRequest req) {
         LambdaQueryWrapper<Order> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Order::getIsDelete, 0);
 
         if (req.getOrderStatus() != null) {
             wrapper.eq(Order::getOrderStatus, req.getOrderStatus());
@@ -113,7 +114,7 @@ public class OrderService {
         r.setProfitMoney(order.getProfitMoney());
         r.setCreateTime(DateTimeUtil.format(order.getCreateTime()));
         r.setModifyTime(DateTimeUtil.format(order.getModifyTime()));
-        r.setDeliveryTime(order.getDeliveryTime());
+        r.setDeliveryTime(DateTimeUtil.format(order.getDeliveryTime()));
         r.setBuyerMessage(order.getBuyerMessage());
 
         // Receiver info (from snapshot)
@@ -299,7 +300,7 @@ public class OrderService {
         if (st != null && st >= 2) r.setDispatchTime(DateTimeUtil.format(order.getModifyTime()));
         if (st != null && st >= 3) r.setReceiptTime(DateTimeUtil.format(order.getModifyTime()));
         if (st != null && st == 5) r.setCancelTime(DateTimeUtil.format(order.getModifyTime()));
-        r.setDeliveryTime(order.getDeliveryTime());
+        r.setDeliveryTime(DateTimeUtil.format(order.getDeliveryTime()));
         r.setBuyerMessage(order.getBuyerMessage());
 
         // Receiver info (from snapshot)

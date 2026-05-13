@@ -17,7 +17,6 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @TableName("t_product_specs")
 public class ProductSpecs extends BaseEntity {
-    private String productType;
     private String name;
     private Integer type;
     private Integer inputType;
@@ -25,5 +24,6 @@ public class ProductSpecs extends BaseEntity {
     private List<String> inputOptions;
     @TableField("\"desc\"")
     private String desc;
+    private Integer scope;
     private Integer sort;
 }

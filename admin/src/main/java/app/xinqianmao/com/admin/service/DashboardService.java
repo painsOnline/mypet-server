@@ -27,9 +27,11 @@ public class DashboardService {
     public DashboardStatsResponse getStats() {
         DashboardStatsResponse stats = new DashboardStatsResponse();
         stats.setProductCount(productMapper.selectCount(new LambdaQueryWrapper<>()));
-        stats.setOrderCount(orderMapper.selectCount(new LambdaQueryWrapper<>()));
+        stats.setOrderCount(orderMapper.selectCount(
+                new LambdaQueryWrapper<Order>().eq(Order::getIsDelete, 0)));
         stats.setPendingOrderCount(orderMapper.selectCount(
-                new LambdaQueryWrapper<Order>().eq(Order::getOrderStatus, 1)));
+                new LambdaQueryWrapper<Order>().eq(Order::getOrderStatus, 1)
+                        .eq(Order::getIsDelete, 0)));
         stats.setUserCount(memberMapper.selectCount(new LambdaQueryWrapper<>()));
         return stats;
     }

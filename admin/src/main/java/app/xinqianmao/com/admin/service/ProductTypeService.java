@@ -7,10 +7,12 @@ package app.xinqianmao.com.admin.service;
 
 import app.xinqianmao.com.admin.common.entity.ProductType;
 import app.xinqianmao.com.admin.common.entity.ProductSpecs;
+import app.xinqianmao.com.admin.common.entity.ProductTypeSpecRel;
 import app.xinqianmao.com.admin.common.pojo.TypeSaveRequest;
 import app.xinqianmao.com.admin.common.pojo.TypeWithSpecsResponse;
 import app.xinqianmao.com.admin.dao.ProductTypeMapper;
 import app.xinqianmao.com.admin.dao.ProductSpecsMapper;
+import app.xinqianmao.com.admin.dao.ProductTypeSpecRelMapper;
 import app.xinqianmao.com.admin.dao.ProductMapper;
 import app.xinqianmao.com.admin.dao.ProductSkuMapper;
 import app.xinqianmao.com.common.exception.BizException;
@@ -28,6 +30,7 @@ public class ProductTypeService {
 
     private final ProductTypeMapper typeMapper;
     private final ProductSpecsMapper specsMapper;
+    private final ProductTypeSpecRelMapper typeSpecRelMapper;
     private final ProductMapper productMapper;
     private final ProductSkuMapper skuMapper;
 
@@ -39,13 +42,37 @@ public class ProductTypeService {
         if (types.isEmpty()) return List.of();
 
         List<String> typeIds = types.stream().map(ProductType::getId).toList();
-        List<ProductSpecs> allSpecs = specsMapper.selectList(
-                new LambdaQueryWrapper<ProductSpecs>().in(ProductSpecs::getProductType, typeIds)
-                        .orderByAsc(ProductSpecs::getSort));
+        // Get all rels for all types
+        List<ProductTypeSpecRel> allRels = typeSpecRelMapper.selectList(
+                new LambdaQueryWrapper<ProductTypeSpecRel>().in(ProductTypeSpecRel::getProductType, typeIds));
+        Map<String, List<String>> specIdsByType = new HashMap<>();
+        Set<String> allSpecIds = new HashSet<>();
+        for (ProductTypeSpecRel rel : allRels) {
+            specIdsByType.computeIfAbsent(rel.getProductType(), k -> new ArrayList<>()).add(rel.getSpecsId());
+            allSpecIds.add(rel.getSpecsId());
+        }
+        // Also include global specs (scope=0) for all types
+        List<ProductSpecs> globalSpecs = specsMapper.selectList(
+                new LambdaQueryWrapper<ProductSpecs>().eq(ProductSpecs::getScope, 0).orderByAsc(ProductSpecs::getSort));
+        Map<String, ProductSpecs> allSpecsMap = new HashMap<>();
+        globalSpecs.forEach(s -> { allSpecsMap.put(s.getId(), s); allSpecIds.add(s.getId()); });
+        // Load type-linked specs
+        if (!allSpecIds.isEmpty()) {
+            List<ProductSpecs> typeSpecs = specsMapper.selectBatchIds(new ArrayList<>(allSpecIds));
+            typeSpecs.forEach(s -> allSpecsMap.putIfAbsent(s.getId(), s));
+        }
 
         Map<String, List<ProductSpecs>> specsByType = new HashMap<>();
-        for (ProductSpecs spec : allSpecs) {
-            specsByType.computeIfAbsent(spec.getProductType(), k -> new ArrayList<>()).add(spec);
+        for (ProductType t : types) {
+            List<ProductSpecs> specs = new ArrayList<>(globalSpecs);
+            List<String> linkedIds = specIdsByType.get(t.getId());
+            if (linkedIds != null) {
+                linkedIds.forEach(id -> {
+                    ProductSpecs s = allSpecsMap.get(id);
+                    if (s != null) specs.add(s);
+                });
+            }
+            specsByType.put(t.getId(), specs);
         }
 
         return types.stream()
@@ -91,16 +118,25 @@ public class ProductTypeService {
         type.setCreateTime(LocalDateTime.now(app.xinqianmao.com.common.utils.DateTimeUtil.ZONE_BEIJING));
         typeMapper.insert(type);
 
-        // Auto-create default SKU spec
+        // Auto-create default SKU spec (scope=2 private)
         ProductSpecs defaultSpec = new ProductSpecs();
-        defaultSpec.setProductType(type.getId());
         defaultSpec.setName("默认规格");
         defaultSpec.setType(1);  // SKU
         defaultSpec.setInputType(1);  // Unique
         defaultSpec.setInputOptions(List.of("默认规格"));
+        defaultSpec.setScope(2);  // Private
         defaultSpec.setSort(0);
         defaultSpec.setCreateTime(LocalDateTime.now(app.xinqianmao.com.common.utils.DateTimeUtil.ZONE_BEIJING));
         specsMapper.insert(defaultSpec);
+
+        // Link spec to type
+        ProductTypeSpecRel rel = new ProductTypeSpecRel();
+        rel.setId(java.util.UUID.randomUUID().toString());
+        rel.setProductType(type.getId());
+        rel.setSpecsId(defaultSpec.getId());
+        rel.setSort(0);
+        rel.setCreateTime(LocalDateTime.now(app.xinqianmao.com.common.utils.DateTimeUtil.ZONE_BEIJING));
+        typeSpecRelMapper.insert(rel);
 
         return type;
     }
@@ -124,9 +160,17 @@ public class ProductTypeService {
     }
 
     public List<ProductSpecs> getSpecs(String typeId) {
-        return specsMapper.selectList(
-                new LambdaQueryWrapper<ProductSpecs>()
-                        .eq(ProductSpecs::getProductType, typeId)
-                        .orderByAsc(ProductSpecs::getSort));
+        // Global specs
+        List<ProductSpecs> global = specsMapper.selectList(
+                new LambdaQueryWrapper<ProductSpecs>().eq(ProductSpecs::getScope, 0).orderByAsc(ProductSpecs::getSort));
+        // Type-linked specs
+        List<ProductTypeSpecRel> rels = typeSpecRelMapper.selectList(
+                new LambdaQueryWrapper<ProductTypeSpecRel>().eq(ProductTypeSpecRel::getProductType, typeId));
+        if (!rels.isEmpty()) {
+            List<String> ids = rels.stream().map(ProductTypeSpecRel::getSpecsId).collect(Collectors.toList());
+            List<ProductSpecs> typeSpecs = specsMapper.selectBatchIds(ids);
+            global.addAll(typeSpecs);
+        }
+        return global;
     }
 }

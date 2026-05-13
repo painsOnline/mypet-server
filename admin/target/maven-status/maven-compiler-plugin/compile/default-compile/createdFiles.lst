@@ -102,7 +102,9 @@ app\xinqianmao\com\admin\dao\OrderMapper.class
 app\xinqianmao\com\admin\common\entity\OrderProductSku.class
 app\xinqianmao\com\admin\web\controller\AdminLoginController.class
 app\xinqianmao\com\admin\common\pojo\ProductDetailResponse$PropertyItem.class
+app\xinqianmao\com\admin\common\entity\ProductTypeSpecRel.class
 app\xinqianmao\com\admin\common\pojo\TypeSaveRequest.class
+app\xinqianmao\com\admin\dao\ProductTypeSpecRelMapper.class
 app\xinqianmao\com\admin\common\pojo\ShopSaveRequest.class
 app\xinqianmao\com\admin\common\pojo\OrderDetailResponse$ProductItem.class
 app\xinqianmao\com\admin\common\pojo\ProductDetailResponse$SkuItem.class

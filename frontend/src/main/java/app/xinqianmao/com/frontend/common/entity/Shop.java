@@ -16,6 +16,7 @@ import java.util.List;
 @Data
 @TableName("t_shop")
 public class Shop {
+    private String id;
     private String name;
     private String logo;
     private BigDecimal freeShippingAmount;

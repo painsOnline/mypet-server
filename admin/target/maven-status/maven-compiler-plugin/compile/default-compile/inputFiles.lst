@@ -15,6 +15,7 @@ F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianma
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\common\entity\ProductSku.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\common\entity\ProductSpecs.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\common\entity\ProductType.java
+F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\common\entity\ProductTypeSpecRel.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\common\entity\Receiver.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\common\entity\Shop.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\common\pojo\AdminLoginRequest.java
@@ -60,6 +61,7 @@ F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianma
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\dao\ProductSkuMapper.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\dao\ProductSpecsMapper.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\dao\ProductTypeMapper.java
+F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\dao\ProductTypeSpecRelMapper.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\dao\ReceiverMapper.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\dao\ShopMapper.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\service\AdminLoginService.java

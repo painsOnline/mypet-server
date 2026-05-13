@@ -1,7 +1,7 @@
 /**
- * File: Admin.java
+ * File: ProductTypeSpecRel.java
  * Author: system
- * Date: 2026-05-03
+ * Date: 2026-05-13
  */
 package app.xinqianmao.com.admin.common.entity;
 
@@ -11,15 +11,15 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 /**
- * t_admin — admin user.
+ * t_product_type_spec_rel — product type ↔ spec relation.
  */
 @Data
-@TableName("t_admin")
-public class Admin {
+@TableName("t_product_type_spec_rel")
+public class ProductTypeSpecRel {
     private String id;
-    private String account;
-    private String password;
-    private LocalDateTime lastLoginTime;
+    private String productType;
+    private String specsId;
+    private Integer sort;
     private LocalDateTime createTime;
     private LocalDateTime modifyTime;
 }

@@ -1,7 +1,7 @@
 /**
- * File: HotProduct.java
+ * File: ProductTypeSpecRel.java
  * Author: system
- * Date: 2026-05-03
+ * Date: 2026-05-13
  */
 package app.xinqianmao.com.frontend.common.entity;
 
@@ -10,11 +10,15 @@ import lombok.Data;
 
 import java.time.LocalDateTime;
 
+/**
+ * t_product_type_spec_rel — product type ↔ spec relation.
+ */
 @Data
-@TableName("t_hot_products")
-public class HotProduct {
+@TableName("t_product_type_spec_rel")
+public class ProductTypeSpecRel {
     private String id;
-    private String productId;
+    private String productType;
+    private String specsId;
     private Integer sort;
     private LocalDateTime createTime;
     private LocalDateTime modifyTime;

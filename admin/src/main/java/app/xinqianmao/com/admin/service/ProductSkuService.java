@@ -7,9 +7,11 @@ package app.xinqianmao.com.admin.service;
 
 import app.xinqianmao.com.admin.common.entity.ProductSku;
 import app.xinqianmao.com.admin.common.entity.ProductSpecs;
+import app.xinqianmao.com.admin.common.entity.ProductTypeSpecRel;
 import app.xinqianmao.com.admin.common.pojo.SkuSaveRequest;
 import app.xinqianmao.com.admin.dao.ProductSkuMapper;
 import app.xinqianmao.com.admin.dao.ProductSpecsMapper;
+import app.xinqianmao.com.admin.dao.ProductTypeSpecRelMapper;
 import app.xinqianmao.com.common.exception.BizException;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -31,6 +33,7 @@ public class ProductSkuService {
 
     private final ProductSkuMapper skuMapper;
     private final ProductSpecsMapper specsMapper;
+    private final ProductTypeSpecRelMapper typeSpecRelMapper;
 
     /**
      * Generate SKU combinations from the product type's SKU-type specs.
@@ -38,20 +41,21 @@ public class ProductSkuService {
      */
     @Transactional
     public void generate(String productId, String productType) {
-        // Get SKU-type specs for this type
-        List<ProductSpecs> specDefs = specsMapper.selectList(
-                new LambdaQueryWrapper<ProductSpecs>()
-                        .eq(ProductSpecs::getProductType, productType)
-                        .eq(ProductSpecs::getType, 1) // SKU type only
-                        .orderByAsc(ProductSpecs::getSort));
+        // Get SKU-type specs for this type via rel table
+        List<ProductSpecs> specDefs = getSkuSpecsByType(productType);
 
         if (specDefs.isEmpty()) {
             throw new BizException("400", "该商品类型没有SKU规格定义");
         }
 
-        // Remove existing SKUs
-        skuMapper.delete(new LambdaQueryWrapper<ProductSku>()
-                .eq(ProductSku::getProductId, productId));
+        // Soft-delete existing SKUs
+        List<ProductSku> existing = skuMapper.selectList(
+                new LambdaQueryWrapper<ProductSku>().eq(ProductSku::getProductId, productId)
+                        .eq(ProductSku::getIsDelete, 0));
+        for (ProductSku s : existing) {
+            s.setIsDelete(1);
+            skuMapper.updateById(s);
+        }
 
         // Generate Cartesian product of spec value combinations
         List<List<String>> allValues = specDefs.stream()
@@ -76,7 +80,6 @@ public class ProductSkuService {
 
             ProductSku sku = new ProductSku();
             sku.setProductId(productId);
-            sku.setProductType(productType);
             sku.setPrice(java.math.BigDecimal.ZERO);
             sku.setOldPrice(java.math.BigDecimal.ZERO);
             sku.setInventory(0);
@@ -97,7 +100,6 @@ public class ProductSkuService {
     public void add(String productId, String productType, SkuSaveRequest req) {
         ProductSku sku = new ProductSku();
         sku.setProductId(productId);
-        sku.setProductType(productType);
         sku.setPrice(req.getPrice());
         sku.setOldPrice(req.getOldPrice());
         sku.setInventory(req.getInventory() != null ? req.getInventory() : 0);
@@ -138,18 +140,15 @@ public class ProductSkuService {
      */
     public List<ProductSku> listByProduct(String productId) {
         return skuMapper.selectList(
-                new LambdaQueryWrapper<ProductSku>().eq(ProductSku::getProductId, productId));
+                new LambdaQueryWrapper<ProductSku>().eq(ProductSku::getProductId, productId)
+                        .eq(ProductSku::getIsDelete, 0));
     }
 
     /**
      * Preview possible SKU spec combinations for a product type (read-only, no persistence).
      */
     public List<Map<String, String>> previewCombinations(String productType) {
-        List<ProductSpecs> specDefs = specsMapper.selectList(
-                new LambdaQueryWrapper<ProductSpecs>()
-                        .eq(ProductSpecs::getProductType, productType)
-                        .eq(ProductSpecs::getType, 1)
-                        .orderByAsc(ProductSpecs::getSort));
+        List<ProductSpecs> specDefs = getSkuSpecsByType(productType);
 
         if (specDefs.isEmpty()) {
             return List.of();
@@ -169,6 +168,20 @@ public class ProductSkuService {
             result.add(map);
         }
         return result;
+    }
+
+    private List<ProductSpecs> getSkuSpecsByType(String productType) {
+        List<ProductTypeSpecRel> rels = typeSpecRelMapper.selectList(
+                new LambdaQueryWrapper<ProductTypeSpecRel>().eq(ProductTypeSpecRel::getProductType, productType));
+        List<String> ids = rels.stream().map(ProductTypeSpecRel::getSpecsId).collect(Collectors.toList());
+        // Also include global specs (scope=0)
+        List<ProductSpecs> all = specsMapper.selectList(
+                new LambdaQueryWrapper<ProductSpecs>().eq(ProductSpecs::getScope, 0).eq(ProductSpecs::getType, 1));
+        if (!ids.isEmpty()) {
+            List<ProductSpecs> typeSpecs = specsMapper.selectBatchIds(ids);
+            all.addAll(typeSpecs);
+        }
+        return all;
     }
 
     /**

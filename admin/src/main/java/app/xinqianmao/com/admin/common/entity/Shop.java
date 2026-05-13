@@ -14,11 +14,12 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * t_shop — shop configuration (single row, no id column).
+ * t_shop — shop configuration.
  */
 @Data
 @TableName("t_shop")
 public class Shop {
+    private String id;
     private String name;
     private String logo;
     private BigDecimal freeShippingAmount;

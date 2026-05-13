@@ -31,6 +31,7 @@ public class GoodsService {
     private final ProductSkuMapper productSkuMapper;
     private final ProductPropertyMapper productPropertyMapper;
     private final ProductSpecsMapper productSpecsMapper;
+    private final ProductTypeSpecRelMapper productTypeSpecRelMapper;
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
@@ -47,18 +48,28 @@ public class GoodsService {
         List<ProductProperty> properties = productPropertyMapper.selectList(
                 new LambdaQueryWrapper<ProductProperty>()
                         .eq(ProductProperty::getProductId, productId)
+                        .eq(ProductProperty::getIsDelete, 0)
                         .orderByAsc(ProductProperty::getSort));
 
         // SKUs
         List<ProductSku> skus = productSkuMapper.selectList(
                 new LambdaQueryWrapper<ProductSku>()
-                        .eq(ProductSku::getProductId, productId));
+                        .eq(ProductSku::getProductId, productId)
+                        .eq(ProductSku::getIsDelete, 0));
 
-        // Specs (from type definition)
-        List<ProductSpecs> specDefs = productSpecsMapper.selectList(
+        // Specs (from type-spec relation + global specs)
+        List<ProductTypeSpecRel> rels = productTypeSpecRelMapper.selectList(
+                new LambdaQueryWrapper<ProductTypeSpecRel>()
+                        .eq(ProductTypeSpecRel::getProductType, product.getProductType()));
+        List<String> relatedSpecIds = rels.stream().map(ProductTypeSpecRel::getSpecsId).collect(Collectors.toList());
+        List<ProductSpecs> globalSpecs = productSpecsMapper.selectList(
                 new LambdaQueryWrapper<ProductSpecs>()
-                        .eq(ProductSpecs::getProductType, product.getProductType())
+                        .eq(ProductSpecs::getScope, 0)
                         .orderByAsc(ProductSpecs::getSort));
+        List<ProductSpecs> specDefs = new ArrayList<>(globalSpecs);
+        if (!relatedSpecIds.isEmpty()) {
+            specDefs.addAll(productSpecsMapper.selectBatchIds(relatedSpecIds));
+        }
 
         return buildGoodsDetail(product, skus, properties, specDefs);
     }
@@ -77,11 +88,16 @@ public class GoodsService {
         r.setPicture(product.getPicture());
         r.setMainPictures(product.getMainPictures());
 
+        // Build specs name map for property name resolution
+        Map<String, String> specsNameMap = specs.stream()
+                .filter(s -> s.getId() != null && s.getName() != null)
+                .collect(Collectors.toMap(ProductSpecs::getId, ProductSpecs::getName, (a, b) -> a));
+
         // Details block
         GoodsDetailResponse.DetailInfo details = new GoodsDetailResponse.DetailInfo();
         details.setProperties(properties.stream().map(prop -> {
             GoodsDetailResponse.PropertyItem pi = new GoodsDetailResponse.PropertyItem();
-            pi.setName(prop.getName());
+            pi.setName(specsNameMap.getOrDefault(prop.getSpecsId(), ""));
             pi.setValue(prop.getValueName());
             return pi;
         }).collect(Collectors.toList()));

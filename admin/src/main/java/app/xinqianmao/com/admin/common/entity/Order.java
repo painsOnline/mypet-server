@@ -11,6 +11,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 /**
  * t_order — order main table.
@@ -29,8 +30,13 @@ public class Order extends BaseEntity {
     private BigDecimal actualPayMoney;
     private BigDecimal payMoney;
     private BigDecimal profitMoney;
-    private String deliveryTime;
     private String buyerMessage;
     private Integer payChannel;
     private Integer payType;
+    private Integer isDelete;
+    private LocalDateTime payTime;
+    private LocalDateTime deliveryTime;
+    private LocalDateTime receiveTime;
+    private LocalDateTime finishTime;
+    private LocalDateTime cancelTime;
 }
