@@ -107,6 +107,13 @@ public class ImageDownloadService {
         return sb.toString();
     }
 
+    /** Download a single image URL and return the local path, or null if failed. */
+    public String downloadSingleImage(String url) {
+        if (url == null || url.isBlank() || isLocalUrl(url)) return url;
+        String local = downloadImage(url);
+        return local != null ? local : url;
+    }
+
     List<String> downloadImageList(List<String> urls) {
         if (urls == null || urls.isEmpty()) { log.info("downloadImageList: empty"); return urls; }
         log.info("downloadImageList: {} urls to check", urls.size());

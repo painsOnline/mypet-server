@@ -409,7 +409,9 @@ public class MemberOrderController {
         order.setProductType(orderProducts.isEmpty() ? "" : orderProducts.get(0).getProductType());
         order.setTotalMoney(totalMoney); order.setPayMoney(payMoney);
         order.setActualPayMoney(payMoney); order.setProfitMoney(profit);
-        order.setDeliveryTime(DateTimeUtil.parse(request.getDeliveryTime()));
+        // deliveryTime: support null/empty gracefully (was varchar, now timestamp)
+        String dt = request.getDeliveryTime();
+        order.setDeliveryTime(dt != null && !dt.isBlank() ? DateTimeUtil.parse(dt) : null);
         order.setBuyerMessage(request.getBuyerMessage());
         order.setPayChannel(request.getPayChannel() != null ? request.getPayChannel() : 1);
         order.setPayType(request.getPayType() != null ? request.getPayType() : 1);

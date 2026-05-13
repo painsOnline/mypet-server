@@ -283,7 +283,7 @@ public class ProductService {
                 if (si.getCostPrice() == null) throw new BizException("400", "SKU成本价不能为空");
                 sku.setCostPrice(si.getCostPrice());
                 sku.setBarcode(si.getBarcode() != null ? si.getBarcode() : "");
-                sku.setPicture(si.getPicture());
+                sku.setPicture(imageDownloadService.downloadSingleImage(si.getPicture()));
                 try {
                     sku.setSpecs(mapper.writeValueAsString(si.getSpecs()));
                 } catch (Exception e) {
@@ -381,7 +381,7 @@ public class ProductService {
             if (si.getCostPrice() == null) throw new BizException("400", "SKU成本价不能为空");
             sku.setCostPrice(si.getCostPrice());
             sku.setBarcode(si.getBarcode() != null ? si.getBarcode() : "");
-            sku.setPicture(si.getPicture());
+            sku.setPicture(imageDownloadService.downloadSingleImage(si.getPicture()));
             try {
                 sku.setSpecs(mapper.writeValueAsString(si.getSpecs()));
             } catch (Exception e) {

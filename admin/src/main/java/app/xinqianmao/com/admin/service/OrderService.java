@@ -178,6 +178,7 @@ public class OrderService {
             throw new BizException("400", "只有待配送状态的订单才能发货");
         }
         order.setOrderStatus(2);
+        order.setDeliveryTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
         order.setModifyTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
         orderMapper.updateById(order);
     }
@@ -193,6 +194,7 @@ public class OrderService {
             throw new BizException("400", "只有配送中状态的订单才能确认收货");
         }
         order.setOrderStatus(3);
+        order.setReceiveTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
         order.setModifyTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
         orderMapper.updateById(order);
     }
@@ -208,6 +210,7 @@ public class OrderService {
             throw new BizException("400", "只有已收货状态的订单才能处理退货退款");
         }
         order.setOrderStatus(5);
+        order.setCancelTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
         order.setModifyTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
         orderMapper.updateById(order);
     }
@@ -231,6 +234,7 @@ public class OrderService {
             throw new BizException("400", "当前状态无法取消");
         }
         order.setOrderStatus(5);
+        order.setCancelTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
         order.setModifyTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
         orderMapper.updateById(order);
     }
@@ -245,6 +249,7 @@ public class OrderService {
             if (order == null) throw new BizException("404", "订单不存在: " + id);
             if (order.getOrderStatus() != 1) throw new BizException("400", "只能对待配送订单执行发货操作");
             order.setOrderStatus(2);
+            order.setDeliveryTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
             order.setModifyTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
             orderMapper.updateById(order);
         }

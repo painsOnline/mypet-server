@@ -16,6 +16,7 @@ import app.xinqianmao.com.admin.dao.ProductTypeMapper;
 import app.xinqianmao.com.common.exception.BizException;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -25,6 +26,7 @@ import java.util.stream.Collectors;
 /**
  * Specs management under a product type.
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SpecsService {
@@ -50,7 +52,9 @@ public class SpecsService {
                     new LambdaQueryWrapper<ProductTypeSpecRel>().in(ProductTypeSpecRel::getSpecsId, specIds));
             if (!allRels.isEmpty()) {
                 Set<String> typeIds = allRels.stream().map(ProductTypeSpecRel::getProductType).collect(Collectors.toSet());
-                List<ProductType> types = typeMapper.selectBatchIds(typeIds);
+                List<ProductType> types = typeMapper.selectBatchIds(typeIds).stream()
+                        .filter(t -> t.getIsDelete() == null || t.getIsDelete() == 0)
+                        .collect(Collectors.toList());
                 Map<String, String> typeIdToName = new HashMap<>();
                 types.forEach(t -> typeIdToName.put(t.getId(), t.getName()));
                 Map<String, List<String>> result = new HashMap<>();
@@ -86,6 +90,8 @@ public class SpecsService {
         if (!rels.isEmpty()) {
             List<String> ids = rels.stream().map(ProductTypeSpecRel::getSpecsId).toList();
             List<ProductSpecs> typeSpecs = specsMapper.selectBatchIds(ids);
+            // Sort type-linked specs by their sort field
+            typeSpecs.sort(Comparator.comparingInt(s -> s.getSort() != null ? s.getSort() : 0));
             global.addAll(typeSpecs);
         }
         return global;

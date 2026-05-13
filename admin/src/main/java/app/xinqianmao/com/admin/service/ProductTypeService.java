@@ -72,7 +72,13 @@ public class ProductTypeService {
                     if (s != null) specs.add(s);
                 });
             }
-            specsByType.put(t.getId(), specs);
+            // Sort type-linked specs (non-global) by sort field
+            List<ProductSpecs> sorted = new ArrayList<>(globalSpecs);
+            specs.stream()
+                    .filter(s -> s.getScope() == null || s.getScope() != 0)
+                    .sorted(Comparator.comparingInt(s -> s.getSort() != null ? s.getSort() : 0))
+                    .forEach(sorted::add);
+            specsByType.put(t.getId(), sorted);
         }
 
         return types.stream()
