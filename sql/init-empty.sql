@@ -329,5 +329,5 @@ CREATE INDEX IF NOT EXISTS idx_hot_product_id ON t_hot_products(product_id);
 
 -- Seed: default admin
 INSERT INTO t_admin (id, account, password, create_time)
-VALUES (gen_random_uuid(), 'admin', 'ssHk3OFtbHgs3xsWivZGbw==:Yv4KoZLNFyDHEFNhR7A4KWLxdj/YuTkvgDZc1o2OdzI=', now()::timestamp(0))
+VALUES (gen_random_uuid(), 'admin', 'Hy/DdaK2t1equ57yysnKsQ==:+RYVjFRLhSu3RFiusS7KKEyzwsH1X6f0wQr6ldVA2Dg=', now()::timestamp(0))
 ON CONFLICT DO NOTHING;

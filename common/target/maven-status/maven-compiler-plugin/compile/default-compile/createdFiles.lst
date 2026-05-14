@@ -1,4 +1,5 @@
 app\xinqianmao\com\common\utils\RegionUtil.class
+app\xinqianmao\com\common\GenPwd.class
 app\xinqianmao\com\common\result\PageResult.class
 app\xinqianmao\com\common\constant\GlobalConstants.class
 app\xinqianmao\com\common\DbInitializer.class
