@@ -10,6 +10,7 @@ app\xinqianmao\com\frontend\service\GoodsService.class
 app\xinqianmao\com\frontend\service\MemberCartService.class
 app\xinqianmao\com\frontend\service\WechatService$WechatSession.class
 app\xinqianmao\com\frontend\web\controller\MemberAddressController.class
+app\xinqianmao\com\frontend\common\entity\Shop.class
 app\xinqianmao\com\frontend\service\HomeService$2.class
 app\xinqianmao\com\frontend\dao\ProductMapper.class
 app\xinqianmao\com\frontend\service\CategoryService$1.class
@@ -22,7 +23,9 @@ app\xinqianmao\com\frontend\web\controller\SearchController.class
 app\xinqianmao\com\frontend\dao\ProductBrandMapper.class
 app\xinqianmao\com\frontend\web\controller\MemberOrderController.class
 app\xinqianmao\com\frontend\dao\ProductTypeSpecRelMapper.class
+app\xinqianmao\com\frontend\common\pojo\ShopDetailResponse$BannerItem.class
 app\xinqianmao\com\frontend\dao\OrderProductSkuMapper.class
+app\xinqianmao\com\frontend\common\pojo\ShopDetailResponse.class
 app\xinqianmao\com\frontend\dao\ProductSpecsMapper.class
 app\xinqianmao\com\frontend\service\GoodsService$2.class
 app\xinqianmao\com\frontend\dao\ProductSkuMapper.class

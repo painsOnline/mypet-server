@@ -42,6 +42,21 @@ public class MiniOrderListResponse {
     @Schema(description = "下单时间 yyyy-MM-dd HH:mm:ss")
     private String createTime;
 
+    @Schema(description = "付款时间")
+    private String payTime;
+
+    @Schema(description = "配送时间")
+    private String deliveryTime;
+
+    @Schema(description = "收货时间")
+    private String receiveTime;
+
+    @Schema(description = "完成时间")
+    private String finishTime;
+
+    @Schema(description = "取消时间")
+    private String cancelTime;
+
     @Schema(description = "商品总价（原价x数量之和）")
     private BigDecimal totalMoney;
 

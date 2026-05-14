@@ -57,6 +57,18 @@ public class MiniOrderDetailResponse {
     @Schema(description = "配送时间")
     private String deliveryTime;
 
+    @Schema(description = "付款时间")
+    private String payTime;
+
+    @Schema(description = "收货时间")
+    private String receiveTime;
+
+    @Schema(description = "完成时间")
+    private String finishTime;
+
+    @Schema(description = "取消时间")
+    private String cancelTime;
+
     @Schema(description = "订单备注")
     private String buyerMessage;
 

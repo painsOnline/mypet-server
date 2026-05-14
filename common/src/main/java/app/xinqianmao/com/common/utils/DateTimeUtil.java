@@ -39,9 +39,14 @@ public final class DateTimeUtil {
 
     /**
      * Parse string to LocalDateTime using standard pattern.
+     * Returns null for null/blank input or invalid format.
      */
     public static LocalDateTime parse(String s) {
         if (s == null || s.isBlank()) return null;
-        return LocalDateTime.parse(s, FORMATTER);
+        try {
+            return LocalDateTime.parse(s, FORMATTER);
+        } catch (Exception e) {
+            return null;
+        }
     }
 }

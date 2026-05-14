@@ -302,7 +302,7 @@ CREATE TABLE IF NOT EXISTS t_shop (
     name VARCHAR(255) NOT NULL,
     logo VARCHAR(255) NOT NULL,
     free_shipping_amount NUMERIC(8,2) NOT NULL DEFAULT 20.00,
-    banners VARCHAR(255)[],
+    banners JSON NOT NULL DEFAULT '[]'::json,
     create_time TIMESTAMP NOT NULL DEFAULT now()::timestamp(0),
     modify_time TIMESTAMP
 );

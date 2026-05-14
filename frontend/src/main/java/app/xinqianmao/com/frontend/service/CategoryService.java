@@ -233,6 +233,15 @@ public class CategoryService {
                     optionSet.addAll(spec.getInputOptions());
                 }
             }
+            // Also include values from actual SKUs
+            for (ProductSku sku : skus) {
+                List<GoodsDetailResponse.SpecValue> svList = parseSpecsJson(sku.getSpecs());
+                for (GoodsDetailResponse.SpecValue sv : svList) {
+                    if (name.equals(sv.getName()) && sv.getValueName() != null) {
+                        optionSet.add(sv.getValueName());
+                    }
+                }
+            }
 
             List<GoodsDetailResponse.SpecValue> values = new ArrayList<>();
             for (String option : optionSet) {

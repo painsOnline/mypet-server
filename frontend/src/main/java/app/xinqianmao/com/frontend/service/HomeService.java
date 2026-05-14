@@ -49,16 +49,21 @@ public class HomeService {
             return List.of();
         }
         Shop shop = shops.get(0);
-        List<String> urls = shop.getBanners();
         List<BannerResponse> banners = new ArrayList<>();
-        for (int i = 0; i < urls.size(); i++) {
-            BannerResponse banner = new BannerResponse();
-            banner.setId("banner-" + (i + 1));
-            banner.setImgUrl(urls.get(i));
-            banner.setHrefUrl("/pages/product/product?id=xxx");
-            banner.setType(1);
-            banners.add(banner);
-        }
+        try {
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            com.fasterxml.jackson.databind.JsonNode arr = mapper.readTree(shop.getBanners());
+            if (arr.isArray()) {
+                for (int i = 0; i < arr.size(); i++) {
+                    BannerResponse banner = new BannerResponse();
+                    banner.setId("banner-" + (i + 1));
+                    banner.setImgUrl(arr.get(i).path("imgUrl").asText(""));
+                    banner.setHrefUrl(arr.get(i).path("hrefUrl").asText("/pages/product/product?id=xxx"));
+                    banner.setType(arr.get(i).path("type").asInt(1));
+                    banners.add(banner);
+                }
+            }
+        } catch (Exception e) { /* ignore */ }
         return banners;
     }
 
@@ -296,11 +301,20 @@ public class HomeService {
             GoodsDetailResponse.SpecItem item = new GoodsDetailResponse.SpecItem();
             item.setName(name);
 
-            // Get options from spec definition
+            // Get options from spec definition AND actual SKU values
             Set<String> optionSet = new LinkedHashSet<>();
             for (ProductSpecs spec : specDefs) {
                 if (name.equals(spec.getName()) && spec.getInputOptions() != null) {
                     optionSet.addAll(spec.getInputOptions());
+                }
+            }
+            // Also include values from actual SKUs
+            for (ProductSku sku : skus) {
+                List<GoodsDetailResponse.SpecValue> svList = parseSpecsJson(sku.getSpecs());
+                for (GoodsDetailResponse.SpecValue sv : svList) {
+                    if (name.equals(sv.getName()) && sv.getValueName() != null) {
+                        optionSet.add(sv.getValueName());
+                    }
                 }
             }
 

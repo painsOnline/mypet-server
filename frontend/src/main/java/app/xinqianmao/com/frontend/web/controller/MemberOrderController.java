@@ -26,6 +26,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
@@ -35,6 +36,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Tag(name = "订单", description = "用户订单管理")
+@Slf4j
 @RestController
 @RequestMapping("/frontend/member/order")
 @RequiredArgsConstructor
@@ -92,6 +94,10 @@ public class MemberOrderController {
         resp.setPayMoney(order.getPayMoney());
         resp.setActualPayMoney(order.getActualPayMoney());
         resp.setDeliveryTime(DateTimeUtil.format(order.getDeliveryTime()));
+        resp.setPayTime(DateTimeUtil.format(order.getPayTime()));
+        resp.setReceiveTime(DateTimeUtil.format(order.getReceiveTime()));
+        resp.setFinishTime(DateTimeUtil.format(order.getFinishTime()));
+        resp.setCancelTime(DateTimeUtil.format(order.getCancelTime()));
         resp.setBuyerMessage(order.getBuyerMessage());
 
         OrderReceiver receiver = orderReceiverMapper.selectById(order.getOrderNo());
@@ -145,8 +151,15 @@ public class MemberOrderController {
         if (!UserContext.getRequiredUserId().equals(order.getMemberId())) throw new BizException("404", "订单不存在");
         if (order.getOrderStatus() != 1) throw new BizException("400", "只有待配送的订单才能取消");
         order.setOrderStatus(5);
+        order.setCancelTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
         order.setModifyTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
         orderMapper.updateById(order);
+        // Return inventory on cancel (non-critical, don't rollback on error)
+        try {
+            returnOrderInventory(orderNo);
+        } catch (Exception e) {
+            log.error("Failed to return inventory for order {}: {}", orderNo, e.getMessage());
+        }
         return Result.ok(toListResponse(order));
     }
 
@@ -469,6 +482,30 @@ public class MemberOrderController {
         return Result.ok(resp);
     }
 
+    private void returnOrderInventory(String orderNo) {
+        List<OrderProductSku> skus = orderProductSkuMapper.selectList(
+                new LambdaQueryWrapper<OrderProductSku>().eq(OrderProductSku::getOrderNo, orderNo));
+        for (OrderProductSku ops : skus) {
+            ProductSku sku = skuMapper.selectById(ops.getSkuId());
+            if (sku == null) continue;
+            int before = sku.getInventory() != null ? sku.getInventory() : 0;
+            int after = before + (ops.getCount() != null ? ops.getCount() : 0);
+            sku.setInventory(after);
+            skuMapper.updateById(sku);
+            InventoryLog log = new InventoryLog();
+            log.setSkuId(sku.getId());
+            log.setBarcode(sku.getBarcode());
+            log.setOrderNo(orderNo);
+            log.setChangeType("in");
+            log.setChangeNum(ops.getCount());
+            log.setBeforeInventory(before);
+            log.setAfterInventory(after);
+            log.setOperator("member");
+            log.setCreateTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
+            inventoryLogMapper.insert(log);
+        }
+    }
+
     private MiniOrderListResponse toListResponse(Order order) {
         MiniOrderListResponse r = new MiniOrderListResponse();
         r.setId(order.getId());
@@ -478,6 +515,11 @@ public class MemberOrderController {
         r.setPayMoney(order.getPayMoney());
         r.setActualPayMoney(order.getActualPayMoney());
         r.setCreateTime(DateTimeUtil.format(order.getCreateTime()));
+        r.setPayTime(DateTimeUtil.format(order.getPayTime()));
+        r.setDeliveryTime(DateTimeUtil.format(order.getDeliveryTime()));
+        r.setReceiveTime(DateTimeUtil.format(order.getReceiveTime()));
+        r.setFinishTime(DateTimeUtil.format(order.getFinishTime()));
+        r.setCancelTime(DateTimeUtil.format(order.getCancelTime()));
 
         String orderNo = order.getOrderNo();
         OrderReceiver receiver = orderReceiverMapper.selectById(orderNo);

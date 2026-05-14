@@ -9,7 +9,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.math.BigDecimal;
-import java.util.List;
 
 /**
  * Shop config save request.
@@ -27,6 +26,6 @@ public class ShopSaveRequest {
     @Schema(description = "免配送费门槛")
     private BigDecimal freeShippingAmount;
 
-    @Schema(description = "轮播图URL列表")
-    private List<String> banners;
+    @Schema(description = "轮播图JSON")
+    private String banners;
 }

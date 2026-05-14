@@ -12,6 +12,7 @@ import app.xinqianmao.com.common.utils.ImageUrlUtil;
 import app.xinqianmao.com.frontend.common.entity.*;
 import app.xinqianmao.com.frontend.common.pojo.BannerResponse;
 import app.xinqianmao.com.frontend.common.pojo.GoodsDetailResponse;
+import app.xinqianmao.com.frontend.common.pojo.ShopDetailResponse;
 import app.xinqianmao.com.frontend.dao.*;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -20,11 +21,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Tag(name = "首页", description = "首页Banner和热门推荐")
 @RestController
 @RequestMapping("/frontend")
@@ -41,22 +44,63 @@ public class HomeController {
     private final ImageUrlUtil imageUrlUtil;
 
     @NoAuth
-    @Operation(summary = "获取Banner轮播图")
+    @Operation(summary = "获取店铺详情")
+    @GetMapping("/shop/detail")
+    public Result<ShopDetailResponse> shopDetail() {
+        List<Shop> shops = shopMapper.selectList(new LambdaQueryWrapper<>());
+        if (shops.isEmpty()) return Result.error("404", "店铺未配置");
+        Shop shop = shops.get(0);
+        ShopDetailResponse r = new ShopDetailResponse();
+        r.setId(shop.getId());
+        r.setName(shop.getName());
+        r.setLogo(imageUrlUtil.fullUrl(shop.getLogo()));
+        r.setFreeShippingAmount(shop.getFreeShippingAmount());
+        String bannersJson = shop.getBanners();
+        if (bannersJson != null && !bannersJson.isBlank()) {
+            try {
+                com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+                com.fasterxml.jackson.databind.JsonNode arr = mapper.readTree(bannersJson);
+                if (arr.isArray()) {
+                    List<ShopDetailResponse.BannerItem> items = new ArrayList<>();
+                    for (int i = 0; i < arr.size(); i++) {
+                        com.fasterxml.jackson.databind.JsonNode node = arr.get(i);
+                        ShopDetailResponse.BannerItem bi = new ShopDetailResponse.BannerItem();
+                        bi.setImgUrl(imageUrlUtil.fullUrl(node.path("imgUrl").asText("")));
+                        bi.setHrefUrl(node.path("hrefUrl").asText("/pages/product/product?id=xxx"));
+                        bi.setType(node.path("type").asInt(1));
+                        bi.setSort(node.path("sort").asInt(i + 1));
+                        items.add(bi);
+                    }
+                    r.setBanners(items);
+                }
+            } catch (Exception e) { log.warn("Failed to parse shop banners JSON: {}", e.getMessage()); }
+        }
+        return Result.ok(r);
+    }
+
+    @NoAuth
+    @Operation(summary = "获取Banner轮播图（废弃，请用 /shop/detail）")
     @GetMapping("/home/banner")
     public Result<List<BannerResponse>> banners(@RequestParam(defaultValue = "1") Integer distributionSite) {
         List<Shop> shops = shopMapper.selectList(new LambdaQueryWrapper<>());
         if (shops.isEmpty()) return Result.ok(List.of());
-        List<String> bannerUrls = shops.get(0).getBanners();
-        if (bannerUrls == null || bannerUrls.isEmpty()) return Result.ok(List.of());
+        String bannersJson = shops.get(0).getBanners();
+        if (bannersJson == null || bannersJson.isBlank()) return Result.ok(List.of());
         List<BannerResponse> result = new ArrayList<>();
-        for (int i = 0; i < bannerUrls.size(); i++) {
-            BannerResponse b = new BannerResponse();
-            b.setId("banner-" + (i + 1));
-            b.setImgUrl(imageUrlUtil.fullUrl(bannerUrls.get(i)));
-            b.setHrefUrl("/pages/product/product?id=xxx");
-            b.setType(distributionSite);
-            result.add(b);
-        }
+        try {
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            com.fasterxml.jackson.databind.JsonNode arr = mapper.readTree(bannersJson);
+            if (arr.isArray()) {
+                for (int i = 0; i < arr.size(); i++) {
+                    BannerResponse b = new BannerResponse();
+                    b.setId("banner-" + (i + 1));
+                    b.setImgUrl(imageUrlUtil.fullUrl(arr.get(i).path("imgUrl").asText("")));
+                    b.setHrefUrl(arr.get(i).path("hrefUrl").asText("/pages/product/product?id=xxx"));
+                    b.setType(distributionSite);
+                    result.add(b);
+                }
+            }
+        } catch (Exception e) { /* fallback */ }
         return Result.ok(result);
     }
 
@@ -125,8 +169,8 @@ public class HomeController {
             return gs;
         }).collect(Collectors.toList()));
 
-        // Specs: get from type-spec relation table + global specs
-        r.setSpecs(buildGoodsSpecs(getSpecsByProductType(product.getProductType())));
+        // Specs: include values from both spec definitions AND actual SKUs
+        r.setSpecs(buildGoodsSpecs(getSpecsByProductType(product.getProductType()), skus));
 
         return r;
     }
@@ -173,20 +217,31 @@ public class HomeController {
         } catch (Exception e) { return List.of(); }
     }
 
-    public static List<GoodsDetailResponse.SpecItem> buildGoodsSpecs(List<ProductSpecs> specDefs) {
-        Map<String, List<String>> grouped = new LinkedHashMap<>();
+    public static List<GoodsDetailResponse.SpecItem> buildGoodsSpecs(List<ProductSpecs> specDefs, List<ProductSku> skus) {
+        Map<String, Set<String>> grouped = new LinkedHashMap<>();
         for (ProductSpecs spec : specDefs) {
             if (spec.getType() != null && spec.getType() == 1) {
-                grouped.computeIfAbsent(spec.getName(), k -> new ArrayList<>())
+                grouped.computeIfAbsent(spec.getName(), k -> new LinkedHashSet<>())
                         .addAll(spec.getInputOptions() != null ? spec.getInputOptions() : List.of());
+            }
+        }
+        // Also include values from actual SKU specs
+        for (ProductSku sku : skus) {
+            List<GoodsDetailResponse.SpecValue> skuSpecs = parseSpecValues(sku.getSpecs());
+            for (GoodsDetailResponse.SpecValue sv : skuSpecs) {
+                String specName = sv.getName();
+                String valueName = sv.getValueName();
+                if (specName != null && valueName != null && !valueName.isBlank()) {
+                    grouped.computeIfAbsent(specName, k -> new LinkedHashSet<>()).add(valueName);
+                }
             }
         }
         return grouped.entrySet().stream().map(entry -> {
             GoodsDetailResponse.SpecItem gs = new GoodsDetailResponse.SpecItem();
             gs.setName(entry.getKey());
-            gs.setValues(entry.getValue().stream().distinct().map(v -> {
+            gs.setValues(entry.getValue().stream().map(v -> {
                 GoodsDetailResponse.SpecValue svi = new GoodsDetailResponse.SpecValue();
-                svi.setName(v); svi.setAvailable(true); svi.setDesc(v); svi.setPicture("");
+                svi.setName(v); svi.setValueName(v); svi.setAvailable(true); svi.setDesc(v); svi.setPicture("");
                 return svi;
             }).collect(Collectors.toList()));
             return gs;

@@ -34,6 +34,7 @@ F:\MyWorkspace\project\mypet\java\mypet-server\frontend\src\main\java\app\xinqia
 F:\MyWorkspace\project\mypet\java\mypet-server\frontend\src\main\java\app\xinqianmao\com\frontend\common\pojo\MiniOrderSubmitRequest.java
 F:\MyWorkspace\project\mypet\java\mypet-server\frontend\src\main\java\app\xinqianmao\com\frontend\common\pojo\MiniOrderSubmitResponse.java
 F:\MyWorkspace\project\mypet\java\mypet-server\frontend\src\main\java\app\xinqianmao\com\frontend\common\pojo\PreOrderResponse.java
+F:\MyWorkspace\project\mypet\java\mypet-server\frontend\src\main\java\app\xinqianmao\com\frontend\common\pojo\ShopDetailResponse.java
 F:\MyWorkspace\project\mypet\java\mypet-server\frontend\src\main\java\app\xinqianmao\com\frontend\common\pojo\SubmitRequest.java
 F:\MyWorkspace\project\mypet\java\mypet-server\frontend\src\main\java\app\xinqianmao\com\frontend\common\pojo\WxLoginRequest.java
 F:\MyWorkspace\project\mypet\java\mypet-server\frontend\src\main\java\app\xinqianmao\com\frontend\dao\CartMapper.java

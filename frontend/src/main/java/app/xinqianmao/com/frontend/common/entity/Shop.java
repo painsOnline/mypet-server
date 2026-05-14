@@ -20,8 +20,8 @@ public class Shop {
     private String name;
     private String logo;
     private BigDecimal freeShippingAmount;
-    @TableField(typeHandler = app.xinqianmao.com.common.dao.ListStringTypeHandler.class)
-    private List<String> banners;
+    @TableField(typeHandler = app.xinqianmao.com.common.dao.JsonTypeHandler.class)
+    private String banners;
     private LocalDateTime createTime;
     private LocalDateTime modifyTime;
 }
