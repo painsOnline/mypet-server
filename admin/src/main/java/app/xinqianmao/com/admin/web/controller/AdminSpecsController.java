@@ -70,4 +70,11 @@ public class AdminSpecsController {
         specsService.linkSpecToType(body.get("typeId"), body.get("specsId"));
         return Result.ok();
     }
+
+    @Operation(summary = "解除引用共享属性", description = "仅删除类型与属性的关联，不删除属性本身")
+    @PostMapping("/unlink")
+    public Result<Void> unlinkFromType(@RequestBody Map<String, String> body) {
+        specsService.unlinkSpecFromType(body.get("typeId"), body.get("specsId"));
+        return Result.ok();
+    }
 }

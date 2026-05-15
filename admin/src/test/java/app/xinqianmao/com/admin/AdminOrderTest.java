@@ -100,7 +100,7 @@ class AdminOrderTest extends BaseAdminTest {
 
         skuId = java.util.UUID.randomUUID().toString();
         ProductSku sku = new ProductSku();
-        sku.setId(skuId); sku.setProductId(productId); sku.setProductType(tId);
+        sku.setId(skuId); sku.setProductId(productId);
         sku.setPrice(new BigDecimal("99.00")); sku.setOldPrice(new BigDecimal("128.00"));
         sku.setInventory(100); sku.setPicture("");
         sku.setSpecs("[{\"name\":\"规格\",\"valueName\":\"2.5Kg/袋\"}]");
@@ -122,7 +122,7 @@ class AdminOrderTest extends BaseAdminTest {
         orderId = java.util.UUID.randomUUID().toString();
         app.xinqianmao.com.admin.common.entity.Order order = new app.xinqianmao.com.admin.common.entity.Order();
         order.setId(orderId); order.setOrderType(1); order.setOrderStatus(1);
-        order.setProductType(skuMapper.selectById(skuId).getProductType());
+        order.setProductType(productMapper.selectById(productId).getProductType());
         order.setTotalMoney(new BigDecimal("256.00"));
         order.setActualPayMoney(new BigDecimal("198.00"));
         order.setPayMoney(new BigDecimal("198.00"));
@@ -141,7 +141,6 @@ class AdminOrderTest extends BaseAdminTest {
         OrderProductSku ops = new OrderProductSku();
         ProductSku sku = skuMapper.selectById(skuId);
         ops.setOrderNo(orderId); ops.setSkuId(skuId); ops.setProductId(productId);
-        ops.setProductType(sku.getProductType());
         ops.setPrice(sku.getPrice()); ops.setOldPrice(sku.getOldPrice());
         ops.setCount(2); ops.setPicture(sku.getPicture()); ops.setSpecs(sku.getSpecs());
         ops.setCreateTime(LocalDateTime.now()); orderProductSkuMapper.insert(ops);

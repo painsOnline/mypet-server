@@ -11,7 +11,9 @@ import app.xinqianmao.com.admin.common.entity.ProductTypeSpecRel;
 import app.xinqianmao.com.admin.common.pojo.SpecsSaveRequest;
 import app.xinqianmao.com.admin.dao.ProductSpecsMapper;
 import app.xinqianmao.com.admin.dao.ProductTypeSpecRelMapper;
+import app.xinqianmao.com.admin.common.entity.ProductProperty;
 import app.xinqianmao.com.admin.dao.ProductMapper;
+import app.xinqianmao.com.admin.dao.ProductPropertyMapper;
 import app.xinqianmao.com.admin.dao.ProductTypeMapper;
 import app.xinqianmao.com.common.exception.BizException;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -35,6 +37,7 @@ public class SpecsService {
     private final ProductMapper productMapper;
     private final ProductTypeSpecRelMapper typeSpecRelMapper;
     private final ProductTypeMapper typeMapper;
+    private final ProductPropertyMapper propertyMapper;
 
     public List<ProductSpecs> listByScope(Integer scope) {
         LambdaQueryWrapper<ProductSpecs> wrapper = new LambdaQueryWrapper<>();
@@ -154,6 +157,27 @@ public class SpecsService {
         ProductSpecs spec = specsMapper.selectById(specId);
         if (spec == null) throw new BizException("404", "规格不存在");
 
+        // Shared specs cannot be deleted if still linked to any type — use unlink instead
+        if (spec.getScope() != null && spec.getScope() == 1) {
+            long relCount = typeSpecRelMapper.selectCount(
+                    new LambdaQueryWrapper<ProductTypeSpecRel>()
+                            .eq(ProductTypeSpecRel::getSpecsId, specId));
+            if (relCount > 0) {
+                throw new BizException("400", "该共享属性已被商品类型引用，请先在对应类型中解除引用");
+            }
+        }
+
+        // Prevent deleting if any product is using this spec
+        if (spec.getScope() != null && spec.getScope() != 0) {
+            long productCount = propertyMapper.selectCount(
+                    new LambdaQueryWrapper<ProductProperty>()
+                            .eq(ProductProperty::getSpecsId, specId)
+                            .eq(ProductProperty::getIsDelete, 0));
+            if (productCount > 0) {
+                throw new BizException("400", "该属性已被商品使用，无法删除");
+            }
+        }
+
         // Prevent deleting the last SKU spec
         if (spec.getType() == 1) {
             long skuCount = countSkuSpecs();
@@ -172,6 +196,9 @@ public class SpecsService {
             }
         }
 
+        // Clean up rels before deleting the spec itself
+        typeSpecRelMapper.delete(new LambdaQueryWrapper<ProductTypeSpecRel>()
+                .eq(ProductTypeSpecRel::getSpecsId, specId));
         specsMapper.deleteById(specId);
     }
 
@@ -187,6 +214,16 @@ public class SpecsService {
         spec.setInputOptions(inputOptions);
         spec.setModifyTime(LocalDateTime.now(app.xinqianmao.com.common.utils.DateTimeUtil.ZONE_BEIJING));
         specsMapper.updateById(spec);
+    }
+
+    /** Remove the rel entry between a type and a shared spec (does NOT delete the spec). */
+    public void unlinkSpecFromType(String typeId, String specsId) {
+        ProductTypeSpecRel rel = typeSpecRelMapper.selectOne(
+                new LambdaQueryWrapper<ProductTypeSpecRel>()
+                        .eq(ProductTypeSpecRel::getProductType, typeId)
+                        .eq(ProductTypeSpecRel::getSpecsId, specsId));
+        if (rel == null) throw new BizException("404", "关联不存在");
+        typeSpecRelMapper.deleteById(rel.getId());
     }
 
     /** Link an existing shared spec to a type (only creates rel entry). */

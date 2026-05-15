@@ -279,6 +279,12 @@ public class ProductService {
         if (req.getSkus() == null || req.getSkus().isEmpty()) {
             throw new BizException("400", "至少需要一个SKU");
         }
+        // Barcode uniqueness check
+        List<String> barcodes = req.getSkus().stream()
+                .map(si -> si.getBarcode() != null ? si.getBarcode().trim() : "")
+                .filter(b -> !b.isEmpty()).collect(Collectors.toList());
+        checkBarcodeUnique(barcodes, null);
+
         com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
         for (ProductSaveRequest.SkuItem si : req.getSkus()) {
                 ProductSku sku = new ProductSku();
@@ -382,6 +388,12 @@ public class ProductService {
         if (req.getSkus() == null || req.getSkus().isEmpty()) {
             throw new BizException("400", "至少需要一个SKU");
         }
+        // Barcode uniqueness check (exclude current product's own SKUs)
+        List<String> barcodes = req.getSkus().stream()
+                .map(si -> si.getBarcode() != null ? si.getBarcode().trim() : "")
+                .filter(b -> !b.isEmpty()).collect(Collectors.toList());
+        checkBarcodeUnique(barcodes, productId);
+
         com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
         for (ProductSaveRequest.SkuItem si : req.getSkus()) {
             ProductSku sku = new ProductSku();
@@ -452,6 +464,22 @@ public class ProductService {
         product.setIsEnable(product.getIsEnable() != null && product.getIsEnable() == 1 ? 2 : 1);
         product.setModifyTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
         productMapper.updateById(product);
+    }
+
+    private void checkBarcodeUnique(List<String> barcodes, String excludeProductId) {
+        if (barcodes.isEmpty()) return;
+        Set<String> uniq = new java.util.HashSet<>();
+        for (String b : barcodes) {
+            if (!uniq.add(b)) throw new BizException("400", "条形码 " + b + " 在当前SKU列表中重复");
+        }
+        for (String b : barcodes) {
+            LambdaQueryWrapper<ProductSku> w = new LambdaQueryWrapper<ProductSku>()
+                    .eq(ProductSku::getBarcode, b)
+                    .eq(ProductSku::getIsDelete, 0);
+            if (excludeProductId != null) w.ne(ProductSku::getProductId, excludeProductId);
+            long count = skuMapper.selectCount(w);
+            if (count > 0) throw new BizException("400", "条形码 " + b + " 已被其他商品使用");
+        }
     }
 
     private Map<String, String> buildSpecsNameMap(String productType) {

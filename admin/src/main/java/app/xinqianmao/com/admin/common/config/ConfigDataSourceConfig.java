@@ -14,8 +14,9 @@ import org.springframework.context.annotation.Configuration;
 import javax.sql.DataSource;
 
 /**
- * Pooled DataSource for the mypet_config database.
- * Shared by LoginSecurityService and MigrationRunnerService.
+ * Pooled DataSources for mypet_config and mypet_empty databases.
+ * configDataSource  — login security + migration log
+ * templateDataSource — mypet_empty template (for tenant migration sync)
  */
 @Configuration
 public class ConfigDataSourceConfig {
@@ -26,15 +27,28 @@ public class ConfigDataSourceConfig {
             @Value("${mypet.db.port:1800}") String port,
             @Value("${mypet.db.user:postgres}") String user,
             @Value("${mypet.db.password:mypg123abc}") String password) {
+        return buildDataSource(host, port, user, password, "mypet_config", "config-db-pool");
+    }
+
+    @Bean(name = "templateDataSource")
+    public DataSource templateDataSource(
+            @Value("${mypet.db.host:127.0.0.1}") String host,
+            @Value("${mypet.db.port:1800}") String port,
+            @Value("${mypet.db.user:postgres}") String user,
+            @Value("${mypet.db.password:mypg123abc}") String password) {
+        return buildDataSource(host, port, user, password, "mypet_empty", "template-db-pool");
+    }
+
+    private DataSource buildDataSource(String host, String port, String user, String password, String db, String poolName) {
         HikariConfig config = new HikariConfig();
-        config.setJdbcUrl("jdbc:postgresql://" + host + ":" + port + "/mypet_config");
+        config.setJdbcUrl("jdbc:postgresql://" + host + ":" + port + "/" + db);
         config.setUsername(user);
         config.setPassword(password);
-        config.setMaximumPoolSize(5);
+        config.setMaximumPoolSize(3);
         config.setMinimumIdle(1);
         config.setConnectionTimeout(5000);
         config.setIdleTimeout(60000);
-        config.setPoolName("config-db-pool");
+        config.setPoolName(poolName);
         return new HikariDataSource(config);
     }
 }
