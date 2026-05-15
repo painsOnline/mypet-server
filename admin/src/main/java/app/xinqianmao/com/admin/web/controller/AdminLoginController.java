@@ -10,6 +10,7 @@ import app.xinqianmao.com.admin.common.pojo.AdminLoginRequest;
 import app.xinqianmao.com.admin.common.pojo.AdminLoginResponse;
 import app.xinqianmao.com.admin.common.pojo.ChangePasswordRequest;
 import app.xinqianmao.com.admin.service.AdminLoginService;
+import app.xinqianmao.com.admin.service.CaptchaService;
 import app.xinqianmao.com.common.annotation.NoAuth;
 import app.xinqianmao.com.common.auth.UserContext;
 import app.xinqianmao.com.common.result.Result;
@@ -30,12 +31,21 @@ import org.springframework.web.bind.annotation.*;
 public class AdminLoginController {
 
     private final AdminLoginService adminLoginService;
+    private final CaptchaService captchaService;
+
+    @NoAuth
+    @Operation(summary = "获取验证码图片")
+    @GetMapping("/captcha")
+    public Result<java.util.Map<String, String>> captcha() {
+        return Result.ok(captchaService.generate());
+    }
 
     @NoAuth
     @Operation(summary = "管理员登录", description = "使用店铺code、账号和密码登录管理后台")
     @PostMapping("/login")
     public Result<AdminLoginResponse> login(@Valid @RequestBody AdminLoginRequest request) {
-        String token = adminLoginService.login(request.getAccount(), request.getPassword());
+        String token = adminLoginService.login(request.getAccount(), request.getPassword(),
+                request.getCaptchaToken(), request.getCaptchaInput());
         Admin admin = adminLoginService.getAdminInfo(request.getAccount());
 
         AdminLoginResponse resp = new AdminLoginResponse();

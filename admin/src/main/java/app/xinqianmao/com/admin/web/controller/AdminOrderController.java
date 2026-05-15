@@ -63,6 +63,13 @@ public class AdminOrderController {
         return Result.ok();
     }
 
+    @Operation(summary = "完成订单", description = "订单状态 已收货→已完成，设置完成时间")
+    @PutMapping("/{id}/finish")
+    public Result<Void> finishOrder(@PathVariable String id) {
+        orderService.finishOrder(id);
+        return Result.ok();
+    }
+
     @Operation(summary = "同意退货退款", description = "订单状态 已收货→已取消")
     @PutMapping("/{id}/approveRefund")
     public Result<Void> approveRefund(@PathVariable String id) {
@@ -95,6 +102,13 @@ public class AdminOrderController {
     @PutMapping("/batch/cancel")
     public Result<Void> batchCancel(@RequestBody List<String> ids) {
         orderService.batchCancel(ids);
+        return Result.ok();
+    }
+
+    @Operation(summary = "修改商家备注")
+    @PutMapping("/{id}/sellerMessage")
+    public Result<Void> updateSellerMessage(@PathVariable String id, @RequestBody java.util.Map<String, String> body) {
+        orderService.updateSellerMessage(id, body.get("sellerMessage"));
         return Result.ok();
     }
 }

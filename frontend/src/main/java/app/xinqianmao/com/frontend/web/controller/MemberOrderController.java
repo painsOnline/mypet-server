@@ -51,6 +51,7 @@ public class MemberOrderController {
     private final ProductMapper productMapper;
     private final ProductSkuMapper skuMapper;
     private final ProductPropertyMapper propertyMapper;
+    private final ShopMapper shopMapper;
     private final ProductSpecsMapper specsMapper;
     private final OrderProductPropertyMapper orderProductPropertyMapper;
     private final HomeController homeController;
@@ -416,6 +417,16 @@ public class MemberOrderController {
         }
 
         BigDecimal profit = payMoney.subtract(totalCost);
+
+        // 校验实付金额不低于起配金额
+        List<Shop> shops = shopMapper.selectList(new LambdaQueryWrapper<>());
+        if (!shops.isEmpty() && shops.get(0).getFreeShippingAmount() != null) {
+            BigDecimal minAmount = shops.get(0).getFreeShippingAmount();
+            if (payMoney.compareTo(minAmount) < 0) {
+                throw new BizException("400", "订单金额需满" + minAmount + "元起配");
+            }
+        }
+
         Order order = new Order();
         order.setMemberId(memberId);
         order.setOrderNo(orderNo); order.setOrderType(0); order.setOrderStatus(1);

@@ -39,4 +39,5 @@ public class Order extends BaseEntity {
     private LocalDateTime receiveTime;
     private LocalDateTime finishTime;
     private LocalDateTime cancelTime;
+    private String sellerMessage;
 }

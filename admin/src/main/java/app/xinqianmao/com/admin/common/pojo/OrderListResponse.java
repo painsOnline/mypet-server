@@ -38,6 +38,7 @@ public class OrderListResponse {
     private String cancelTime;
     private String deliveryTime;
     private String buyerMessage;
+    private String sellerMessage;
     private String memberAvatar;
     private String memberMobile;
     private Boolean hasRefundRequest;

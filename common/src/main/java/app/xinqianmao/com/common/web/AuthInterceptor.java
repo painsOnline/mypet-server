@@ -7,6 +7,7 @@ package app.xinqianmao.com.common.web;
 
 import app.xinqianmao.com.common.annotation.NoAuth;
 import app.xinqianmao.com.common.auth.JwtUtil;
+import app.xinqianmao.com.common.auth.TenantContext;
 import app.xinqianmao.com.common.auth.UserAuthInfo;
 import app.xinqianmao.com.common.auth.UserContext;
 import app.xinqianmao.com.common.constant.GlobalConstants;
@@ -58,6 +59,15 @@ public class AuthInterceptor implements HandlerInterceptor {
         String token = authHeader.substring(GlobalConstants.BEARER_PREFIX.length());
         try {
             UserAuthInfo authInfo = jwtUtil.getUserAuthInfo(token);
+            // Verify token tenant matches request Tenant header to prevent cross-tenant access
+            String requestTenant = TenantContext.get();
+            if (requestTenant != null && !requestTenant.equals(authInfo.getTenantCode())) {
+                response.setContentType("application/json;charset=UTF-8");
+                response.setStatus(401);
+                response.getWriter().write(objectMapper.writeValueAsString(
+                        Result.error("401", "Token does not match tenant")));
+                return false;
+            }
             UserContext.set(authInfo);
             return true;
         } catch (Exception e) {

@@ -40,6 +40,11 @@ public class WebMvcConfig implements WebMvcConfigurer {
             "/admin/login", "/frontend/member/login/**"
     };
 
+    /** Paths excluded from tenant header requirement (called before login) */
+    private static final String[] TENANT_EXCLUDE_PATHS = {
+            "/admin/captcha"
+    };
+
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         String location = Paths.get(uploadPath).toAbsolutePath().normalize().toUri().toString();
@@ -49,9 +54,10 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        // Tenant interceptor: required on all API paths
+        // Tenant interceptor: required on all API paths except captcha (called before login)
         registry.addInterceptor(tenantInterceptor)
                 .addPathPatterns(PROTECTED_PATHS)
+                .excludePathPatterns(TENANT_EXCLUDE_PATHS)
                 .order(1);
 
         // Auth interceptor: required on all API paths except login

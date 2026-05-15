@@ -160,6 +160,7 @@ CREATE TABLE IF NOT EXISTS t_order (
     pay_money NUMERIC(8,2) NOT NULL,
     profit_money NUMERIC(8,2) NOT NULL,
     buyer_message TEXT,
+    seller_message TEXT,
     pay_channel SMALLINT NOT NULL DEFAULT 1,
     pay_type SMALLINT NOT NULL DEFAULT 1,
     is_delete SMALLINT NOT NULL DEFAULT 0,
@@ -329,5 +330,5 @@ CREATE INDEX IF NOT EXISTS idx_hot_product_id ON t_hot_products(product_id);
 
 -- Seed: default admin
 INSERT INTO t_admin (id, account, password, create_time)
-VALUES (gen_random_uuid(), 'admin', 'Hy/DdaK2t1equ57yysnKsQ==:+RYVjFRLhSu3RFiusS7KKEyzwsH1X6f0wQr6ldVA2Dg=', now()::timestamp(0))
+VALUES (gen_random_uuid(), 'admin', 'jAQ6D/jGCO8rVN1T6gnhhQ==:pIqizl5zIE68l0w8Dr0XKuGsIZz9t7KZ5u5B+XDseeA=', now()::timestamp(0))
 ON CONFLICT DO NOTHING;

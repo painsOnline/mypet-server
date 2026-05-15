@@ -235,7 +235,11 @@ public class ProductService {
      */
     @Transactional
     public String create(ProductSaveRequest req) {
+        // Generate product ID upfront so images can be saved in categorized paths
+        String productId = UUID.randomUUID().toString();
+
         Product product = new Product();
+        product.setId(productId);
         product.setName(req.getName());
         product.setProductType(req.getProductType());
         product.setProductCategory(req.getProductCategory());
@@ -245,8 +249,10 @@ public class ProductService {
         product.setOldPrice(req.getOldPrice());
         product.setMainPictures(req.getMainPictures() != null ? req.getMainPictures() : List.of());
         product.setPicture(req.getPicture());
-        product.setDetail(imageDownloadService.downloadImagesInHtml(req.getDetail() != null ? req.getDetail() : ""));
-        product.setMainPictures(imageDownloadService.downloadImageList(req.getMainPictures() != null ? req.getMainPictures() : List.of()));
+        product.setDetail(imageDownloadService.downloadImagesInHtml(
+                req.getDetail() != null ? req.getDetail() : "", productId));
+        product.setMainPictures(imageDownloadService.downloadImageList(
+                req.getMainPictures() != null ? req.getMainPictures() : List.of(), productId));
         if (product.getMainPictures() != null && !product.getMainPictures().isEmpty())
             product.setPicture(product.getMainPictures().get(0));
         else product.setPicture(req.getPicture());
@@ -283,7 +289,7 @@ public class ProductService {
                 if (si.getCostPrice() == null) throw new BizException("400", "SKU成本价不能为空");
                 sku.setCostPrice(si.getCostPrice());
                 sku.setBarcode(si.getBarcode() != null ? si.getBarcode() : "");
-                sku.setPicture(imageDownloadService.downloadSingleImage(si.getPicture()));
+                sku.setPicture(imageDownloadService.downloadSingleImage(si.getPicture(), productId));
                 try {
                     sku.setSpecs(mapper.writeValueAsString(si.getSpecs()));
                 } catch (Exception e) {
@@ -293,6 +299,9 @@ public class ProductService {
                 skuMapper.insert(sku);
                 writeInventoryLog(sku, null, "in", sku.getInventory(), 0, sku.getInventory());
         }
+
+        // Move temp images to product's permanent directory
+        imageDownloadService.relocateProductImages(productId);
 
         return product.getId();
     }
@@ -330,8 +339,10 @@ public class ProductService {
         product.setOldPrice(req.getOldPrice());
         product.setMainPictures(req.getMainPictures() != null ? req.getMainPictures() : List.of());
         product.setPicture(req.getPicture());
-        product.setDetail(imageDownloadService.downloadImagesInHtml(req.getDetail() != null ? req.getDetail() : ""));
-        product.setMainPictures(imageDownloadService.downloadImageList(req.getMainPictures() != null ? req.getMainPictures() : List.of()));
+        product.setDetail(imageDownloadService.downloadImagesInHtml(
+                req.getDetail() != null ? req.getDetail() : "", productId));
+        product.setMainPictures(imageDownloadService.downloadImageList(
+                req.getMainPictures() != null ? req.getMainPictures() : List.of(), productId));
         if (product.getMainPictures() != null && !product.getMainPictures().isEmpty())
             product.setPicture(product.getMainPictures().get(0));
         else product.setPicture(req.getPicture());
@@ -381,7 +392,7 @@ public class ProductService {
             if (si.getCostPrice() == null) throw new BizException("400", "SKU成本价不能为空");
             sku.setCostPrice(si.getCostPrice());
             sku.setBarcode(si.getBarcode() != null ? si.getBarcode() : "");
-            sku.setPicture(imageDownloadService.downloadSingleImage(si.getPicture()));
+            sku.setPicture(imageDownloadService.downloadSingleImage(si.getPicture(), productId));
             try {
                 sku.setSpecs(mapper.writeValueAsString(si.getSpecs()));
             } catch (Exception e) {

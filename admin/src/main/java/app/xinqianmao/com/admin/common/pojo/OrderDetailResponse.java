@@ -30,6 +30,7 @@ public class OrderDetailResponse {
     private String modifyTime;
     private String deliveryTime;
     private String buyerMessage;
+    private String sellerMessage;
 
     private MemberInfo member;
     private ReceiverInfo receiver;

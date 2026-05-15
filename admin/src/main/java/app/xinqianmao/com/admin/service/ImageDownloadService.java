@@ -5,8 +5,12 @@
  */
 package app.xinqianmao.com.admin.service;
 
+import app.xinqianmao.com.admin.common.entity.Product;
+import app.xinqianmao.com.admin.common.entity.ProductSku;
 import app.xinqianmao.com.admin.dao.ProductMapper;
+import app.xinqianmao.com.admin.dao.ProductSkuMapper;
 import app.xinqianmao.com.common.auth.TenantContext;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
@@ -21,7 +25,6 @@ import java.nio.file.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -30,34 +33,176 @@ import java.util.regex.Pattern;
 public class ImageDownloadService {
 
     private final ProductMapper productMapper;
+    private final ProductSkuMapper skuMapper;
     private final Path uploadRoot;
 
     private static final Pattern IMG_SRC_PATTERN = Pattern.compile(
             "src\\s*=\\s*['\"]?(https?://[^\\s>'\"]+)['\"]?", Pattern.CASE_INSENSITIVE);
 
+    private static final Pattern TEMP_URL_PATTERN = Pattern.compile(
+            "/uploads/([^/]+)/temp/products/(\\d{4}/\\d{2})/([^/]+)$");
+
     private static final List<String> IMAGE_EXTS = List.of(
             ".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp", ".svg", ".ico", ".tiff", ".tif");
 
-    private static final String[] USER_AGENTS = {
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36",
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36",
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0",
-    };
-
-    private static final String[] ACCEPT = {
-        "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
-        "image/webp,image/*,*/*;q=0.8",
-    };
-
-    public ImageDownloadService(ProductMapper productMapper,
+    public ImageDownloadService(ProductMapper productMapper, ProductSkuMapper skuMapper,
             @Value("${mypet.upload.path:F:/MyWorkspace/project/mypet/uploads}") String uploadPath) {
         this.productMapper = productMapper;
+        this.skuMapper = skuMapper;
         this.uploadRoot = Paths.get(uploadPath).toAbsolutePath().normalize();
         try { Files.createDirectories(uploadRoot); }
         catch (IOException e) { throw new RuntimeException("Cannot create upload directory", e); }
     }
 
-    /** Async: download external images in background and update DB */
+    // ---- Public API ----
+
+    /** Download external images in HTML detail, save to product/detail path. */
+    public String downloadImagesInHtml(String html, String productId) {
+        if (html == null || html.isBlank()) return html;
+        Matcher m = IMG_SRC_PATTERN.matcher(html);
+        StringBuffer sb = new StringBuffer();
+        while (m.find()) {
+            String full = m.group(0), url = m.group(1);
+            if (!isLocalUrl(url)) {
+                String local = downloadImage(url, "product/detail", productId);
+                if (local != null) {
+                    m.appendReplacement(sb, Matcher.quoteReplacement(full.replace(url, local)));
+                    continue;
+                }
+            }
+            m.appendReplacement(sb, Matcher.quoteReplacement(full));
+        }
+        m.appendTail(sb);
+        return sb.toString();
+    }
+
+    /** Download a single external image, save to product/sku path. */
+    public String downloadSingleImage(String url, String productId) {
+        if (url == null || url.isBlank() || isLocalUrl(url)) return url;
+        String local = downloadImage(url, "product/sku", productId);
+        return local != null ? local : url;
+    }
+
+    /** Download external image URLs, save to product/main path. */
+    public List<String> downloadImageList(List<String> urls, String productId) {
+        if (urls == null || urls.isEmpty()) return urls;
+        List<String> res = new ArrayList<>();
+        for (String url : urls) {
+            if (!isLocalUrl(url)) {
+                String l = downloadImage(url, "product/main", productId);
+                res.add(l != null ? l : url);
+            } else res.add(url);
+        }
+        return res;
+    }
+
+    // ---- Backward-compatible overloads (no productId → temp/products) ----
+
+    String downloadImagesInHtml(String html) {
+        return downloadImagesInHtml(html, null);
+    }
+
+    public String downloadSingleImage(String url) {
+        if (url == null || url.isBlank() || isLocalUrl(url)) return url;
+        String local = downloadImage(url, "temp/products", null);
+        return local != null ? local : url;
+    }
+
+    List<String> downloadImageList(List<String> urls) {
+        if (urls == null || urls.isEmpty()) return urls;
+        List<String> res = new ArrayList<>();
+        for (String url : urls) {
+            if (!isLocalUrl(url)) {
+                String l = downloadImage(url, "temp/products", null);
+                res.add(l != null ? l : url);
+            } else res.add(url);
+        }
+        return res;
+    }
+
+    // ---- Temp-to-final relocation for product images ----
+
+    /**
+     * After a product is created (ID generated), move temp images to the
+     * product's permanent directory and update all URLs.
+     */
+    public void relocateProductImages(String productId) {
+        Product product = productMapper.selectById(productId);
+        if (product == null) return;
+        boolean changed = false;
+
+        // Main pictures
+        List<String> pics = product.getMainPictures();
+        if (pics != null) {
+            List<String> relocated = new ArrayList<>();
+            for (String url : pics) relocated.add(relocateIfTemp(url, "main", productId));
+            if (!relocated.equals(pics)) { product.setMainPictures(relocated); changed = true; }
+        }
+        // Picture (first main)
+        String pic = product.getPicture();
+        if (pic != null) {
+            String newPic = relocateIfTemp(pic, "main", productId);
+            if (!newPic.equals(pic)) { product.setPicture(newPic); changed = true; }
+        }
+        // Detail HTML
+        String detail = product.getDetail();
+        if (detail != null) {
+            String newDetail = relocateTempInHtml(detail, productId);
+            if (!newDetail.equals(detail)) { product.setDetail(newDetail); changed = true; }
+        }
+        if (changed) productMapper.updateById(product);
+
+        // SKU pictures
+        List<ProductSku> skus = skuMapper.selectList(
+                new LambdaQueryWrapper<ProductSku>().eq(ProductSku::getProductId, productId)
+                        .eq(ProductSku::getIsDelete, 0));
+        for (ProductSku sku : skus) {
+            String skuPic = sku.getPicture();
+            if (skuPic != null) {
+                String newSkuPic = relocateIfTemp(skuPic, "sku", productId);
+                if (!newSkuPic.equals(skuPic)) {
+                    sku.setPicture(newSkuPic);
+                    skuMapper.updateById(sku);
+                }
+            }
+        }
+        log.info("Product {} image relocation complete", productId);
+    }
+
+    private String relocateIfTemp(String url, String subType, String productId) {
+        if (url == null || !url.contains("/temp/products/")) return url;
+        Matcher m = TEMP_URL_PATTERN.matcher(url);
+        if (!m.find()) return url;
+        String tenant = m.group(1), dateDir = m.group(2), filename = m.group(3);
+        // Move file
+        Path src = uploadRoot.resolve(tenant).resolve("temp/products").resolve(dateDir).resolve(filename);
+        String newSubPath = "products/" + productId + "/" + subType + "/" + dateDir;
+        Path dst = uploadRoot.resolve(tenant).resolve(newSubPath).resolve(filename);
+        try {
+            Files.createDirectories(dst.getParent());
+            Files.move(src, dst, StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            log.warn("Failed to move temp image {} -> {}: {}", src, dst, e.getMessage());
+            return url;
+        }
+        return "/uploads/" + tenant + "/" + newSubPath + "/" + filename;
+    }
+
+    private String relocateTempInHtml(String html, String productId) {
+        if (html == null) return html;
+        Matcher m = TEMP_URL_PATTERN.matcher(html);
+        StringBuffer sb = new StringBuffer();
+        while (m.find()) {
+            String full = m.group(0);
+            String newUrl = relocateIfTemp(full, "detail", productId);
+            m.appendReplacement(sb, Matcher.quoteReplacement(newUrl));
+        }
+        m.appendTail(sb);
+        return sb.toString();
+    }
+
+    // ---- Async ----
+
     @Async
     public void downloadAndUpdateAsync(String productId, String tenantCode) {
         TenantContext.set(tenantCode);
@@ -65,8 +210,8 @@ public class ImageDownloadService {
             var product = productMapper.selectById(productId);
             if (product == null) return;
             String oldDetail = product.getDetail();
-            String newDetail = downloadImagesInHtml(oldDetail);
-            List<String> newPics = downloadImageList(product.getMainPictures());
+            String newDetail = downloadImagesInHtml(oldDetail, productId);
+            List<String> newPics = downloadImageList(product.getMainPictures(), productId);
             boolean changed = !java.util.Objects.equals(newDetail, oldDetail)
                     || !java.util.Objects.equals(newPics, product.getMainPictures());
             if (changed) {
@@ -83,50 +228,9 @@ public class ImageDownloadService {
         }
     }
 
-    String downloadImagesInHtml(String html) {
-        if (html == null || html.isBlank()) { log.info("downloadImagesInHtml: empty input"); return html; }
-        Matcher m = IMG_SRC_PATTERN.matcher(html);
-        StringBuffer sb = new StringBuffer();
-        int found = 0, replaced = 0;
-        while (m.find()) {
-            found++;
-            String full = m.group(0), url = m.group(1);
-            log.info("Found external img: {}", url.substring(0, Math.min(80, url.length())));
-            if (!isLocalUrl(url)) {
-                String local = downloadImage(url);
-                if (local != null) {
-                    m.appendReplacement(sb, Matcher.quoteReplacement(full.replace(url, local)));
-                    replaced++;
-                    continue;
-                }
-            }
-            m.appendReplacement(sb, Matcher.quoteReplacement(full));
-        }
-        m.appendTail(sb);
-        log.info("downloadImagesInHtml: found={} replaced={}", found, replaced);
-        return sb.toString();
-    }
+    // ---- Internal ----
 
-    /** Download a single image URL and return the local path, or null if failed. */
-    public String downloadSingleImage(String url) {
-        if (url == null || url.isBlank() || isLocalUrl(url)) return url;
-        String local = downloadImage(url);
-        return local != null ? local : url;
-    }
-
-    List<String> downloadImageList(List<String> urls) {
-        if (urls == null || urls.isEmpty()) { log.info("downloadImageList: empty"); return urls; }
-        log.info("downloadImageList: {} urls to check", urls.size());
-        List<String> res = new ArrayList<>();
-        for (String url : urls) {
-            if (!isLocalUrl(url)) { String l = downloadImage(url); res.add(l != null ? l : url); }
-            else res.add(url);
-        }
-        return res;
-    }
-
-    private String downloadImage(String url) {
-        log.info("Downloading: {}", url);
+    private String downloadImage(String url, String type, String productId) {
         HttpURLConnection conn = null;
         try {
             conn = (HttpURLConnection) URI.create(url).toURL().openConnection();
@@ -137,39 +241,51 @@ public class ImageDownloadService {
             conn.setInstanceFollowRedirects(true);
 
             String ct = conn.getContentType();
-            log.info("Content-Type: {} for {}", ct, url.substring(0, Math.min(60, url.length())));
             String ext = getExt(url, ct);
-            log.info("Ext decided: {}", ext);
             byte[] data = readBytes(conn);
-            log.info("Read {} bytes", data != null ? data.length : 0);
-            if (!isValid(data)) { log.info("Invalid image data"); return null; }
+            if (!isValid(data)) return null;
 
             String tc = TenantContext.get();
             if (tc == null || tc.isBlank()) tc = "xlong";
-            String dd = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
-            Path dir = uploadRoot.resolve(tc).resolve(dd);
+            String dateDir = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy/MM"));
+            String subPath = buildSubPath(type, productId, dateDir);
+            Path dir = uploadRoot.resolve(tc).resolve(subPath);
             Files.createDirectories(dir);
             String name = UUID.randomUUID().toString().replace("-", "") + ext;
             Files.write(dir.resolve(name), data);
-            String lp = "/uploads/" + tc + "/" + dd + "/" + name;
-            log.info("Downloaded {} -> {}", url, lp);
-            return lp;
+            return "/uploads/" + tc + "/" + subPath + "/" + name;
         } catch (Exception e) {
-            log.info("Download FAILED {}: {} {}", url, e.getClass().getSimpleName(), e.getMessage());
+            log.info("Download FAILED {}: {}", url, e.getMessage());
             return null;
         } finally {
             if (conn != null) conn.disconnect();
         }
     }
 
+    private String buildSubPath(String type, String productId, String dateDir) {
+        if (type == null || type.isBlank()) return dateDir;
+        switch (type) {
+            case "product/main": case "product/slider": case "product/sku": case "product/detail":
+                return "products/" + productId + "/" + type.substring(8) + "/" + dateDir;
+            case "banner":   return "banners/" + dateDir;
+            case "category": return "categories/" + dateDir;
+            case "brand":    return "brands/" + dateDir;
+            case "logo":     return "logos/" + dateDir;
+            case "temp/products":  return "temp/products/" + dateDir;
+            case "temp/banners":   return "temp/banners/" + dateDir;
+            case "temp/categories": return "temp/categories/" + dateDir;
+            case "temp/brands":    return "temp/brands/" + dateDir;
+            case "temp/logos":     return "temp/logos/" + dateDir;
+            default: return dateDir;
+        }
+    }
+
     private boolean isLocalUrl(String url) {
         if (url == null) return true;
-        if (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("//")) return false;
-        return true;
+        return !url.startsWith("http://") && !url.startsWith("https://") && !url.startsWith("//");
     }
 
     private String getExt(String url, String ct) {
-        // Content-Type takes priority (handles servers returning different format than URL suggests)
         if (ct != null) {
             ct = ct.toLowerCase();
             if (ct.contains("webp")) return ".webp";
@@ -179,24 +295,15 @@ public class ImageDownloadService {
             if (ct.contains("bmp")) return ".bmp";
             if (ct.contains("svg")) return ".svg";
         }
-        // Fallback: URL extension
         String l = url.toLowerCase(); int q = l.indexOf('?'); if (q > 0) l = l.substring(0, q);
         for (String e : IMAGE_EXTS) if (l.endsWith(e)) return e;
         if (ct != null && ct.startsWith("image/")) return ".webp";
-        log.info("getExt: unknown, defaulting to .webp");
         return ".webp";
     }
 
     private String referer(String url) {
         try { URI u = URI.create(url); return u.getScheme()+"://"+u.getHost(); }
         catch (Exception e) { return "https://www.google.com"; }
-    }
-
-    private String randomUA() { return USER_AGENTS[ThreadLocalRandom.current().nextInt(USER_AGENTS.length)]; }
-    private String randomAccept() { return ACCEPT[ThreadLocalRandom.current().nextInt(ACCEPT.length)]; }
-    private void randomDelay(int min, int max) {
-        try { Thread.sleep(ThreadLocalRandom.current().nextInt(min, max+1)); }
-        catch (InterruptedException e) { Thread.currentThread().interrupt(); }
     }
 
     private byte[] readBytes(HttpURLConnection c) throws IOException {
@@ -209,7 +316,6 @@ public class ImageDownloadService {
 
     private boolean isValid(byte[] d) {
         if (d == null || d.length < 100) return false;
-        // Skip ImageIO for WebP (not supported natively by Java)
         byte[] head = Arrays.copyOfRange(d, 0, 12);
         String s = new String(head, java.nio.charset.StandardCharsets.ISO_8859_1);
         if (s.startsWith("RIFF") && d.length > 20 && new String(Arrays.copyOfRange(d, 8, 12)).startsWith("WEBP")) return true;

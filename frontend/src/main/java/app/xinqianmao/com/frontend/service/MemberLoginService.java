@@ -62,20 +62,11 @@ public class MemberLoginService {
     }
 
     /**
-     * Login by account (phone) and password. For mini-program members, no password
-     * check is performed -- only account match is required. Returns JWT token on match.
+     * Login by account and password. Currently not supported because the Member
+     * table has no password column. This method exists as a stub for future use.
      */
     public MemberLoginResponse loginByAccount(String account, String password) {
-        List<Member> members = memberMapper.selectList(
-                new LambdaQueryWrapper<Member>().eq(Member::getAccount, account));
-        if (members.isEmpty()) {
-            throw new BizException("401", "账号不存在");
-        }
-        Member member = members.get(0);
-
-        String tenantCode = TenantContext.get();
-        String token = jwtUtil.generateToken(member.getId(), tenantCode, false);
-        return buildLoginResponse(member, token);
+        throw new BizException("501", "账号密码登录暂未开放");
     }
 
     /**

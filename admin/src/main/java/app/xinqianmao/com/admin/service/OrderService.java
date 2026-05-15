@@ -118,6 +118,7 @@ public class OrderService {
         r.setModifyTime(DateTimeUtil.format(order.getModifyTime()));
         r.setDeliveryTime(DateTimeUtil.format(order.getDeliveryTime()));
         r.setBuyerMessage(order.getBuyerMessage());
+        r.setSellerMessage(order.getSellerMessage());
 
         // Receiver info (from snapshot)
         OrderReceiver receiver = orderReceiverMapper.selectById(order.getOrderNo());
@@ -277,6 +278,30 @@ public class OrderService {
         }
     }
 
+    /**
+     * Complete order: status 3 -> 4 (auto-complete after 1 week without refund).
+     */
+    @Transactional
+    public void finishOrder(String orderId) {
+        Order order = orderMapper.selectById(orderId);
+        if (order == null) throw new BizException("404", "订单不存在");
+        if (order.getOrderStatus() != 3) {
+            throw new BizException("400", "只有已收货状态的订单才能完成");
+        }
+        order.setOrderStatus(4);
+        order.setFinishTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
+        order.setModifyTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
+        orderMapper.updateById(order);
+    }
+
+    public void updateSellerMessage(String orderId, String sellerMessage) {
+        Order order = orderMapper.selectById(orderId);
+        if (order == null) throw new BizException("404", "订单不存在");
+        order.setSellerMessage(sellerMessage);
+        order.setModifyTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
+        orderMapper.updateById(order);
+    }
+
     private void returnInventory(String orderNo) {
         List<OrderProductSku> skus = orderProductSkuMapper.selectList(
                 new LambdaQueryWrapper<OrderProductSku>().eq(OrderProductSku::getOrderNo, orderNo));
@@ -336,6 +361,7 @@ public class OrderService {
         if (st != null && st == 5) r.setCancelTime(DateTimeUtil.format(order.getModifyTime()));
         r.setDeliveryTime(DateTimeUtil.format(order.getDeliveryTime()));
         r.setBuyerMessage(order.getBuyerMessage());
+        r.setSellerMessage(order.getSellerMessage());
 
         // Receiver info (from snapshot)
         OrderReceiver receiver = orderReceiverMapper.selectById(order.getOrderNo());

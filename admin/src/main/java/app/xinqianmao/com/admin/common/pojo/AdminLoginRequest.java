@@ -23,4 +23,10 @@ public class AdminLoginRequest {
     @NotBlank(message = "密码不能为空")
     @Schema(description = "密码", example = "admin123")
     private String password;
+
+    @Schema(description = "验证码token（需要验证码时必填）")
+    private String captchaToken;
+
+    @Schema(description = "验证码输入（需要验证码时必填）")
+    private String captchaInput;
 }
