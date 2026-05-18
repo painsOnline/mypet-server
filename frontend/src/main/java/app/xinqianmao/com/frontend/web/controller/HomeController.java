@@ -154,10 +154,11 @@ public class HomeController {
 
         // Resolve spec names from specsId
         Map<String, String> specsNameMap = loadSpecsNameMap(props);
-        // Load value_id -> value_name map for all referenced value_ids (properties + SKU specs)
+        // Load value_id -> value_name and spec_id -> spec_name maps from SKU specs
         Map<String, String> valueIdToName = new HashMap<>();
         java.util.Set<String> vids = props.stream().map(ProductProperty::getValueId)
             .filter(v -> v != null && !v.isBlank()).collect(Collectors.toSet());
+        java.util.Set<String> skuSpecIds = new HashSet<>();
         for (ProductSku sku : skus) {
             String specsJson = sku.getSpecs();
             if (specsJson != null && !specsJson.isBlank() && !"[]".equals(specsJson)) {
@@ -167,8 +168,19 @@ public class HomeController {
                     for (Map<String, String> m : parsed) {
                         String vid = m.get("value_id");
                         if (vid != null && !vid.isBlank()) vids.add(vid);
+                        String sid = m.get("spec_id");
+                        if (sid != null && !sid.isBlank() && !specIdToName.containsKey(sid))
+                            skuSpecIds.add(sid);
                     }
                 } catch (Exception ignored) {}
+            }
+        }
+        // Batch-load any spec names/defs not already in the map
+        if (!skuSpecIds.isEmpty()) {
+            List<ProductSpecs> extraSpecs = specsMapper.selectBatchIds(new ArrayList<>(skuSpecIds));
+            for (ProductSpecs s : extraSpecs) {
+                specIdToName.putIfAbsent(s.getId(), s.getName());
+                specDefs.add(s);
             }
         }
         if (!vids.isEmpty()) {
