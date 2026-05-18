@@ -89,3 +89,4 @@ WHERE pp.specs_id = ps.id AND ps.input_type IS DISTINCT FROM 1
 ALTER TABLE t_product_sku ADD COLUMN IF NOT EXISTS specs_new JSONB;
 ALTER TABLE t_order_product_skus ADD COLUMN IF NOT EXISTS specs_new JSONB;
 ALTER TABLE t_cart ADD COLUMN IF NOT EXISTS specs_new JSONB;
+ALTER TABLE t_cart ADD COLUMN IF NOT EXISTS product_id uuid;

@@ -432,7 +432,7 @@ public class MemberOrderController {
 
         Order order = new Order();
         order.setMemberId(memberId);
-        order.setOrderNo(orderNo); order.setOrderType(0); order.setOrderStatus(1);
+        order.setOrderNo(orderNo); order.setOrderType(0); order.setOrderStatus(1); order.setIsDelete(0);
         order.setProductType(orderProducts.isEmpty() ? "" : orderProducts.get(0).getProductType());
         order.setTotalMoney(totalMoney); order.setPayMoney(payMoney);
         order.setActualPayMoney(payMoney); order.setProfitMoney(profit);
@@ -481,7 +481,7 @@ public class MemberOrderController {
                 OrderProductProperty opp = new OrderProductProperty();
                 opp.setOrderNo(orderNo); opp.setPropertyId(pp.getId()); opp.setProductId(product.getId());
                 opp.setName(specNameMap.getOrDefault(pp.getSpecsId(), ""));
-                opp.setValueName(pp.getValueName()); opp.setSort(pp.getSort());
+                opp.setValueName(pp.getValueName()); opp.setValueId(pp.getValueId()); opp.setSort(pp.getSort());
                 opp.setCreateTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
                 orderProductPropertyMapper.insert(opp);
             }
@@ -571,14 +571,10 @@ public class MemberOrderController {
             List<Map<String, String>> list = mapper.readValue(specsJson, List.class);
             return list.stream().map(m -> {
                 MiniOrderListResponse.SkuItem.SpecItem si = new MiniOrderListResponse.SkuItem.SpecItem();
-                si.setSpecName(m.containsKey("spec_name") ? m.get("spec_name")
-                        : m.containsKey("specName") ? m.get("specName") : m.get("name"));
-                si.setValueName(m.containsKey("value_name") ? m.get("value_name")
-                        : m.containsKey("valueName") ? m.get("valueName") : null);
-                si.setSpecId(m.containsKey("spec_id") ? m.get("spec_id")
-                        : m.containsKey("specId") ? m.get("specId") : null);
-                si.setValueId(m.containsKey("value_id") ? m.get("value_id")
-                        : m.containsKey("valueId") ? m.get("valueId") : null);
+                si.setSpecName(m.get("spec_name"));
+                si.setValueName(m.get("value_name"));
+                si.setSpecId(m.get("spec_id"));
+                si.setValueId(m.get("value_id"));
                 return si;
             }).collect(Collectors.toList());
         } catch (Exception e) { return List.of(); }
@@ -592,14 +588,10 @@ public class MemberOrderController {
             List<Map<String, String>> list = mapper.readValue(specsJson, List.class);
             return list.stream().map(m -> {
                 MiniOrderDetailResponse.SkuItem.SpecItem si = new MiniOrderDetailResponse.SkuItem.SpecItem();
-                si.setSpecName(m.containsKey("spec_name") ? m.get("spec_name")
-                        : m.containsKey("specName") ? m.get("specName") : m.get("name"));
-                si.setValueName(m.containsKey("value_name") ? m.get("value_name")
-                        : m.containsKey("valueName") ? m.get("valueName") : null);
-                si.setSpecId(m.containsKey("spec_id") ? m.get("spec_id")
-                        : m.containsKey("specId") ? m.get("specId") : null);
-                si.setValueId(m.containsKey("value_id") ? m.get("value_id")
-                        : m.containsKey("valueId") ? m.get("valueId") : null);
+                si.setSpecName(m.get("spec_name"));
+                si.setValueName(m.get("value_name"));
+                si.setSpecId(m.get("spec_id"));
+                si.setValueId(m.get("value_id"));
                 return si;
             }).collect(Collectors.toList());
         } catch (Exception e) { return List.of(); }
@@ -613,14 +605,10 @@ public class MemberOrderController {
             List<Map<String, String>> list = mapper.readValue(specsJson, List.class);
             return list.stream().map(m -> {
                 PreOrderResponse.ProductItem.SpecItem si = new PreOrderResponse.ProductItem.SpecItem();
-                si.setSpecName(m.containsKey("spec_name") ? m.get("spec_name")
-                        : m.containsKey("specName") ? m.get("specName") : m.get("name"));
-                si.setValueName(m.containsKey("value_name") ? m.get("value_name")
-                        : m.containsKey("valueName") ? m.get("valueName") : null);
-                si.setSpecId(m.containsKey("spec_id") ? m.get("spec_id")
-                        : m.containsKey("specId") ? m.get("specId") : null);
-                si.setValueId(m.containsKey("value_id") ? m.get("value_id")
-                        : m.containsKey("valueId") ? m.get("valueId") : null);
+                si.setSpecName(m.get("spec_name"));
+                si.setValueName(m.get("value_name"));
+                si.setSpecId(m.get("spec_id"));
+                si.setValueId(m.get("value_id"));
                 return si;
             }).collect(Collectors.toList());
         } catch (Exception e) { return List.of(); }
@@ -634,8 +622,8 @@ public class MemberOrderController {
             List<Map<String, String>> list = mapper.readValue(specsJson, List.class);
             return list.stream()
                     .map(m -> {
-                        String n = m.containsKey("spec_name") ? m.get("spec_name") : m.get("name");
-                        String v = m.containsKey("value_name") ? m.get("value_name") : m.get("valueName");
+                        String n = m.get("spec_name");
+                        String v = m.get("value_name");
                         if (n == null) n = ""; if (v == null) v = "";
                         return n + "：" + v;
                     })
@@ -651,8 +639,7 @@ public class MemberOrderController {
 
     private Order getOrderByOrderNo(String orderNo) {
         List<Order> orders = orderMapper.selectList(
-                new LambdaQueryWrapper<Order>().eq(Order::getOrderNo, orderNo)
-                        .eq(Order::getIsDelete, 0));
+                new LambdaQueryWrapper<Order>().eq(Order::getOrderNo, orderNo).eq(Order::getIsDelete, 0));
         if (orders.isEmpty()) throw new BizException("404", "订单不存在");
         return orders.get(0);
     }

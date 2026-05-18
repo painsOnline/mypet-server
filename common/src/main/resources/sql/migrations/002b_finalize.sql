@@ -88,6 +88,45 @@ FROM t_product_specs ps
 WHERE ps.name = opp.name AND ps.input_type IS DISTINCT FROM 1
   AND opp.value_name IS NOT NULL AND opp.value_id IS NOT NULL;
 
+-- STEP 11.5: 修复 CTAS 导致丢失的 NOT NULL 约束和默认值
+UPDATE t_product_sku SET is_delete = 0 WHERE is_delete IS NULL;
+ALTER TABLE t_product_sku ALTER COLUMN is_delete SET DEFAULT 0;
+ALTER TABLE t_product_sku ALTER COLUMN is_delete SET NOT NULL;
+
+UPDATE t_product_category SET is_delete = 0 WHERE is_delete IS NULL;
+ALTER TABLE t_product_category ALTER COLUMN is_delete SET DEFAULT 0;
+ALTER TABLE t_product_category ALTER COLUMN is_delete SET NOT NULL;
+
+UPDATE t_product_type SET is_delete = 0 WHERE is_delete IS NULL;
+ALTER TABLE t_product_type ALTER COLUMN is_delete SET DEFAULT 0;
+ALTER TABLE t_product_type ALTER COLUMN is_delete SET NOT NULL;
+
+UPDATE t_product_brand SET is_delete = 0 WHERE is_delete IS NULL;
+ALTER TABLE t_product_brand ALTER COLUMN is_delete SET DEFAULT 0;
+ALTER TABLE t_product_brand ALTER COLUMN is_delete SET NOT NULL;
+
+UPDATE t_product_properties SET is_delete = 0 WHERE is_delete IS NULL;
+ALTER TABLE t_product_properties ALTER COLUMN is_delete SET DEFAULT 0;
+ALTER TABLE t_product_properties ALTER COLUMN is_delete SET NOT NULL;
+
+UPDATE t_order SET is_delete = 0 WHERE is_delete IS NULL;
+ALTER TABLE t_order ALTER COLUMN is_delete SET DEFAULT 0;
+ALTER TABLE t_order ALTER COLUMN is_delete SET NOT NULL;
+
+UPDATE t_product SET is_enable = 1 WHERE is_enable IS NULL;
+ALTER TABLE t_product ALTER COLUMN is_enable SET DEFAULT 1;
+ALTER TABLE t_product ALTER COLUMN is_enable SET NOT NULL;
+
+UPDATE t_cart SET selected = 1 WHERE selected IS NULL;
+ALTER TABLE t_cart ALTER COLUMN selected SET DEFAULT 1;
+ALTER TABLE t_cart ALTER COLUMN selected SET NOT NULL;
+
+UPDATE t_receiver SET is_default = 0 WHERE is_default IS NULL;
+ALTER TABLE t_receiver ALTER COLUMN is_default SET DEFAULT 0;
+ALTER TABLE t_receiver ALTER COLUMN is_default SET NOT NULL;
+
+ALTER TABLE t_product ALTER COLUMN detail DROP NOT NULL;
+
 -- STEP 12: 删除废弃字段
 DO $$
 DECLARE unmigrated_count INT;

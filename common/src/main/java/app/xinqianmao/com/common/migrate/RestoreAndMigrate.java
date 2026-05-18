@@ -73,8 +73,11 @@ public final class RestoreAndMigrate {
 
                     for (String t : tables) {
                         try {
+                            String bak = "bak_" + t + suffix;
                             s.execute("DROP TABLE IF EXISTS " + t + " CASCADE");
-                            s.execute("CREATE TABLE " + t + " AS SELECT * FROM bak_" + t + suffix);
+                            // Use LIKE INCLUDING ALL to preserve NOT NULL, DEFAULT, PK constraints
+                            s.execute("CREATE TABLE " + t + " (LIKE " + bak + " INCLUDING ALL)");
+                            s.execute("INSERT INTO " + t + " SELECT * FROM " + bak);
                             System.out.println("  OK " + t);
                         } catch (SQLException e) {
                             System.out.println("  WARN " + t + ": " +

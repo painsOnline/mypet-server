@@ -66,7 +66,11 @@ public class MemberCartController {
                 cart.setPicture(item.getPicture() != null ? item.getPicture() : "");
                 cart.setCount(item.getCount() != null ? item.getCount() : 1);
                 cart.setSelected(item.getSelected() != null && item.getSelected() ? 1 : 0);
-                cart.setSpecs("[]");
+                try {
+                    cart.setSpecs(item.getSpecs() != null && !item.getSpecs().isEmpty()
+                        ? new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(item.getSpecs())
+                        : "[]");
+                } catch (Exception e) { cart.setSpecs("[]"); }
                 cart.setCreateTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
                 cartMapper.insert(cart);
             }
@@ -106,14 +110,10 @@ public class MemberCartController {
             List<java.util.Map<String, String>> list = mapper.readValue(specsJson, List.class);
             return list.stream().map(m -> {
                 CartItemResponse.SpecItem si = new CartItemResponse.SpecItem();
-                si.setSpecName(m.containsKey("spec_name") ? m.get("spec_name")
-                        : m.containsKey("specName") ? m.get("specName") : m.get("name"));
-                si.setValueName(m.containsKey("value_name") ? m.get("value_name")
-                        : m.containsKey("valueName") ? m.get("valueName") : null);
-                si.setSpecId(m.containsKey("spec_id") ? m.get("spec_id")
-                        : m.containsKey("specId") ? m.get("specId") : null);
-                si.setValueId(m.containsKey("value_id") ? m.get("value_id")
-                        : m.containsKey("valueId") ? m.get("valueId") : null);
+                si.setSpecName(m.get("spec_name"));
+                si.setValueName(m.get("value_name"));
+                si.setSpecId(m.get("spec_id"));
+                si.setValueId(m.get("value_id"));
                 return si;
             }).collect(Collectors.toList());
         } catch (Exception e) { return List.of(); }
@@ -127,8 +127,8 @@ public class MemberCartController {
             List<java.util.Map<String, String>> list = mapper.readValue(specsJson, List.class);
             return list.stream()
                     .map(m -> {
-                        String n = m.containsKey("spec_name") ? m.get("spec_name") : m.get("name");
-                        String v = m.containsKey("value_name") ? m.get("value_name") : m.get("valueName");
+                        String n = m.get("spec_name");
+                        String v = m.get("value_name");
                         if (n == null) n = ""; if (v == null) v = "";
                         return n + "：" + v;
                     })

@@ -189,7 +189,7 @@ public class HomeController {
             return gs;
         }).collect(Collectors.toList()));
 
-        r.setSpecs(buildGoodsSpecs(specDefs, skus));
+        r.setSpecs(buildSpecItems(specDefs, skus));
 
         return r;
     }
@@ -229,15 +229,10 @@ public class HomeController {
             List<Map<String, String>> list = mapper.readValue(specsJson, List.class);
             return list.stream().map(m -> {
                 GoodsDetailResponse.SpecValue sv = new GoodsDetailResponse.SpecValue();
-                String sid = m.containsKey("spec_id") ? m.get("spec_id")
-                        : m.containsKey("specId") ? m.get("specId") : null;
-                sv.setSpecId(sid);
-                // specName resolved by caller via specIdToName map
-                sv.setSpecName(specIdToName != null && sid != null ? specIdToName.get(sid) : null);
-                sv.setValueName(m.containsKey("value_name") ? m.get("value_name")
-                        : m.containsKey("valueName") ? m.get("valueName") : null);
-                sv.setValueId(m.containsKey("value_id") ? m.get("value_id")
-                        : m.containsKey("valueId") ? m.get("valueId") : null);
+                sv.setSpecId(m.get("spec_id"));
+                sv.setSpecName(m.get("spec_name"));
+                sv.setValueId(m.get("value_id"));
+                sv.setValueName(m.get("value_name"));
                 return sv;
             }).collect(Collectors.toList());
         } catch (Exception e) { return List.of(); }
@@ -261,73 +256,28 @@ public class HomeController {
         }
     }
 
-    public List<GoodsDetailResponse.SpecItem> buildGoodsSpecs(List<ProductSpecs> specDefs, List<ProductSku> skus) {
-        loadSpecValues(specDefs);
-
-        // Collect available values from SKUs (resolve specName from specId)
-        Map<String, String> specIdToName = new HashMap<>();
-        for (ProductSpecs s : specDefs) specIdToName.put(s.getId(), s.getName());
-        Set<String> availableValueKeys = new HashSet<>();
-        Map<String, Map<String, GoodsDetailResponse.SpecValue>> skuValueMap = new HashMap<>();
+    private List<GoodsDetailResponse.SpecItem> buildSpecItems(List<ProductSpecs> specDefs, List<ProductSku> skus) {
+        Map<String, GoodsDetailResponse.SpecItem> specMap = new LinkedHashMap<>();
+        Map<String, Map<String, GoodsDetailResponse.SpecValue>> specValues = new LinkedHashMap<>();
         for (ProductSku sku : skus) {
             List<GoodsDetailResponse.SpecValue> svList = parseSpecValues(sku.getSpecs(), null);
             for (GoodsDetailResponse.SpecValue sv : svList) {
-                String specName = specIdToName.get(sv.getSpecId());
-                if (specName == null) specName = sv.getSpecName(); // fallback
-                if (specName != null && sv.getValueName() != null) {
-                    sv.setSpecName(specName); // resolve dynamically
-                    availableValueKeys.add(specName + "::" + sv.getValueName());
-                    skuValueMap.computeIfAbsent(specName, k -> new LinkedHashMap<>())
-                            .put(sv.getValueName(), sv);
-                }
+                if (sv.getSpecId() == null || sv.getSpecName() == null) continue;
+                specMap.computeIfAbsent(sv.getSpecId(), k -> {
+                    GoodsDetailResponse.SpecItem si = new GoodsDetailResponse.SpecItem();
+                    si.setSpecId(sv.getSpecId());
+                    si.setSpecName(sv.getSpecName());
+                    return si;
+                });
+                Map<String, GoodsDetailResponse.SpecValue> vals = specValues.computeIfAbsent(
+                    sv.getSpecName(), k -> new LinkedHashMap<>());
+                sv.setAvailable(true);
+                vals.putIfAbsent(sv.getValueName(), sv);
             }
         }
-
-        List<GoodsDetailResponse.SpecItem> items = new ArrayList<>();
-        for (ProductSpecs spec : specDefs) {
-            if (spec.getType() == null || spec.getType() != 1) continue;
-
-            GoodsDetailResponse.SpecItem gs = new GoodsDetailResponse.SpecItem();
-            gs.setSpecName(spec.getName());
-            gs.setSpecId(spec.getId());
-            gs.setSort(spec.getSort());
-            gs.setInputType(spec.getInputType());
-
-            // Collect unique value names from spec definition AND actual SKU values
-            Map<String, String> valueNameToId = new LinkedHashMap<>();
-            List<ProductSpecsValue> defValues = spec.getValuesList();
-            if (defValues != null) {
-                for (ProductSpecsValue psv : defValues) {
-                    if (psv.getValueName() != null) {
-                        valueNameToId.putIfAbsent(psv.getValueName(), psv.getId());
-                    }
-                }
-            }
-            // Also include values from actual SKU specs for this spec name
-            Map<String, GoodsDetailResponse.SpecValue> extraValues = skuValueMap.get(spec.getName());
-            if (extraValues != null) {
-                for (Map.Entry<String, GoodsDetailResponse.SpecValue> e : extraValues.entrySet()) {
-                    if (e.getValue().getValueId() != null) {
-                        valueNameToId.putIfAbsent(e.getKey(), e.getValue().getValueId());
-                    } else {
-                        valueNameToId.putIfAbsent(e.getKey(), null);
-                    }
-                }
-            }
-
-            List<GoodsDetailResponse.SpecValue> values = new ArrayList<>();
-            for (Map.Entry<String, String> entry : valueNameToId.entrySet()) {
-                String valueName = entry.getKey();
-                String valueId = entry.getValue();
-                GoodsDetailResponse.SpecValue sv = new GoodsDetailResponse.SpecValue();
-                sv.setValueName(valueName);
-                sv.setValueId(valueId);
-                sv.setAvailable(availableValueKeys.contains(spec.getName() + "::" + valueName));
-                values.add(sv);
-            }
-            gs.setValues(values);
-            items.add(gs);
-        }
-        return items;
+        return specMap.values().stream().map(si -> {
+            si.setValues(new ArrayList<>(specValues.getOrDefault(si.getSpecName(), Map.of()).values()));
+            return si;
+        }).collect(Collectors.toList());
     }
 }

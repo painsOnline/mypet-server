@@ -185,6 +185,17 @@ public final class BatchMigrateSpecs {
                 String specId = elem.get("spec_id");
                 if (specId == null || specId.isEmpty()) specId = scopedSpecNames.get(specName);
                 if (specId == null || specId.isEmpty()) {
+                    // name mismatch — pick first type-1 spec from this product_type, if any
+                    for (Map.Entry<String, String> e : scopedSpecNames.entrySet()) {
+                        Integer t = specIdToInputType.get(e.getValue());
+                        if (t != null && t == 1) {
+                            specId = e.getValue();
+                            specName = e.getKey(); // use the DB spec name, not old JSON name
+                            break;
+                        }
+                    }
+                }
+                if (specId == null || specId.isEmpty()) {
                     if (warnCount < 10) log.warn("spec_name='" + specName + "' not found for this product_type");
                     continue;
                 }
