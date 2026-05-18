@@ -9,7 +9,9 @@ import app.xinqianmao.com.admin.common.entity.ProductSpecs;
 import app.xinqianmao.com.admin.common.entity.ProductType;
 import app.xinqianmao.com.admin.common.entity.ProductTypeSpecRel;
 import app.xinqianmao.com.admin.common.pojo.SpecsSaveRequest;
+import app.xinqianmao.com.admin.common.entity.ProductSpecsValue;
 import app.xinqianmao.com.admin.dao.ProductSpecsMapper;
+import app.xinqianmao.com.admin.dao.ProductSpecsValueMapper;
 import app.xinqianmao.com.admin.dao.ProductTypeSpecRelMapper;
 import app.xinqianmao.com.admin.common.entity.ProductProperty;
 import app.xinqianmao.com.admin.dao.ProductMapper;
@@ -34,6 +36,7 @@ import java.util.stream.Collectors;
 public class SpecsService {
 
     private final ProductSpecsMapper specsMapper;
+    private final ProductSpecsValueMapper specsValueMapper;
     private final ProductMapper productMapper;
     private final ProductTypeSpecRelMapper typeSpecRelMapper;
     private final ProductTypeMapper typeMapper;
@@ -46,6 +49,7 @@ public class SpecsService {
         }
         wrapper.orderByAsc(ProductSpecs::getSort);
         List<ProductSpecs> specs = specsMapper.selectList(wrapper);
+        loadSpecValues(specs);
         if (!specs.isEmpty()) {
             // Load linked type names
             List<String> specIds = specs.stream().map(ProductSpecs::getId).collect(Collectors.toList());
@@ -97,6 +101,7 @@ public class SpecsService {
             typeSpecs.sort(Comparator.comparingInt(s -> s.getSort() != null ? s.getSort() : 0));
             global.addAll(typeSpecs);
         }
+        loadSpecValues(global);
         return global;
     }
 
@@ -108,13 +113,15 @@ public class SpecsService {
         spec.setName(req.getName());
         spec.setType(req.getType());
         spec.setInputType(req.getInputType());
-        spec.setInputOptions(req.getInputOptions());
         spec.setDesc(req.getDesc());
         // Use scope from request if provided, otherwise default to private
         spec.setScope(req.getScope() != null ? req.getScope() : 2);
         spec.setSort(req.getSort() != null ? req.getSort() : 0);
         spec.setCreateTime(LocalDateTime.now(app.xinqianmao.com.common.utils.DateTimeUtil.ZONE_BEIJING));
         specsMapper.insert(spec);
+
+        // Save values to t_product_specs_value
+        saveSpecValues(spec.getId(), req.getInputOptions());
 
         // Link to type only when typeId is provided (type page adds private specs)
         if (typeId != null && !typeId.isBlank()) {
@@ -129,9 +136,6 @@ public class SpecsService {
     }
 
     public void update(String specId, SpecsSaveRequest req) {
-        if (req.getInputOptions() == null || req.getInputOptions().isEmpty()) {
-            throw new BizException("400", "规格值至少需要一个");
-        }
         ProductSpecs spec = specsMapper.selectById(specId);
         if (spec == null) throw new BizException("404", "规格不存在");
 
@@ -143,14 +147,20 @@ public class SpecsService {
             }
         }
 
-        spec.setName(req.getName());
-        spec.setType(req.getType());
-        spec.setInputType(req.getInputType());
-        spec.setInputOptions(req.getInputOptions());
-        spec.setDesc(req.getDesc());
-        spec.setSort(req.getSort() != null ? req.getSort() : 0);
+        if (req.getName() != null) spec.setName(req.getName());
+        if (req.getType() != null) spec.setType(req.getType());
+        if (req.getInputType() != null) spec.setInputType(req.getInputType());
+        if (req.getDesc() != null) spec.setDesc(req.getDesc());
+        if (req.getSort() != null) spec.setSort(req.getSort());
         spec.setModifyTime(LocalDateTime.now(app.xinqianmao.com.common.utils.DateTimeUtil.ZONE_BEIJING));
         specsMapper.updateById(spec);
+
+        // Update values only if inputOptions provided
+        if (req.getInputOptions() != null && !req.getInputOptions().isEmpty()) {
+            specsValueMapper.delete(new LambdaQueryWrapper<ProductSpecsValue>()
+                    .eq(ProductSpecsValue::getSpecsId, specId));
+            saveSpecValues(specId, req.getInputOptions());
+        }
     }
 
     public void delete(String specId) {
@@ -196,14 +206,16 @@ public class SpecsService {
             }
         }
 
-        // Clean up rels before deleting the spec itself
+        // Clean up rels and values before deleting the spec itself
         typeSpecRelMapper.delete(new LambdaQueryWrapper<ProductTypeSpecRel>()
                 .eq(ProductTypeSpecRel::getSpecsId, specId));
+        specsValueMapper.delete(new LambdaQueryWrapper<ProductSpecsValue>()
+                .eq(ProductSpecsValue::getSpecsId, specId));
         specsMapper.deleteById(specId);
     }
 
     /**
-     * Update only the inputOptions (values) of a spec.
+     * Update only the values of a spec.
      */
     public void updateValues(String specId, List<String> inputOptions) {
         if (inputOptions == null || inputOptions.isEmpty()) {
@@ -211,9 +223,42 @@ public class SpecsService {
         }
         ProductSpecs spec = specsMapper.selectById(specId);
         if (spec == null) throw new BizException("404", "规格不存在");
-        spec.setInputOptions(inputOptions);
         spec.setModifyTime(LocalDateTime.now(app.xinqianmao.com.common.utils.DateTimeUtil.ZONE_BEIJING));
         specsMapper.updateById(spec);
+        specsValueMapper.delete(new LambdaQueryWrapper<ProductSpecsValue>()
+                .eq(ProductSpecsValue::getSpecsId, specId));
+        saveSpecValues(specId, inputOptions);
+    }
+
+    private void saveSpecValues(String specsId, List<String> values) {
+        for (int i = 0; i < values.size(); i++) {
+            String v = values.get(i);
+            if (v == null || v.isBlank()) continue;
+            ProductSpecsValue psv = new ProductSpecsValue();
+            psv.setSpecsId(specsId);
+            psv.setValueName(v.trim());
+            psv.setSort(i);
+            psv.setCreateTime(LocalDateTime.now(app.xinqianmao.com.common.utils.DateTimeUtil.ZONE_BEIJING));
+            specsValueMapper.insert(psv);
+        }
+    }
+
+    void loadSpecValues(List<ProductSpecs> specs) {
+        if (specs.isEmpty()) return;
+        List<String> specIds = specs.stream().map(ProductSpecs::getId).collect(Collectors.toList());
+        List<ProductSpecsValue> allValues = specsValueMapper.selectList(
+                new LambdaQueryWrapper<ProductSpecsValue>().in(ProductSpecsValue::getSpecsId, specIds)
+                        .orderByAsc(ProductSpecsValue::getSort));
+        Map<String, List<ProductSpecsValue>> valuesMap = new HashMap<>();
+        Map<String, List<String>> optionsMap = new HashMap<>();
+        for (ProductSpecsValue v : allValues) {
+            valuesMap.computeIfAbsent(v.getSpecsId(), k -> new ArrayList<>()).add(v);
+            optionsMap.computeIfAbsent(v.getSpecsId(), k -> new ArrayList<>()).add(v.getValueName());
+        }
+        for (ProductSpecs s : specs) {
+            s.setValuesList(valuesMap.getOrDefault(s.getId(), List.of()));
+            s.setInputOptions(optionsMap.getOrDefault(s.getId(), List.of()));
+        }
     }
 
     /** Remove the rel entry between a type and a shared spec (does NOT delete the spec). */

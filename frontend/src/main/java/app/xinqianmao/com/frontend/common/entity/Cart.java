@@ -11,8 +11,6 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import java.math.BigDecimal;
-
 /**
  * t_cart — shopping cart item.
  */
@@ -26,8 +24,7 @@ public class Cart extends BaseEntity {
     @TableField(typeHandler = app.xinqianmao.com.common.dao.JsonTypeHandler.class)
     private String specs;
     private Integer count;
-    private BigDecimal price;
-    private BigDecimal nowPrice;
+    private String productId;
     private String picture;
     private Integer selected;
 }

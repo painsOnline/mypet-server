@@ -21,6 +21,7 @@ public class OrderProductProperty {
     private String productId;
     private String name;
     private String valueName;
+    private String valueId;
     private Integer sort;
     private LocalDateTime createTime;
     private LocalDateTime modifyTime;

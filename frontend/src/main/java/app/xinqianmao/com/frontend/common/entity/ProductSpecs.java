@@ -20,8 +20,10 @@ public class ProductSpecs extends BaseEntity {
     private String name;
     private Integer type;
     private Integer inputType;
-    @TableField(typeHandler = app.xinqianmao.com.common.dao.ListStringTypeHandler.class)
+    @TableField(exist = false)
     private List<String> inputOptions;
+    @TableField(exist = false)
+    private List<ProductSpecsValue> valuesList;
     @TableField("\"desc\"")
     private String desc;
     private Integer scope;

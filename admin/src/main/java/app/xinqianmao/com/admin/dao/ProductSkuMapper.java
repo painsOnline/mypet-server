@@ -21,10 +21,11 @@ public interface ProductSkuMapper extends TenantBaseMapper<ProductSku> {
      * Find all (specName, valueName) pairs used by SKUs under a given product type.
      * Used to determine which option values are already in use and cannot be deleted.
      */
-    @Select("SELECT DISTINCT elem ->> 'name' AS specName, elem ->> 'valueName' AS valueName " +
+    @Select("SELECT DISTINCT COALESCE(elem ->> 'spec_name', elem ->> 'name') AS specName, " +
+            "COALESCE(elem ->> 'value_name', elem ->> 'valueName') AS valueName " +
             "FROM t_product_sku sku " +
             "JOIN t_product p ON p.id = sku.product_id " +
-            "CROSS JOIN json_array_elements(sku.specs) AS elem " +
+            "CROSS JOIN jsonb_array_elements(sku.specs) AS elem " +
             "WHERE p.product_type = #{typeId} AND sku.is_delete = 0")
     List<Map<String, Object>> findUsedSpecValuesByType(@Param("typeId") String typeId);
 }

@@ -1,5 +1,6 @@
 app\xinqianmao\com\admin\common\pojo\StatisticsRequest.class
 app\xinqianmao\com\admin\dao\AdminLoginErrorLogMapper.class
+app\xinqianmao\com\admin\common\entity\ProductSpecsValue.class
 app\xinqianmao\com\admin\dao\OrderProductMapper.class
 app\xinqianmao\com\admin\web\controller\StatisticsController.class
 app\xinqianmao\com\admin\common\pojo\OrderTrendResponse$TrendPoint.class
@@ -74,6 +75,8 @@ app\xinqianmao\com\admin\common\pojo\TypeWithSpecsResponse.class
 app\xinqianmao\com\admin\common\entity\Cart.class
 app\xinqianmao\com\admin\common\entity\ProductCategory.class
 app\xinqianmao\com\admin\common\pojo\UserSearchRequest.class
+app\xinqianmao\com\admin\dao\ProductSpecsValueMapper.class
+app\xinqianmao\com\admin\service\MigrationRunnerService$1.class
 app\xinqianmao\com\admin\web\controller\AdminOrderController.class
 app\xinqianmao\com\admin\dao\CartMapper.class
 app\xinqianmao\com\admin\common\pojo\OrderListResponse.class

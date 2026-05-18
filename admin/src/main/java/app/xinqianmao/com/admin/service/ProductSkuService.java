@@ -7,10 +7,12 @@ package app.xinqianmao.com.admin.service;
 
 import app.xinqianmao.com.admin.common.entity.ProductSku;
 import app.xinqianmao.com.admin.common.entity.ProductSpecs;
+import app.xinqianmao.com.admin.common.entity.ProductSpecsValue;
 import app.xinqianmao.com.admin.common.entity.ProductTypeSpecRel;
 import app.xinqianmao.com.admin.common.pojo.SkuSaveRequest;
 import app.xinqianmao.com.admin.dao.ProductSkuMapper;
 import app.xinqianmao.com.admin.dao.ProductSpecsMapper;
+import app.xinqianmao.com.admin.dao.ProductSpecsValueMapper;
 import app.xinqianmao.com.admin.dao.ProductTypeSpecRelMapper;
 import app.xinqianmao.com.common.exception.BizException;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -33,6 +35,7 @@ public class ProductSkuService {
 
     private final ProductSkuMapper skuMapper;
     private final ProductSpecsMapper specsMapper;
+    private final ProductSpecsValueMapper specsValueMapper;
     private final ProductTypeSpecRelMapper typeSpecRelMapper;
 
     /**
@@ -72,9 +75,20 @@ public class ProductSkuService {
             // Build specs JSON
             List<Map<String, String>> specsList = new ArrayList<>();
             for (int i = 0; i < combo.size(); i++) {
+                ProductSpecs specDef = specDefs.get(i);
                 Map<String, String> m = new LinkedHashMap<>();
-                m.put("name", specDefs.get(i).getName());
-                m.put("valueName", combo.get(i));
+                m.put("spec_id", specDef.getId());
+                m.put("spec_name", specDef.getName());
+                String val = combo.get(i);
+                m.put("value_name", val);
+                // Find value_id from spec values
+                String vid = "";
+                if (specDef.getValuesList() != null) {
+                    vid = specDef.getValuesList().stream()
+                        .filter(v -> val.equals(v.getValueName()))
+                        .findFirst().map(ProductSpecsValue::getId).orElse("");
+                }
+                m.put("value_id", vid);
                 specsList.add(m);
             }
 
@@ -180,6 +194,16 @@ public class ProductSkuService {
         if (!ids.isEmpty()) {
             List<ProductSpecs> typeSpecs = specsMapper.selectBatchIds(ids);
             all.addAll(typeSpecs);
+        }
+        // Load values from t_product_specs_value
+        if (!all.isEmpty()) {
+            List<String> specIds = all.stream().map(ProductSpecs::getId).collect(Collectors.toList());
+            List<ProductSpecsValue> vals = specsValueMapper.selectList(
+                    new LambdaQueryWrapper<ProductSpecsValue>().in(ProductSpecsValue::getSpecsId, specIds)
+                            .orderByAsc(ProductSpecsValue::getSort));
+            Map<String, List<String>> map = new HashMap<>();
+            for (ProductSpecsValue v : vals) map.computeIfAbsent(v.getSpecsId(), k -> new ArrayList<>()).add(v.getValueName());
+            for (ProductSpecs s : all) s.setInputOptions(map.getOrDefault(s.getId(), List.of()));
         }
         return all;
     }

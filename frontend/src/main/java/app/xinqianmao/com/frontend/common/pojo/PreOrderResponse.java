@@ -46,6 +46,9 @@ public class PreOrderResponse {
         @Schema(description = "规格文字")
         private String attrsText;
 
+        @Schema(description = "规格列表")
+        private List<SpecItem> specs;
+
         @Schema(description = "数量")
         private Integer count;
 
@@ -63,6 +66,26 @@ public class PreOrderResponse {
 
         @Schema(description = "实付小计（现价x数量）")
         private BigDecimal totalPayPrice;
+
+        /**
+         * Pre-order spec item matching WX-API format.
+         */
+        @Data
+        @Schema(description = "预订单规格项")
+        public static class SpecItem {
+
+            @Schema(description = "规格名称")
+            private String specName;
+
+            @Schema(description = "规格值名称")
+            private String valueName;
+
+            @Schema(description = "规格ID")
+            private String specId;
+
+            @Schema(description = "值ID")
+            private String valueId;
+        }
     }
 
     /**

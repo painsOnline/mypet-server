@@ -92,6 +92,8 @@ class AdminCategoryTest extends BaseAdminTest {
     void deleteCategory() throws Exception {
         mockMvc.perform(adminDelete("/admin/category/" + categoryId))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.code").value("200"));
-        Assertions.assertNull(categoryMapper.selectById(categoryId));
+        var deleted = categoryMapper.selectById(categoryId);
+        Assertions.assertNotNull(deleted);
+        Assertions.assertEquals(1, deleted.getIsDelete(), "Soft delete should set isDelete=1");
     }
 }

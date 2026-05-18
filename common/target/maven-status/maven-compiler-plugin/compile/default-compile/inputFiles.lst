@@ -15,6 +15,7 @@ F:\MyWorkspace\project\mypet\java\mypet-server\common\src\main\java\app\xinqianm
 F:\MyWorkspace\project\mypet\java\mypet-server\common\src\main\java\app\xinqianmao\com\common\dao\TenantDataSourceManager.java
 F:\MyWorkspace\project\mypet\java\mypet-server\common\src\main\java\app\xinqianmao\com\common\dao\TenantMapper.java
 F:\MyWorkspace\project\mypet\java\mypet-server\common\src\main\java\app\xinqianmao\com\common\dao\TypeHandlerConfig.java
+F:\MyWorkspace\project\mypet\java\mypet-server\common\src\main\java\app\xinqianmao\com\common\dao\UuidGenerator.java
 F:\MyWorkspace\project\mypet\java\mypet-server\common\src\main\java\app\xinqianmao\com\common\DbInitializer.java
 F:\MyWorkspace\project\mypet\java\mypet-server\common\src\main\java\app\xinqianmao\com\common\entity\BaseEntity.java
 F:\MyWorkspace\project\mypet\java\mypet-server\common\src\main\java\app\xinqianmao\com\common\entity\Tenant.java
@@ -24,9 +25,18 @@ F:\MyWorkspace\project\mypet\java\mypet-server\common\src\main\java\app\xinqianm
 F:\MyWorkspace\project\mypet\java\mypet-server\common\src\main\java\app\xinqianmao\com\common\enums\SpecTypeEnum.java
 F:\MyWorkspace\project\mypet\java\mypet-server\common\src\main\java\app\xinqianmao\com\common\exception\BizException.java
 F:\MyWorkspace\project\mypet\java\mypet-server\common\src\main\java\app\xinqianmao\com\common\exception\GlobalExceptionHandler.java
+F:\MyWorkspace\project\mypet\java\mypet-server\common\src\main\java\app\xinqianmao\com\common\FixImageDirs.java
+F:\MyWorkspace\project\mypet\java\mypet-server\common\src\main\java\app\xinqianmao\com\common\FixImageUrls.java
 F:\MyWorkspace\project\mypet\java\mypet-server\common\src\main\java\app\xinqianmao\com\common\MemberSeeder.java
+F:\MyWorkspace\project\mypet\java\mypet-server\common\src\main\java\app\xinqianmao\com\common\migrate\BatchMigrateSpecs.java
+F:\MyWorkspace\project\mypet\java\mypet-server\common\src\main\java\app\xinqianmao\com\common\migrate\ConsoleLogger.java
+F:\MyWorkspace\project\mypet\java\mypet-server\common\src\main\java\app\xinqianmao\com\common\migrate\MigrateConfig.java
+F:\MyWorkspace\project\mypet\java\mypet-server\common\src\main\java\app\xinqianmao\com\common\migrate\MigrationLogger.java
+F:\MyWorkspace\project\mypet\java\mypet-server\common\src\main\java\app\xinqianmao\com\common\migrate\RestoreAndMigrate.java
+F:\MyWorkspace\project\mypet\java\mypet-server\common\src\main\java\app\xinqianmao\com\common\migrate\RunMigration.java
 F:\MyWorkspace\project\mypet\java\mypet-server\common\src\main\java\app\xinqianmao\com\common\result\PageResult.java
 F:\MyWorkspace\project\mypet\java\mypet-server\common\src\main\java\app\xinqianmao\com\common\result\Result.java
+F:\MyWorkspace\project\mypet\java\mypet-server\common\src\main\java\app\xinqianmao\com\common\UndoImageDirs.java
 F:\MyWorkspace\project\mypet\java\mypet-server\common\src\main\java\app\xinqianmao\com\common\utils\CryptoUtil.java
 F:\MyWorkspace\project\mypet\java\mypet-server\common\src\main\java\app\xinqianmao\com\common\utils\DateTimeUtil.java
 F:\MyWorkspace\project\mypet\java\mypet-server\common\src\main\java\app\xinqianmao\com\common\utils\ImageUrlUtil.java

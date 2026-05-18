@@ -42,9 +42,6 @@ public class GoodsDetailResponse {
     @Schema(description = "详情信息（属性+图片）")
     private DetailInfo details;
 
-    @Schema(description = "商品详情HTML")
-    private String detail;
-
     @Schema(description = "SKU列表")
     private List<SkuItem> skus;
 
@@ -112,38 +109,45 @@ public class GoodsDetailResponse {
     }
 
     /**
-     * Spec group item (e.g. "颜色", "规格").
+     * Spec group item (e.g. "颜色", "规格") for SKU selection UI.
      */
     @Data
-    @Schema(description = "规格组")
+    @Schema(description = "规格组（SKU选择UI）")
     public static class SpecItem {
 
         @Schema(description = "规格组名称")
-        private String name;
+        private String specName;
+
+        @Schema(description = "规格ID")
+        private String specId;
+
+        @Schema(description = "排序")
+        private Integer sort;
+
+        @Schema(description = "输入类型 (1=unique 2=single 3=multi)")
+        private Integer inputType;
 
         @Schema(description = "规格值列表")
         private List<SpecValue> values;
     }
 
     /**
-     * Spec value within a spec group.
+     * Spec value within a spec group, also used in SKU specs list and cart specs.
      */
     @Data
+    @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
     @Schema(description = "规格值")
     public static class SpecValue {
-
-        @Schema(description = "规格值名称")
-        private String name;
-
+        @Schema(description = "规格组名称")
+        private String specName;
         @Schema(description = "规格值显示名")
         private String valueName;
-
+        @Schema(description = "规格ID")
+        private String specId;
+        @Schema(description = "值ID")
+        private String valueId;
         @Schema(description = "是否可选")
         private Boolean available;
-
-        @Schema(description = "描述")
-        private String desc;
-
         @Schema(description = "图片")
         private String picture;
     }

@@ -17,6 +17,7 @@ public class ProductProperty extends BaseEntity {
     private String productId;
     private String specsId;
     private String valueName;
+    private String valueId;
     private Integer sort;
     private Integer isDelete;
 }

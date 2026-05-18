@@ -94,6 +94,9 @@ public class MiniOrderDetailResponse {
         @Schema(description = "规格文字")
         private String attrsText;
 
+        @Schema(description = "规格列表")
+        private List<SpecItem> specs;
+
         @Schema(description = "购买数量")
         private Integer quantity;
 
@@ -105,5 +108,25 @@ public class MiniOrderDetailResponse {
 
         @Schema(description = "商品图片")
         private String picture;
+
+        /**
+         * Order SKU spec item matching WX-API format.
+         */
+        @Data
+        @Schema(description = "订单SKU规格项")
+        public static class SpecItem {
+
+            @Schema(description = "规格名称")
+            private String specName;
+
+            @Schema(description = "规格值名称")
+            private String valueName;
+
+            @Schema(description = "规格ID")
+            private String specId;
+
+            @Schema(description = "值ID")
+            private String valueId;
+        }
     }
 }

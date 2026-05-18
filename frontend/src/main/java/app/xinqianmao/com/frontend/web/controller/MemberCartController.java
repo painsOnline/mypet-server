@@ -65,8 +65,6 @@ public class MemberCartController {
                 cart.setName(item.getName());
                 cart.setPicture(item.getPicture() != null ? item.getPicture() : "");
                 cart.setCount(item.getCount() != null ? item.getCount() : 1);
-                cart.setPrice(item.getPrice() != null ? item.getPrice() : BigDecimal.ZERO);
-                cart.setNowPrice(item.getNowPrice() != null ? item.getNowPrice() : BigDecimal.ZERO);
                 cart.setSelected(item.getSelected() != null && item.getSelected() ? 1 : 0);
                 cart.setSpecs("[]");
                 cart.setCreateTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
@@ -83,11 +81,11 @@ public class MemberCartController {
         r.setName(cart.getName());
         r.setPicture(imageUrlUtil.fullUrl(cart.getPicture()));
         r.setCount(cart.getCount());
-        r.setPrice(cart.getPrice());
-        r.setNowPrice(cart.getNowPrice());
-        r.setSelected(cart.getSelected() != null && cart.getSelected() == 1);
-        // Get current stock and check if product is still enabled
+        // Prices from SKU (dynamic)
         ProductSku sku = skuMapper.selectById(cart.getSkuId());
+        r.setPrice(sku != null ? sku.getPrice() : BigDecimal.ZERO);
+        r.setNowPrice(sku != null ? sku.getPrice() : BigDecimal.ZERO);
+        r.setSelected(cart.getSelected() != null && cart.getSelected() == 1);
         r.setStock(sku != null ? sku.getInventory() : 0);
         boolean effective = true;
         if (sku != null) {
@@ -96,7 +94,29 @@ public class MemberCartController {
         }
         r.setIsEffective(effective);
         r.setAttrsText(extractAttrsText(cart.getSpecs()));
+        r.setSpecs(parseCartSpecs(cart.getSpecs()));
         return r;
+    }
+
+    private List<CartItemResponse.SpecItem> parseCartSpecs(String specsJson) {
+        if (specsJson == null || specsJson.isBlank()) return List.of();
+        try {
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            @SuppressWarnings("unchecked")
+            List<java.util.Map<String, String>> list = mapper.readValue(specsJson, List.class);
+            return list.stream().map(m -> {
+                CartItemResponse.SpecItem si = new CartItemResponse.SpecItem();
+                si.setSpecName(m.containsKey("spec_name") ? m.get("spec_name")
+                        : m.containsKey("specName") ? m.get("specName") : m.get("name"));
+                si.setValueName(m.containsKey("value_name") ? m.get("value_name")
+                        : m.containsKey("valueName") ? m.get("valueName") : null);
+                si.setSpecId(m.containsKey("spec_id") ? m.get("spec_id")
+                        : m.containsKey("specId") ? m.get("specId") : null);
+                si.setValueId(m.containsKey("value_id") ? m.get("value_id")
+                        : m.containsKey("valueId") ? m.get("valueId") : null);
+                return si;
+            }).collect(Collectors.toList());
+        } catch (Exception e) { return List.of(); }
     }
 
     @SuppressWarnings("unchecked")
@@ -106,7 +126,12 @@ public class MemberCartController {
             com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
             List<java.util.Map<String, String>> list = mapper.readValue(specsJson, List.class);
             return list.stream()
-                    .map(m -> m.get("name") + "：" + m.get("valueName"))
+                    .map(m -> {
+                        String n = m.containsKey("spec_name") ? m.get("spec_name") : m.get("name");
+                        String v = m.containsKey("value_name") ? m.get("value_name") : m.get("valueName");
+                        if (n == null) n = ""; if (v == null) v = "";
+                        return n + "：" + v;
+                    })
                     .collect(Collectors.joining("，"));
         } catch (Exception e) { return ""; }
     }

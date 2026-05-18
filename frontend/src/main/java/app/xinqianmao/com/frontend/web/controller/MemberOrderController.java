@@ -199,11 +199,12 @@ public class MemberOrderController {
             pp.setName(cart.getName());
             pp.setAttrsText(extractAttrsText(cart.getSpecs()));
             pp.setCount(cart.getCount());
-            pp.setPrice(cart.getPrice());
-            pp.setPayPrice(cart.getNowPrice());
+            BigDecimal skuPrice = sku != null ? (sku.getPrice() != null ? sku.getPrice() : BigDecimal.ZERO) : BigDecimal.ZERO;
+            pp.setPrice(skuPrice);
+            pp.setPayPrice(skuPrice);
             pp.setPicture(imageUrlUtil.fullUrl(cart.getPicture()));
-            BigDecimal itemTotal = cart.getPrice().multiply(BigDecimal.valueOf(cart.getCount()));
-            BigDecimal itemPayTotal = cart.getNowPrice().multiply(BigDecimal.valueOf(cart.getCount()));
+            BigDecimal itemTotal = skuPrice.multiply(BigDecimal.valueOf(cart.getCount()));
+            BigDecimal itemPayTotal = skuPrice.multiply(BigDecimal.valueOf(cart.getCount()));
             pp.setTotalPrice(itemTotal);
             pp.setTotalPayPrice(itemPayTotal);
             products.add(pp);
@@ -254,6 +255,7 @@ public class MemberOrderController {
         pp.setSkuId(skuId);
         pp.setName(product.getName());
         pp.setAttrsText(extractAttrsText(sku.getSpecs()));
+        pp.setSpecs(parsePreOrderSpecs(sku.getSpecs()));
         pp.setCount(count);
         pp.setPrice(sku.getOldPrice());
         pp.setPayPrice(sku.getPrice());
@@ -315,6 +317,7 @@ public class MemberOrderController {
             pp.setSkuId(ops.getSkuId());
             pp.setName(product != null ? product.getName() : "");
             pp.setAttrsText(extractAttrsText(ops.getSpecs()));
+            pp.setSpecs(parsePreOrderSpecs(ops.getSpecs()));
             pp.setCount(ops.getCount());
             pp.setPrice(ops.getPrice());
             pp.setPayPrice(currentPrice);
@@ -548,6 +551,7 @@ public class MemberOrderController {
             si.setProductId(sku.getProductId());
             si.setName(getProductName(sku.getProductId()));
             si.setAttrsText(extractAttrsText(sku.getSpecs()));
+            si.setSpecs(parseOrderSkuSpecs(sku.getSpecs()));
             si.setQuantity(sku.getCount());
             si.setPrice(sku.getPrice());
             si.setOldPrice(sku.getOldPrice());
@@ -559,6 +563,69 @@ public class MemberOrderController {
         return r;
     }
 
+    private List<MiniOrderListResponse.SkuItem.SpecItem> parseOrderSkuSpecs(String specsJson) {
+        if (specsJson == null || specsJson.isBlank()) return List.of();
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            @SuppressWarnings("unchecked")
+            List<Map<String, String>> list = mapper.readValue(specsJson, List.class);
+            return list.stream().map(m -> {
+                MiniOrderListResponse.SkuItem.SpecItem si = new MiniOrderListResponse.SkuItem.SpecItem();
+                si.setSpecName(m.containsKey("spec_name") ? m.get("spec_name")
+                        : m.containsKey("specName") ? m.get("specName") : m.get("name"));
+                si.setValueName(m.containsKey("value_name") ? m.get("value_name")
+                        : m.containsKey("valueName") ? m.get("valueName") : null);
+                si.setSpecId(m.containsKey("spec_id") ? m.get("spec_id")
+                        : m.containsKey("specId") ? m.get("specId") : null);
+                si.setValueId(m.containsKey("value_id") ? m.get("value_id")
+                        : m.containsKey("valueId") ? m.get("valueId") : null);
+                return si;
+            }).collect(Collectors.toList());
+        } catch (Exception e) { return List.of(); }
+    }
+
+    private List<MiniOrderDetailResponse.SkuItem.SpecItem> parseOrderDetailSkuSpecs(String specsJson) {
+        if (specsJson == null || specsJson.isBlank()) return List.of();
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            @SuppressWarnings("unchecked")
+            List<Map<String, String>> list = mapper.readValue(specsJson, List.class);
+            return list.stream().map(m -> {
+                MiniOrderDetailResponse.SkuItem.SpecItem si = new MiniOrderDetailResponse.SkuItem.SpecItem();
+                si.setSpecName(m.containsKey("spec_name") ? m.get("spec_name")
+                        : m.containsKey("specName") ? m.get("specName") : m.get("name"));
+                si.setValueName(m.containsKey("value_name") ? m.get("value_name")
+                        : m.containsKey("valueName") ? m.get("valueName") : null);
+                si.setSpecId(m.containsKey("spec_id") ? m.get("spec_id")
+                        : m.containsKey("specId") ? m.get("specId") : null);
+                si.setValueId(m.containsKey("value_id") ? m.get("value_id")
+                        : m.containsKey("valueId") ? m.get("valueId") : null);
+                return si;
+            }).collect(Collectors.toList());
+        } catch (Exception e) { return List.of(); }
+    }
+
+    private List<PreOrderResponse.ProductItem.SpecItem> parsePreOrderSpecs(String specsJson) {
+        if (specsJson == null || specsJson.isBlank()) return List.of();
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            @SuppressWarnings("unchecked")
+            List<Map<String, String>> list = mapper.readValue(specsJson, List.class);
+            return list.stream().map(m -> {
+                PreOrderResponse.ProductItem.SpecItem si = new PreOrderResponse.ProductItem.SpecItem();
+                si.setSpecName(m.containsKey("spec_name") ? m.get("spec_name")
+                        : m.containsKey("specName") ? m.get("specName") : m.get("name"));
+                si.setValueName(m.containsKey("value_name") ? m.get("value_name")
+                        : m.containsKey("valueName") ? m.get("valueName") : null);
+                si.setSpecId(m.containsKey("spec_id") ? m.get("spec_id")
+                        : m.containsKey("specId") ? m.get("specId") : null);
+                si.setValueId(m.containsKey("value_id") ? m.get("value_id")
+                        : m.containsKey("valueId") ? m.get("valueId") : null);
+                return si;
+            }).collect(Collectors.toList());
+        } catch (Exception e) { return List.of(); }
+    }
+
     @SuppressWarnings("unchecked")
     private String extractAttrsText(String specsJson) {
         if (specsJson == null || specsJson.isBlank()) return "";
@@ -566,7 +633,12 @@ public class MemberOrderController {
             ObjectMapper mapper = new ObjectMapper();
             List<Map<String, String>> list = mapper.readValue(specsJson, List.class);
             return list.stream()
-                    .map(m -> m.get("name") + "：" + m.get("valueName"))
+                    .map(m -> {
+                        String n = m.containsKey("spec_name") ? m.get("spec_name") : m.get("name");
+                        String v = m.containsKey("value_name") ? m.get("value_name") : m.get("valueName");
+                        if (n == null) n = ""; if (v == null) v = "";
+                        return n + "：" + v;
+                    })
                     .collect(Collectors.joining("，"));
         } catch (Exception e) { return ""; }
     }

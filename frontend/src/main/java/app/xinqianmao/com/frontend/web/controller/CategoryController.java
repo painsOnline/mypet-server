@@ -39,7 +39,8 @@ public class CategoryController {
     @GetMapping("/list")
     public Result<List<ProductCategory>> listAll() {
         return Result.ok(categoryMapper.selectList(
-                new LambdaQueryWrapper<ProductCategory>().orderByAsc(ProductCategory::getSort)));
+                new LambdaQueryWrapper<ProductCategory>().eq(ProductCategory::getIsDelete, 0)
+                        .orderByAsc(ProductCategory::getSort)));
     }
 
     @NoAuth
@@ -53,6 +54,7 @@ public class CategoryController {
         IPage<Product> productPage = productMapper.selectPage(p,
                 new LambdaQueryWrapper<Product>()
                         .eq(Product::getProductCategory, id)
+                        .eq(Product::getIsEnable, 1)
                         .orderByAsc(Product::getSort));
         List<GoodsDetailResponse> items = productPage.getRecords().stream()
                 .map(homeController::buildGoodsDetail).collect(Collectors.toList());

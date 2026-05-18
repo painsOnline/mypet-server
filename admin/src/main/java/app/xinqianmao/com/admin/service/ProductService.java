@@ -37,6 +37,7 @@ public class ProductService {
     private final ProductPropertyMapper propertyMapper;
     private final ProductSkuMapper skuMapper;
     private final ProductSpecsMapper specsMapper;
+    private final ProductSpecsValueMapper specsValueMapper;
     private final InventoryLogMapper inventoryLogMapper;
     private final ProductCategoryMapper categoryMapper;
     private final ProductTypeMapper typeMapper;
@@ -217,7 +218,6 @@ public class ProductService {
         List<ProductTypeSpecRel> rels = typeSpecRelMapper.selectList(
                 new LambdaQueryWrapper<ProductTypeSpecRel>().eq(ProductTypeSpecRel::getProductType, product.getProductType()));
         List<String> relatedSpecIds = rels.stream().map(ProductTypeSpecRel::getSpecsId).collect(Collectors.toList());
-        // Also include global specs (scope=0)
         List<ProductSpecs> globalSpecs = specsMapper.selectList(
                 new LambdaQueryWrapper<ProductSpecs>().eq(ProductSpecs::getScope, 0).orderByAsc(ProductSpecs::getSort));
         List<ProductSpecs> specDefs = new ArrayList<>(globalSpecs);
@@ -225,6 +225,7 @@ public class ProductService {
             List<ProductSpecs> typeSpecs = specsMapper.selectBatchIds(relatedSpecIds);
             specDefs.addAll(typeSpecs);
         }
+        loadSpecValuesForProduct(specDefs);
         r.setSpecs(buildSpecItems(specDefs));
 
         return r;
@@ -261,14 +262,25 @@ public class ProductService {
         product.setCreateTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
         productMapper.insert(product);
 
-        // Save properties - resolve specsId from name
+        // Save properties - resolve specsId from name and valueId from specs_value table
         Map<String, String> specsNameToId = buildSpecsNameMap(product.getProductType());
+        Map<String, Map<String, String>> specsValueMap = buildSpecsValueMap(product.getProductType());
         if (req.getProperties() != null) {
             for (ProductSaveRequest.PropertyItem pi : req.getProperties()) {
+                String specsId = specsNameToId.get(pi.getName());
+                if (specsId == null) continue;
                 ProductProperty prop = new ProductProperty();
                 prop.setProductId(product.getId());
-                prop.setSpecsId(specsNameToId.get(pi.getName()));
-                prop.setValueName(pi.getValueName());
+                prop.setSpecsId(specsId);
+                // value_name only for unique specs (inputType=1)
+                ProductSpecs spec = findSpecByName(pi.getName(), product.getProductType());
+                boolean isUnique = spec != null && spec.getInputType() != null && spec.getInputType() == 1;
+                String val = pi.getValueName();
+                if (val != null && !val.isBlank()) {
+                    if (isUnique) prop.setValueName(val);
+                    Map<String, String> nameToId = specsValueMap.getOrDefault(specsId, Map.of());
+                    prop.setValueId(nameToId.get(val));
+                }
                 prop.setSort(0);
                 prop.setCreateTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
                 propertyMapper.insert(prop);
@@ -360,12 +372,22 @@ public class ProductService {
         propertyMapper.delete(new LambdaQueryWrapper<ProductProperty>()
                 .eq(ProductProperty::getProductId, productId));
         Map<String, String> specsNameMap = buildSpecsNameMap(product.getProductType());
+        Map<String, Map<String, String>> specsValueMap = buildSpecsValueMap(product.getProductType());
         if (req.getProperties() != null) {
             for (ProductSaveRequest.PropertyItem pi : req.getProperties()) {
+                String specsId = specsNameMap.get(pi.getName());
+                if (specsId == null) continue;
                 ProductProperty prop = new ProductProperty();
                 prop.setProductId(productId);
-                prop.setSpecsId(specsNameMap.get(pi.getName()));
-                prop.setValueName(pi.getValueName());
+                prop.setSpecsId(specsId);
+                ProductSpecs spec = findSpecByName(pi.getName(), product.getProductType());
+                boolean isUnique = spec != null && spec.getInputType() != null && spec.getInputType() == 1;
+                String val = pi.getValueName();
+                if (val != null && !val.isBlank()) {
+                    if (isUnique) prop.setValueName(val);
+                    Map<String, String> nameToId = specsValueMap.getOrDefault(specsId, Map.of());
+                    prop.setValueId(nameToId.get(val));
+                }
                 prop.setSort(0);
                 prop.setCreateTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
                 propertyMapper.insert(prop);
@@ -482,6 +504,51 @@ public class ProductService {
         }
     }
 
+    /** Build specsId -> (valueName -> valueId) map. */
+    private Map<String, Map<String, String>> buildSpecsValueMap(String productType) {
+        Map<String, Map<String, String>> result = new HashMap<>();
+        List<ProductSpecs> allSpecs = new ArrayList<>();
+        allSpecs.addAll(specsMapper.selectList(
+                new LambdaQueryWrapper<ProductSpecs>().eq(ProductSpecs::getScope, 0)));
+        List<ProductTypeSpecRel> rels = typeSpecRelMapper.selectList(
+                new LambdaQueryWrapper<ProductTypeSpecRel>().eq(ProductTypeSpecRel::getProductType, productType));
+        if (!rels.isEmpty()) {
+            List<String> ids = rels.stream().map(ProductTypeSpecRel::getSpecsId).collect(Collectors.toList());
+            allSpecs.addAll(specsMapper.selectBatchIds(ids));
+        }
+        for (ProductSpecs s : allSpecs) {
+            List<ProductSpecsValue> vals = specsValueMapper.selectList(
+                    new LambdaQueryWrapper<ProductSpecsValue>().eq(ProductSpecsValue::getSpecsId, s.getId()));
+            Map<String, String> nameToId = new HashMap<>();
+            vals.forEach(v -> nameToId.put(v.getValueName(), v.getId()));
+            result.put(s.getId(), nameToId);
+        }
+        return result;
+    }
+
+    private ProductSpecs findSpecByName(String name, String productType) {
+        List<ProductSpecs> all = new ArrayList<>();
+        all.addAll(specsMapper.selectList(
+                new LambdaQueryWrapper<ProductSpecs>().eq(ProductSpecs::getScope, 0)));
+        List<ProductTypeSpecRel> rels = typeSpecRelMapper.selectList(
+                new LambdaQueryWrapper<ProductTypeSpecRel>().eq(ProductTypeSpecRel::getProductType, productType));
+        if (!rels.isEmpty()) {
+            all.addAll(specsMapper.selectBatchIds(rels.stream().map(ProductTypeSpecRel::getSpecsId).collect(Collectors.toList())));
+        }
+        return all.stream().filter(s -> name.equals(s.getName())).findFirst().orElse(null);
+    }
+
+    private void loadSpecValuesForProduct(List<ProductSpecs> specs) {
+        if (specs.isEmpty()) return;
+        List<String> ids = specs.stream().map(ProductSpecs::getId).collect(Collectors.toList());
+        List<ProductSpecsValue> vals = specsValueMapper.selectList(
+                new LambdaQueryWrapper<ProductSpecsValue>().in(ProductSpecsValue::getSpecsId, ids)
+                        .orderByAsc(ProductSpecsValue::getSort));
+        Map<String, List<String>> map = new HashMap<>();
+        for (ProductSpecsValue v : vals) map.computeIfAbsent(v.getSpecsId(), k -> new ArrayList<>()).add(v.getValueName());
+        for (ProductSpecs s : specs) s.setInputOptions(map.getOrDefault(s.getId(), List.of()));
+    }
+
     private Map<String, String> buildSpecsNameMap(String productType) {
         Map<String, String> map = new HashMap<>();
         // Global specs (scope=0)
@@ -509,8 +576,8 @@ public class ProductService {
             List<Map<String, String>> list = mapper.readValue(specsJson, List.class);
             return list.stream().map(m -> {
                 ProductDetailResponse.SpecValue sv = new ProductDetailResponse.SpecValue();
-                sv.setName(m.get("name"));
-                sv.setValueName(m.get("valueName"));
+                sv.setName(m.containsKey("spec_name") ? m.get("spec_name") : m.get("name"));
+                sv.setValueName(m.containsKey("value_name") ? m.get("value_name") : m.get("valueName"));
                 return sv;
             }).collect(Collectors.toList());
         } catch (Exception e) {

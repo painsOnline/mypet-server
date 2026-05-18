@@ -13,6 +13,7 @@ F:\MyWorkspace\project\mypet\java\mypet-server\frontend\src\main\java\app\xinqia
 F:\MyWorkspace\project\mypet\java\mypet-server\frontend\src\main\java\app\xinqianmao\com\frontend\common\entity\ProductProperty.java
 F:\MyWorkspace\project\mypet\java\mypet-server\frontend\src\main\java\app\xinqianmao\com\frontend\common\entity\ProductSku.java
 F:\MyWorkspace\project\mypet\java\mypet-server\frontend\src\main\java\app\xinqianmao\com\frontend\common\entity\ProductSpecs.java
+F:\MyWorkspace\project\mypet\java\mypet-server\frontend\src\main\java\app\xinqianmao\com\frontend\common\entity\ProductSpecsValue.java
 F:\MyWorkspace\project\mypet\java\mypet-server\frontend\src\main\java\app\xinqianmao\com\frontend\common\entity\ProductType.java
 F:\MyWorkspace\project\mypet\java\mypet-server\frontend\src\main\java\app\xinqianmao\com\frontend\common\entity\ProductTypeSpecRel.java
 F:\MyWorkspace\project\mypet\java\mypet-server\frontend\src\main\java\app\xinqianmao\com\frontend\common\entity\Receiver.java
@@ -52,6 +53,7 @@ F:\MyWorkspace\project\mypet\java\mypet-server\frontend\src\main\java\app\xinqia
 F:\MyWorkspace\project\mypet\java\mypet-server\frontend\src\main\java\app\xinqianmao\com\frontend\dao\ProductPropertyMapper.java
 F:\MyWorkspace\project\mypet\java\mypet-server\frontend\src\main\java\app\xinqianmao\com\frontend\dao\ProductSkuMapper.java
 F:\MyWorkspace\project\mypet\java\mypet-server\frontend\src\main\java\app\xinqianmao\com\frontend\dao\ProductSpecsMapper.java
+F:\MyWorkspace\project\mypet\java\mypet-server\frontend\src\main\java\app\xinqianmao\com\frontend\dao\ProductSpecsValueMapper.java
 F:\MyWorkspace\project\mypet\java\mypet-server\frontend\src\main\java\app\xinqianmao\com\frontend\dao\ProductTypeSpecRelMapper.java
 F:\MyWorkspace\project\mypet\java\mypet-server\frontend\src\main\java\app\xinqianmao\com\frontend\dao\ReceiverMapper.java
 F:\MyWorkspace\project\mypet\java\mypet-server\frontend\src\main\java\app\xinqianmao\com\frontend\dao\ShopMapper.java

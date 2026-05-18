@@ -12,7 +12,9 @@ package app.xinqianmao.com.common;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.List;
 
 public final class DbInitializer {
@@ -52,7 +54,35 @@ public final class DbInitializer {
             runInitScript(BASE_URL + "mypet_xlong",
                     "F:/MyWorkspace/project/mypet/java/mypet-server/sql/init-empty.sql");
 
-            // Step 4: Verify
+            // Step 4: Apply migration scripts to ensure latest schema on existing DBs
+            String migrationDir = "F:/MyWorkspace/project/mypet/java/mypet-server/sql/migrations/";
+            // Read tenant codes from c_tenant
+            List<String> tenantDbs = new ArrayList<>();
+            tenantDbs.add("mypet_empty"); // always update template
+            try (Connection c = DriverManager.getConnection(BASE_URL + "mypet_config", USER, PASSWORD);
+                 Statement st = c.createStatement();
+                 ResultSet rs = st.executeQuery("SELECT code FROM c_tenant WHERE is_disable = 0")) {
+                while (rs.next()) {
+                    tenantDbs.add("mypet_" + rs.getString("code"));
+                }
+            } catch (Exception e) {
+                System.err.println("[DbInit] WARN: cannot read tenants from c_tenant, using default xlong: " + e.getMessage());
+                if (!tenantDbs.contains("mypet_xlong")) tenantDbs.add("mypet_xlong");
+            }
+
+            for (String sqlFile : List.of("001_add_seller_message.sql", "config_001_security_and_migration_tables.sql", "002_refactor_specs_props_sku.sql")) {
+                java.io.File f = new java.io.File(migrationDir + sqlFile);
+                if (!f.exists()) continue;
+                if (sqlFile.startsWith("config_")) {
+                    runInitScript(BASE_URL + "mypet_config", f.getAbsolutePath());
+                } else {
+                    for (String db : tenantDbs) {
+                        runInitScript(BASE_URL + db, f.getAbsolutePath());
+                    }
+                }
+            }
+
+            // Step 5: Verify
             try (Connection conn = DriverManager.getConnection(BASE_URL + "mypet_xlong", USER, PASSWORD)) {
                 var tables = conn.getMetaData().getTables(null, null, null, new String[]{"TABLE"});
                 int count = 0;

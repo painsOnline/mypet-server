@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 /**
  * Shopping cart item response.
@@ -47,6 +48,29 @@ public class CartItemResponse {
     @Schema(description = "规格文字")
     private String attrsText;
 
+    @Schema(description = "规格列表")
+    private List<SpecItem> specs;
+
     @Schema(description = "是否有效（下架则false）")
     private Boolean isEffective;
+
+    /**
+     * Cart spec item matching WX-API cart specs format.
+     */
+    @Data
+    @Schema(description = "购物车规格项")
+    public static class SpecItem {
+
+        @Schema(description = "值ID")
+        private String valueId;
+
+        @Schema(description = "值名称")
+        private String valueName;
+
+        @Schema(description = "规格ID")
+        private String specId;
+
+        @Schema(description = "规格名称")
+        private String specName;
+    }
 }

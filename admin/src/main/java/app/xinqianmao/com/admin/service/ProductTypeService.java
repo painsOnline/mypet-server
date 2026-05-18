@@ -7,11 +7,13 @@ package app.xinqianmao.com.admin.service;
 
 import app.xinqianmao.com.admin.common.entity.ProductType;
 import app.xinqianmao.com.admin.common.entity.ProductSpecs;
+import app.xinqianmao.com.admin.common.entity.ProductSpecsValue;
 import app.xinqianmao.com.admin.common.entity.ProductTypeSpecRel;
 import app.xinqianmao.com.admin.common.pojo.TypeSaveRequest;
 import app.xinqianmao.com.admin.common.pojo.TypeWithSpecsResponse;
 import app.xinqianmao.com.admin.dao.ProductTypeMapper;
 import app.xinqianmao.com.admin.dao.ProductSpecsMapper;
+import app.xinqianmao.com.admin.dao.ProductSpecsValueMapper;
 import app.xinqianmao.com.admin.dao.ProductTypeSpecRelMapper;
 import app.xinqianmao.com.admin.dao.ProductMapper;
 import app.xinqianmao.com.admin.dao.ProductSkuMapper;
@@ -30,9 +32,21 @@ public class ProductTypeService {
 
     private final ProductTypeMapper typeMapper;
     private final ProductSpecsMapper specsMapper;
+    private final ProductSpecsValueMapper specsValueMapper;
     private final ProductTypeSpecRelMapper typeSpecRelMapper;
     private final ProductMapper productMapper;
     private final ProductSkuMapper skuMapper;
+
+    private void loadSpecValues(List<ProductSpecs> specs) {
+        if (specs.isEmpty()) return;
+        List<String> ids = specs.stream().map(ProductSpecs::getId).collect(Collectors.toList());
+        List<ProductSpecsValue> vals = specsValueMapper.selectList(
+                new LambdaQueryWrapper<ProductSpecsValue>().in(ProductSpecsValue::getSpecsId, ids)
+                        .orderByAsc(ProductSpecsValue::getSort));
+        Map<String, List<String>> map = new HashMap<>();
+        for (ProductSpecsValue v : vals) map.computeIfAbsent(v.getSpecsId(), k -> new ArrayList<>()).add(v.getValueName());
+        for (ProductSpecs s : specs) s.setInputOptions(map.getOrDefault(s.getId(), List.of()));
+    }
 
     public List<TypeWithSpecsResponse> listAllWithSpecs() {
         List<ProductType> types = typeMapper.selectList(
@@ -78,6 +92,7 @@ public class ProductTypeService {
                     .filter(s -> s.getScope() == null || s.getScope() != 0)
                     .sorted(Comparator.comparingInt(s -> s.getSort() != null ? s.getSort() : 0))
                     .forEach(sorted::add);
+            loadSpecValues(sorted); // Load values from t_product_specs_value
             specsByType.put(t.getId(), sorted);
         }
 
@@ -91,7 +106,8 @@ public class ProductTypeService {
                         // Build map: specName → set of used valueNames from existing SKUs
                         List<Map<String, Object>> usedRows = skuMapper.findUsedSpecValuesByType(t.getId());
                         Map<String, Set<String>> usedBySpec = new HashMap<>();
-                        for (Map<String, Object> row : usedRows) {
+                        if (usedRows != null) for (Map<String, Object> row : usedRows) {
+                            if (row == null) continue;
                             String specName = (String) row.get("specname");
                             String valueName = (String) row.get("valuename");
                             if (specName != null && valueName != null) {

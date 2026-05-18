@@ -66,16 +66,17 @@ public class MemberCartService {
             item.setName(cart.getName());
             item.setPicture(cart.getPicture());
             item.setCount(cart.getCount());
-            item.setPrice(cart.getPrice());
-            item.setNowPrice(cart.getNowPrice());
-
-            // Current stock from product_sku
+            // Prices from SKU (dynamic, not stored in cart)
             ProductSku sku = skuMap.get(cart.getSkuId());
+            item.setPrice(sku != null ? sku.getPrice() : java.math.BigDecimal.ZERO);
+            item.setNowPrice(sku != null ? sku.getPrice() : java.math.BigDecimal.ZERO);
+
             item.setStock(sku != null ? sku.getInventory() : 0);
             item.setIsEffective(sku != null);
 
             item.setSelected(cart.getSelected() != null && cart.getSelected() == 1);
             item.setAttrsText(extractAttrsText(cart.getSpecs()));
+            item.setSpecs(parseCartSpecs(cart.getSpecs()));
             return item;
         }).collect(Collectors.toList());
     }
@@ -97,10 +98,15 @@ public class MemberCartService {
                 cart.setId(UUIDUtil.uuid());
                 cart.setSkuId(item.getSkuId());
                 cart.setName(item.getName());
-                cart.setSpecs(item.getAttrsText());
+                // Serialize specs list to JSON for DB storage
+                if (item.getSpecs() != null) {
+                    try {
+                        cart.setSpecs(new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(item.getSpecs()));
+                    } catch (Exception e) { cart.setSpecs("[]"); }
+                } else {
+                    cart.setSpecs("[]");
+                }
                 cart.setCount(item.getCount());
-                cart.setPrice(item.getPrice());
-                cart.setNowPrice(item.getNowPrice());
                 cart.setPicture(item.getPicture());
                 cart.setSelected(Boolean.TRUE.equals(item.getSelected()) ? 1 : 0);
                 cart.setCreateTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
@@ -121,6 +127,30 @@ public class MemberCartService {
     }
 
     /**
+     * Parse specs JSON into list of CartItemResponse.SpecItem (camelCase fields).
+     */
+    @SuppressWarnings("unchecked")
+    private List<CartItemResponse.SpecItem> parseCartSpecs(String specsJson) {
+        if (specsJson == null || specsJson.isBlank()) return List.of();
+        try {
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            List<Map<String, String>> list = mapper.readValue(specsJson, List.class);
+            return list.stream().map(m -> {
+                CartItemResponse.SpecItem si = new CartItemResponse.SpecItem();
+                si.setSpecName(m.containsKey("spec_name") ? m.get("spec_name")
+                        : m.containsKey("specName") ? m.get("specName") : m.get("name"));
+                si.setValueName(m.containsKey("value_name") ? m.get("value_name")
+                        : m.containsKey("valueName") ? m.get("valueName") : null);
+                si.setSpecId(m.containsKey("spec_id") ? m.get("spec_id")
+                        : m.containsKey("specId") ? m.get("specId") : null);
+                si.setValueId(m.containsKey("value_id") ? m.get("value_id")
+                        : m.containsKey("valueId") ? m.get("valueId") : null);
+                return si;
+            }).collect(Collectors.toList());
+        } catch (Exception e) { return List.of(); }
+    }
+
+    /**
      * Extract human-readable attrs text from specs JSON or plain text.
      */
     @SuppressWarnings("unchecked")
@@ -133,7 +163,12 @@ public class MemberCartService {
                 com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
                 List<Map<String, String>> list = mapper.readValue(trimmed, List.class);
                 return list.stream()
-                        .map(m -> m.get("name") + "：" + m.get("valueName"))
+                        .map(m -> {
+                        String n = m.containsKey("spec_name") ? m.get("spec_name") : m.get("name");
+                        String v = m.containsKey("value_name") ? m.get("value_name") : m.get("valueName");
+                        if (n == null) n = ""; if (v == null) v = "";
+                        return n + "：" + v;
+                    })
                         .collect(Collectors.joining("，"));
             } catch (Exception e) {
                 // fall through to return as-is

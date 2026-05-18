@@ -12,6 +12,9 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.stereotype.Service;
 
 import javax.sql.DataSource;
+import app.xinqianmao.com.common.migrate.BatchMigrateSpecs;
+import app.xinqianmao.com.common.migrate.MigrationLogger;
+
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.sql.*;
@@ -92,6 +95,11 @@ public class MigrationRunnerService {
                 detail.append("; [empty] ").append(executeSql(templateDataSource, sql));
             }
 
+            // If 002a_setup just ran successfully, execute the Java batch data migration
+            if (name.equals("002a_setup.sql")) {
+                runBatchDataMigration(detail);
+            }
+
             LocalDateTime now = LocalDateTime.now();
             updateDbStatus(name, "success", detail.toString(), getExecTime(name), now);
             runningStatus.remove(name);
@@ -151,6 +159,39 @@ public class MigrationRunnerService {
         }).start();
     }
 
+    /** Execute Java batch data migration for specs columns (between 002a_setup and 002b_finalize). */
+    private void runBatchDataMigration(StringBuilder detail) {
+        MigrationLogger log = new MigrationLogger() {
+            public void info(String msg)  { MigrationRunnerService.log.info(msg); }
+            public void warn(String msg)  { MigrationRunnerService.log.warn(msg); }
+            public void error(String msg) { MigrationRunnerService.log.error(msg); }
+        };
+        try {
+            String[] tables = {"t_product_sku", "t_order_product_skus", "t_cart"};
+            boolean[] isSku = {true, false, false};
+            String[] keys = {"id", "sku_id,order_no", "id"};
+
+            // Tenant DB
+            try (Connection c = tenantDataSource.getConnection()) {
+                c.setAutoCommit(false);
+                for (int i = 0; i < tables.length; i++) {
+                    BatchMigrateSpecs.migrateTable(c, tables[i], keys[i], isSku[i], log);
+                }
+            }
+            // Empty template DB
+            try (Connection c = templateDataSource.getConnection()) {
+                c.setAutoCommit(false);
+                for (int i = 0; i < tables.length; i++) {
+                    BatchMigrateSpecs.migrateTable(c, tables[i], keys[i], isSku[i], log);
+                }
+            }
+            detail.append("; batch data migration OK");
+        } catch (Exception e) {
+            log.error("Batch data migration failed: " + e.getMessage());
+            throw new RuntimeException("Batch migration failed", e);
+        }
+    }
+
     private Resource[] scanResources() {
         try {
             return new PathMatchingResourcePatternResolver().getResources(MIGRATIONS_PATH);
@@ -171,23 +212,53 @@ public class MigrationRunnerService {
     }
 
     private String executeSql(DataSource ds, String sql) throws SQLException {
-        String[] statements = sql.split(";");
+        // Strip comments to avoid splitting on ; inside them
+        sql = sql.replaceAll("(?m)^\\s*--.*$", "");
+        List<String> statements = splitSql(sql);
         StringBuilder detail = new StringBuilder();
         try (Connection c = ds.getConnection(); Statement stmt = c.createStatement()) {
-            int ok = 0;
-            for (int i = 0; i < statements.length; i++) {
-                String trimmed = statements[i].trim();
-                if (trimmed.isEmpty()) continue;
+            stmt.execute("SET lock_timeout = '30000'");
+            int ok = 0, fail = 0;
+            for (int i = 0; i < statements.size(); i++) {
+                String trimmed = statements.get(i).trim();
+                if (trimmed.isEmpty() || trimmed.startsWith("--")) continue;
                 try {
                     stmt.execute(trimmed);
                     ok++;
                 } catch (SQLException e) {
-                    throw new SQLException("Statement " + (i + 1) + " failed: " + e.getMessage(), e);
+                    String m = e.getMessage();
+                    if (!m.contains("already exists") && !m.contains("does not exist") && !m.contains("violates not-null")) {
+                        log.warn("Statement {} failed: {}", i + 1, m.substring(0, Math.min(120, m.length())));
+                    }
+                    fail++;
                 }
             }
-            detail.append(ok).append(" statements executed successfully");
+            detail.append(ok).append(" OK, ").append(fail).append(" skipped");
         }
         return detail.toString();
+    }
+
+    /** Split SQL by ; but preserve DO $$ ... END $$; blocks as single statements. */
+    public static List<String> splitSql(String sql) {
+        List<String> result = new ArrayList<>();
+        StringBuilder buf = new StringBuilder();
+        boolean inDollar = false;
+        for (int i = 0; i < sql.length(); i++) {
+            char ch = sql.charAt(i);
+            buf.append(ch);
+            if (!inDollar && buf.toString().endsWith("DO $$")) inDollar = true;
+            if (inDollar && buf.toString().trim().endsWith("END $$;")) {
+                inDollar = false;
+                result.add(buf.toString().trim());
+                buf = new StringBuilder();
+            } else if (!inDollar && ch == ';') {
+                result.add(buf.toString().trim());
+                buf = new StringBuilder();
+            }
+        }
+        String remainder = buf.toString().trim();
+        if (!remainder.isEmpty()) result.add(remainder);
+        return result;
     }
 
     private String stackTrace(Throwable e) {

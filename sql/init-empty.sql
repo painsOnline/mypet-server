@@ -34,7 +34,6 @@ CREATE TABLE IF NOT EXISTS t_product_specs (
     name VARCHAR(255) NOT NULL,
     type SMALLINT NOT NULL,
     input_type SMALLINT NOT NULL DEFAULT 1,
-    input_options VARCHAR(255)[] NOT NULL,
     "desc" VARCHAR(255),
     scope SMALLINT NOT NULL DEFAULT 2,
     sort INT NOT NULL DEFAULT 0,
@@ -43,6 +42,18 @@ CREATE TABLE IF NOT EXISTS t_product_specs (
 );
 CREATE INDEX IF NOT EXISTS idx_specs_scope ON t_product_specs(scope);
 CREATE INDEX IF NOT EXISTS idx_specs_type ON t_product_specs(type);
+
+-- 3a. Product Specs Value
+CREATE TABLE IF NOT EXISTS t_product_specs_value (
+    id CHAR(36) PRIMARY KEY,
+    specs_id CHAR(36) NOT NULL,
+    value_name VARCHAR(255) NOT NULL,
+    sort INT NOT NULL DEFAULT 0,
+    create_time TIMESTAMP NOT NULL DEFAULT now()::timestamp(0),
+    modify_time TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS idx_psv_specs_id ON t_product_specs_value(specs_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_psv_specsid_value ON t_product_specs_value(specs_id, value_name);
 
 -- 3b. Product Type <-> Specs Relation
 CREATE TABLE IF NOT EXISTS t_product_type_spec_rel (
@@ -100,7 +111,8 @@ CREATE TABLE IF NOT EXISTS t_product_properties (
     id CHAR(36) PRIMARY KEY,
     product_id CHAR(36) NOT NULL,
     specs_id CHAR(36) NOT NULL,
-    value_name VARCHAR(255) NOT NULL,
+    value_name VARCHAR(255),
+    value_id CHAR(36),
     sort INT NOT NULL DEFAULT 0,
     is_delete SMALLINT NOT NULL DEFAULT 0,
     create_time TIMESTAMP NOT NULL DEFAULT now()::timestamp(0),
@@ -109,6 +121,7 @@ CREATE TABLE IF NOT EXISTS t_product_properties (
 CREATE INDEX IF NOT EXISTS idx_properties_product_id ON t_product_properties(product_id);
 CREATE INDEX IF NOT EXISTS idx_properties_specs_id ON t_product_properties(specs_id);
 CREATE INDEX IF NOT EXISTS idx_properties_is_delete ON t_product_properties(is_delete);
+CREATE INDEX IF NOT EXISTS idx_properties_value_id ON t_product_properties(value_id);
 
 -- 7. Product SKU
 CREATE TABLE IF NOT EXISTS t_product_sku (
@@ -120,7 +133,7 @@ CREATE TABLE IF NOT EXISTS t_product_sku (
     inventory INT NOT NULL DEFAULT 0,
     barcode VARCHAR(255),
     picture VARCHAR(255) NOT NULL,
-    specs JSON NOT NULL DEFAULT '{}',
+    specs JSONB NOT NULL DEFAULT '[]'::jsonb,
     sort INT NOT NULL DEFAULT 0,
     is_delete SMALLINT NOT NULL DEFAULT 0,
     create_time TIMESTAMP NOT NULL DEFAULT now()::timestamp(0),
@@ -129,6 +142,8 @@ CREATE TABLE IF NOT EXISTS t_product_sku (
 CREATE INDEX IF NOT EXISTS idx_sku_product_id ON t_product_sku(product_id);
 CREATE INDEX IF NOT EXISTS idx_sku_barcode ON t_product_sku(barcode);
 CREATE INDEX IF NOT EXISTS idx_sku_is_delete ON t_product_sku(is_delete);
+CREATE INDEX IF NOT EXISTS idx_sku_specs_spec_id ON t_product_sku USING GIN ((specs->'spec_id'));
+CREATE INDEX IF NOT EXISTS idx_sku_specs_value_id ON t_product_sku USING GIN ((specs->'value_id'));
 
 -- 8. Inventory Log
 CREATE TABLE IF NOT EXISTS t_inventory_log (
@@ -211,7 +226,7 @@ CREATE TABLE IF NOT EXISTS t_order_product_skus (
     profit_money NUMERIC(8,2) NOT NULL,
     count INT NOT NULL DEFAULT 0,
     picture VARCHAR(255) NOT NULL,
-    specs JSON NOT NULL DEFAULT '{}',
+    specs JSONB NOT NULL DEFAULT '[]'::jsonb,
     sort INT NOT NULL DEFAULT 0,
     create_time TIMESTAMP NOT NULL DEFAULT now()::timestamp(0),
     modify_time TIMESTAMP
@@ -219,6 +234,8 @@ CREATE TABLE IF NOT EXISTS t_order_product_skus (
 CREATE INDEX IF NOT EXISTS idx_opskus_order_no ON t_order_product_skus(order_no);
 CREATE INDEX IF NOT EXISTS idx_opskus_product_id ON t_order_product_skus(product_id);
 CREATE INDEX IF NOT EXISTS idx_opskus_sku_id ON t_order_product_skus(sku_id);
+CREATE INDEX IF NOT EXISTS idx_ops_specs_spec_id ON t_order_product_skus USING GIN ((specs->'spec_id'));
+CREATE INDEX IF NOT EXISTS idx_ops_specs_value_id ON t_order_product_skus USING GIN ((specs->'value_id'));
 
 -- 12. Order Product Properties
 CREATE TABLE IF NOT EXISTS t_order_product_properties (
@@ -226,7 +243,8 @@ CREATE TABLE IF NOT EXISTS t_order_product_properties (
     property_id CHAR(36) NOT NULL,
     product_id CHAR(36) NOT NULL,
     name VARCHAR(255) NOT NULL,
-    value_name VARCHAR(255) NOT NULL,
+    value_name VARCHAR(255),
+    value_id CHAR(36),
     sort INT NOT NULL DEFAULT 0,
     create_time TIMESTAMP NOT NULL DEFAULT now()::timestamp(0),
     modify_time TIMESTAMP
@@ -234,6 +252,7 @@ CREATE TABLE IF NOT EXISTS t_order_product_properties (
 CREATE INDEX IF NOT EXISTS idx_opp_order_no ON t_order_product_properties(order_no);
 CREATE INDEX IF NOT EXISTS idx_opp_property_id ON t_order_product_properties(property_id);
 CREATE INDEX IF NOT EXISTS idx_opp_product_id ON t_order_product_properties(product_id);
+CREATE INDEX IF NOT EXISTS idx_opp_value_id ON t_order_product_properties(value_id);
 
 -- 13. Order Receiver
 CREATE TABLE IF NOT EXISTS t_order_receiver (
@@ -284,11 +303,10 @@ CREATE TABLE IF NOT EXISTS t_cart (
     id CHAR(36) PRIMARY KEY,
     member_id CHAR(36) NOT NULL,
     sku_id CHAR(36) NOT NULL,
+    product_id CHAR(36),
     name VARCHAR(255) NOT NULL,
-    specs JSON NOT NULL,
+    specs JSONB NOT NULL DEFAULT '[]'::jsonb,
     count INT NOT NULL DEFAULT 1,
-    price NUMERIC(8,2) NOT NULL,
-    now_price NUMERIC(8,2) NOT NULL,
     picture VARCHAR(255) NOT NULL,
     selected SMALLINT NOT NULL DEFAULT 1,
     create_time TIMESTAMP NOT NULL DEFAULT now()::timestamp(0),
@@ -296,6 +314,8 @@ CREATE TABLE IF NOT EXISTS t_cart (
 );
 CREATE INDEX IF NOT EXISTS idx_cart_member_id ON t_cart(member_id);
 CREATE INDEX IF NOT EXISTS idx_cart_sku_id ON t_cart(sku_id);
+CREATE INDEX IF NOT EXISTS idx_cart_specs_spec_id ON t_cart USING GIN ((specs->'spec_id'));
+CREATE INDEX IF NOT EXISTS idx_cart_specs_value_id ON t_cart USING GIN ((specs->'value_id'));
 
 -- 17. Shop Config
 CREATE TABLE IF NOT EXISTS t_shop (
