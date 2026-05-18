@@ -63,6 +63,18 @@ FROM t_product_specs_value psv
 WHERE pp.specs_id = psv.specs_id AND pp.value_name = psv.value_name
   AND pp.value_id IS NULL AND pp.value_name IS NOT NULL AND pp.value_name != '';
 
+-- Fallback: 对于 input_type=1 的规格，若精确 value_name 匹配失败，
+-- 取其第一个可用 value_id（这是之前设计缺陷导致 value_name 不一致的补偿）
+UPDATE t_product_properties pp SET value_id = sub.first_val_id
+FROM (
+    SELECT DISTINCT ON (psv.specs_id) psv.specs_id, psv.id AS first_val_id
+    FROM t_product_specs_value psv
+    JOIN t_product_specs ps ON ps.id = psv.specs_id
+    WHERE ps.input_type = 1
+    ORDER BY psv.specs_id, psv.sort
+) sub
+WHERE pp.specs_id = sub.specs_id AND pp.value_id IS NULL;
+
 -- STEP 4: 属性表修正 value_name 逻辑（仅唯一值规格保留）
 ALTER TABLE t_product_properties ALTER COLUMN value_name DROP NOT NULL;
 ALTER TABLE t_order_product_properties ALTER COLUMN value_name DROP NOT NULL;

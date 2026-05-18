@@ -29,6 +29,8 @@ F:\MyWorkspace\project\mypet\java\mypet-server\common\src\main\java\app\xinqianm
 F:\MyWorkspace\project\mypet\java\mypet-server\common\src\main\java\app\xinqianmao\com\common\FixImageUrls.java
 F:\MyWorkspace\project\mypet\java\mypet-server\common\src\main\java\app\xinqianmao\com\common\MemberSeeder.java
 F:\MyWorkspace\project\mypet\java\mypet-server\common\src\main\java\app\xinqianmao\com\common\migrate\BatchMigrateSpecs.java
+F:\MyWorkspace\project\mypet\java\mypet-server\common\src\main\java\app\xinqianmao\com\common\migrate\CheckDataIssue.java
+F:\MyWorkspace\project\mypet\java\mypet-server\common\src\main\java\app\xinqianmao\com\common\migrate\CheckUnmatched.java
 F:\MyWorkspace\project\mypet\java\mypet-server\common\src\main\java\app\xinqianmao\com\common\migrate\ConsoleLogger.java
 F:\MyWorkspace\project\mypet\java\mypet-server\common\src\main\java\app\xinqianmao\com\common\migrate\MigrateConfig.java
 F:\MyWorkspace\project\mypet\java\mypet-server\common\src\main\java\app\xinqianmao\com\common\migrate\MigrationLogger.java

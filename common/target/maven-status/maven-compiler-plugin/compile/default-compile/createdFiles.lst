@@ -1,4 +1,5 @@
 app\xinqianmao\com\common\utils\RegionUtil.class
+app\xinqianmao\com\common\migrate\CheckDataIssue.class
 app\xinqianmao\com\common\result\PageResult.class
 app\xinqianmao\com\common\migrate\RunMigration.class
 app\xinqianmao\com\common\constant\GlobalConstants.class
@@ -7,6 +8,7 @@ app\xinqianmao\com\common\migrate\RestoreAndMigrate.class
 app\xinqianmao\com\common\web\AuthInterceptor.class
 app\xinqianmao\com\common\dao\DataSourceConfig.class
 app\xinqianmao\com\common\enums\OrderTypeEnum.class
+app\xinqianmao\com\common\migrate\CheckUnmatched.class
 app\xinqianmao\com\common\utils\UUIDUtil.class
 app\xinqianmao\com\common\utils\CryptoUtil.class
 app\xinqianmao\com\common\utils\PasswordUtil.class

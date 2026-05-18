@@ -5,37 +5,50 @@
 -- ============================================================
 
 -- STEP 7: 校验 + 换名（合并到同一 DO 块，校验失败不执行 DROP）
+-- 校验内容：1. 行数一致  2. 无空数组 []（说明有值未匹配上 t_product_specs_value）
 DO $$
-DECLARE old_cnt INT; new_cnt INT;
+DECLARE old_cnt INT; new_cnt INT; empty_cnt INT;
 BEGIN
     SELECT COUNT(*) INTO old_cnt FROM t_product_sku WHERE specs IS NOT NULL;
     SELECT COUNT(*) INTO new_cnt FROM t_product_sku WHERE specs_new IS NOT NULL;
+    SELECT COUNT(*) INTO empty_cnt FROM t_product_sku WHERE specs IS NOT NULL AND specs_new = '[]'::jsonb;
     IF old_cnt != new_cnt THEN
         RAISE EXCEPTION 't_product_sku: specs_new(%) != specs(%), abort', new_cnt, old_cnt;
+    END IF;
+    IF empty_cnt > 0 THEN
+        RAISE EXCEPTION 't_product_sku: % rows have empty specs_new (values not in t_product_specs_value), abort', empty_cnt;
     END IF;
     ALTER TABLE t_product_sku DROP COLUMN specs;
     ALTER TABLE t_product_sku RENAME COLUMN specs_new TO specs;
 END $$;
 
 DO $$
-DECLARE old_cnt INT; new_cnt INT;
+DECLARE old_cnt INT; new_cnt INT; empty_cnt INT;
 BEGIN
     SELECT COUNT(*) INTO old_cnt FROM t_order_product_skus WHERE specs IS NOT NULL;
     SELECT COUNT(*) INTO new_cnt FROM t_order_product_skus WHERE specs_new IS NOT NULL;
+    SELECT COUNT(*) INTO empty_cnt FROM t_order_product_skus WHERE specs IS NOT NULL AND specs_new = '[]'::jsonb;
     IF old_cnt != new_cnt THEN
         RAISE EXCEPTION 't_order_product_skus: specs_new(%) != specs(%), abort', new_cnt, old_cnt;
+    END IF;
+    IF empty_cnt > 0 THEN
+        RAISE EXCEPTION 't_order_product_skus: % rows have empty specs_new, abort', empty_cnt;
     END IF;
     ALTER TABLE t_order_product_skus DROP COLUMN specs;
     ALTER TABLE t_order_product_skus RENAME COLUMN specs_new TO specs;
 END $$;
 
 DO $$
-DECLARE old_cnt INT; new_cnt INT;
+DECLARE old_cnt INT; new_cnt INT; empty_cnt INT;
 BEGIN
     SELECT COUNT(*) INTO old_cnt FROM t_cart WHERE specs IS NOT NULL;
     SELECT COUNT(*) INTO new_cnt FROM t_cart WHERE specs_new IS NOT NULL;
+    SELECT COUNT(*) INTO empty_cnt FROM t_cart WHERE specs IS NOT NULL AND specs_new = '[]'::jsonb;
     IF old_cnt != new_cnt THEN
         RAISE EXCEPTION 't_cart: specs_new(%) != specs(%), abort', new_cnt, old_cnt;
+    END IF;
+    IF empty_cnt > 0 THEN
+        RAISE EXCEPTION 't_cart: % rows have empty specs_new, abort', empty_cnt;
     END IF;
     ALTER TABLE t_cart DROP COLUMN specs;
     ALTER TABLE t_cart RENAME COLUMN specs_new TO specs;

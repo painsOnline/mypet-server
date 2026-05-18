@@ -4,9 +4,9 @@
  * Date: 2026-05-18
  *
  * Hybrid migration: Java batch processing for heavy specs data migration.
- * Preloads lookup maps, reads source rows in batches of 500,
- * converts old JSON format to new format in Java memory,
- * UPDATEs in small transactions. Resumable (WHERE specs_new IS NULL).
+ * Preloads lookup maps scoped by product_type (via t_product_type_spec_rel),
+ * reads source rows in batches of 500, converts old JSON format to new format
+ * in Java memory, UPDATEs in small transactions. Resumable.
  */
 package app.xinqianmao.com.common.migrate;
 
@@ -18,35 +18,52 @@ public final class BatchMigrateSpecs {
 
     /**
      * Migrate specs JSON data for one table.
-     * @param c            database connection (autoCommit=false)
-     * @param table        table name (t_product_sku, t_order_product_skus, t_cart)
-     * @param keyColumns   comma-separated PK columns for WHERE clause
-     * @param isProductSku true if t_product_sku (value_name only for input_type=1)
      */
     public static void migrateTable(Connection c, String table, String keyColumns,
                                      boolean isProductSku, MigrationLogger log) throws Exception {
         log.info("  " + table + ": loading lookup maps...");
 
-        // Preload specs: name -> id, id -> input_type
-        Map<String, String> specNameToId = new HashMap<>();
-        Map<String, Integer> specIdToInputType = new HashMap<>();
-        try (Statement s = c.createStatement();
-             ResultSet rs = s.executeQuery("SELECT id, name, input_type FROM t_product_specs")) {
-            while (rs.next()) {
-                specNameToId.put(rs.getString("name"), rs.getString("id"));
-                specIdToInputType.put(rs.getString("id"), rs.getInt("input_type"));
-            }
-        }
+        // ---- Global maps ----
+        // specId -> input_type
+        Map<String, Integer> specIdToInputType = new LinkedHashMap<>();
+        // "specs_id|value_name" -> value_id
+        Map<String, String> valueKeyToId = new LinkedHashMap<>();
+        // product_type -> (spec_name -> spec_id)
+        Map<String, Map<String, String>> productTypeSpecNames = new LinkedHashMap<>();
+        // product_id -> product_type
+        Map<String, String> productIdToType = new LinkedHashMap<>();
 
-        // Preload values: "specs_id|value_name" -> id
-        Map<String, String> valueKeyToId = new HashMap<>();
-        try (Statement s = c.createStatement();
-             ResultSet rs = s.executeQuery("SELECT id, specs_id, value_name FROM t_product_specs_value")) {
-            while (rs.next()) {
+        try (Statement s = c.createStatement()) {
+            // Load spec input types
+            ResultSet rs = s.executeQuery("SELECT id, input_type FROM t_product_specs");
+            while (rs.next()) specIdToInputType.put(rs.getString("id"), rs.getInt("input_type"));
+            rs.close();
+
+            // Load values
+            rs = s.executeQuery("SELECT id, specs_id, value_name FROM t_product_specs_value");
+            while (rs.next())
                 valueKeyToId.put(rs.getString("specs_id") + "|" + rs.getString("value_name"), rs.getString("id"));
+            rs.close();
+
+            // Load product_type -> spec_names mapping (via t_product_type_spec_rel)
+            rs = s.executeQuery(
+                "SELECT rel.product_type, ps.name, ps.id " +
+                "FROM t_product_type_spec_rel rel JOIN t_product_specs ps ON rel.specs_id = ps.id " +
+                "ORDER BY rel.product_type");
+            while (rs.next()) {
+                String pt = rs.getString("product_type");
+                productTypeSpecNames.computeIfAbsent(pt, k -> new LinkedHashMap<>())
+                    .put(rs.getString("name"), rs.getString("id"));
             }
+            rs.close();
+
+            // Load product_id -> product_type
+            rs = s.executeQuery("SELECT id, product_type FROM t_product");
+            while (rs.next()) productIdToType.put(rs.getString("id"), rs.getString("product_type"));
+            rs.close();
         }
-        log.info("  " + table + ": " + specNameToId.size() + " specs, " + valueKeyToId.size() + " values loaded");
+        log.info("  " + table + ": " + specIdToInputType.size() + " specs, " + valueKeyToId.size()
+            + " values, " + productTypeSpecNames.size() + " product types, " + productIdToType.size() + " products");
 
         // Ensure specs_new column exists
         try (Statement s = c.createStatement()) {
@@ -64,25 +81,51 @@ public final class BatchMigrateSpecs {
         log.info("  " + table + ": " + total + " rows to migrate...");
 
         String[] keys = keyColumns.split(",");
+        // Check if table has product_id column
+        boolean hasProductId = true;
+        try (Statement s = c.createStatement();
+             ResultSet rs = s.executeQuery(
+                 "SELECT column_name FROM information_schema.columns " +
+                 "WHERE table_name='" + table + "' AND column_name='product_id'")) {
+            hasProductId = rs.next();
+        }
+
         int processed = 0, skipped = 0, warnCount = 0;
         long start = System.currentTimeMillis();
 
+        String selectCols = keyColumns + ", specs" + (hasProductId ? ", product_id" : "");
         while (true) {
             List<Object[]> batch = new ArrayList<>();
             try (Statement s = c.createStatement();
                  ResultSet rs = s.executeQuery(
-                     "SELECT " + keyColumns + ", specs FROM " + table +
+                     "SELECT " + selectCols + " FROM " + table +
                      " WHERE specs IS NOT NULL AND specs_new IS NULL LIMIT " + BATCH)) {
+                int colCount = rs.getMetaData().getColumnCount();
                 while (rs.next()) {
-                    Object[] row = new Object[keys.length + 2];
+                    Object[] row = new Object[keys.length + 3]; // keys + oldJson + newJson + productType
                     for (int i = 0; i < keys.length; i++) row[i] = rs.getString(i + 1);
-                    String oldJson = rs.getString("specs");
-                    String newJson = convertSpecs(oldJson, specNameToId, valueKeyToId, specIdToInputType, isProductSku, log, warnCount);
-                    if (newJson == null && warnCount < 10) warnCount++;
+                    String oldJson = rs.getString(keys.length + 1);
                     row[keys.length] = oldJson;
-                    // If conversion returns null (all elements unmatched), store empty array
-                    // to mark row as processed. Validation step will catch the mismatch.
+
+                    // Determine product_type for this row
+                    String productType = null;
+                    if (hasProductId && colCount >= keys.length + 2) {
+                        String productId = rs.getString(keys.length + 2);
+                        if (productId != null) productType = productIdToType.get(productId);
+                    }
+
+                    // Get scoped lookup map for this product_type
+                    Map<String, String> scopedSpecNames = (productType != null)
+                        ? productTypeSpecNames.get(productType)
+                        : null;
+                    // Fallback: if no product_type match, use empty map (will skip all)
+                    if (scopedSpecNames == null) scopedSpecNames = Collections.emptyMap();
+
+                    String newJson = convertSpecs(oldJson, scopedSpecNames, valueKeyToId,
+                        specIdToInputType, isProductSku, log, warnCount);
+                    if (newJson == null && warnCount < 10) warnCount++;
                     row[keys.length + 1] = newJson != null ? newJson : "[]";
+                    row[keys.length + 2] = productType;
                     batch.add(row);
                 }
             }
@@ -120,10 +163,9 @@ public final class BatchMigrateSpecs {
         return sb.toString();
     }
 
-    /** Convert old-format specs JSON string to new-format JSON string.
-     * @return new JSON string, or null if ALL elements had unmatched specs (caller marks row as []). */
+    /** Convert old-format specs JSON to new format, using product_type-scoped spec lookup. */
     static String convertSpecs(String specsJson,
-                               Map<String, String> specNameToId,
+                               Map<String, String> scopedSpecNames,
                                Map<String, String> valueKeyToId,
                                Map<String, Integer> specIdToInputType,
                                boolean isProductSku,
@@ -141,17 +183,15 @@ public final class BatchMigrateSpecs {
                 if (specValue == null) specValue = "";
 
                 String specId = elem.get("spec_id");
-                if (specId == null || specId.isEmpty()) specId = specNameToId.get(specName);
+                if (specId == null || specId.isEmpty()) specId = scopedSpecNames.get(specName);
                 if (specId == null || specId.isEmpty()) {
-                    if (warnCount < 10) log.warn("spec_name='" + specName + "' not found in t_product_specs");
+                    if (warnCount < 10) log.warn("spec_name='" + specName + "' not found for this product_type");
                     continue;
                 }
 
                 String valueId = elem.get("value_id");
                 if (valueId == null || valueId.isEmpty()) valueId = valueKeyToId.get(specId + "|" + specValue);
                 if (valueId == null || valueId.isEmpty()) {
-                    // input_type=1 specs: user-inputted values not in input_options
-                    // Fall back to the first available value_id for this spec
                     Integer it = specIdToInputType.get(specId);
                     if (it != null && it == 1) {
                         String prefix = specId + "|";
