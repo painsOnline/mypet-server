@@ -35,13 +35,27 @@ public final class RunMigration {
             List<String> bizDbs = new ArrayList<>();
             bizDbs.add("mypet_empty");
             try (Connection c = DriverManager.getConnection(
-                    MigrateConfig.URL_PREFIX + MigrateConfig.CONFIG_DB,
+                    MigrateConfig.url(MigrateConfig.CONFIG_DB),
                     MigrateConfig.USER, MigrateConfig.PASSWORD);
                  Statement st = c.createStatement();
                  ResultSet rs = st.executeQuery(MigrateConfig.TENANT_QUERY)) {
                 while (rs.next()) bizDbs.add("mypet_" + rs.getString("code"));
             }
             log.info("Business DBs: " + bizDbs);
+
+            // Phase 0: UUID normalization (32-char → 36-char) on all databases
+            log.info("=== PHASE 0: UUID Normalization ===");
+            List<String> allDbs = new ArrayList<>();
+            allDbs.add(MigrateConfig.CONFIG_DB);
+            allDbs.addAll(bizDbs);
+            for (String db : allDbs) {
+                log.info("--- " + db + " ---");
+                try (Connection c = DriverManager.getConnection(
+                        MigrateConfig.url(db),
+                        MigrateConfig.USER, MigrateConfig.PASSWORD)) {
+                    UuidNormalizer.normalize(c, log);
+                }
+            }
 
             // Phase 1: SQL setup
             log.info("=== PHASE 1: SQL Setup ===");
@@ -53,7 +67,7 @@ public final class RunMigration {
             for (String db : bizDbs) {
                 log.info("--- " + db + " ---");
                 try (Connection c = DriverManager.getConnection(
-                        MigrateConfig.URL_PREFIX + db,
+                        MigrateConfig.url(db),
                         MigrateConfig.USER, MigrateConfig.PASSWORD)) {
                     c.setAutoCommit(false);
                     BatchMigrateSpecs.migrateTable(c, "t_product_sku", "id", true, log);
@@ -89,7 +103,7 @@ public final class RunMigration {
         log.info("RUN " + file + " on " + db + " (" + (sql.length() / 1024) + "KB)");
 
         try (Connection c = DriverManager.getConnection(
-                MigrateConfig.URL_PREFIX + db, MigrateConfig.USER, MigrateConfig.PASSWORD);
+                MigrateConfig.url(db), MigrateConfig.USER, MigrateConfig.PASSWORD);
              Statement st = c.createStatement()) {
             st.execute("SET lock_timeout = '30000'");
             st.execute("SET statement_timeout = '0'");

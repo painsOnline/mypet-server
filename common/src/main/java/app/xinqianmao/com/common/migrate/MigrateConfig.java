@@ -12,6 +12,8 @@ public final class MigrateConfig {
     private MigrateConfig() {}
 
     public static final String URL_PREFIX = "jdbc:postgresql://127.0.0.1:1800/";
+    /** Append to DB name for stringtype=unspecified (uuid compatibility) */
+    public static String url(String db) { return URL_PREFIX + db + "?stringtype=unspecified"; }
     public static final String CONFIG_DB = "mypet_config";
     public static final String USER = "postgres";
     public static final String PASSWORD = "mypg123abc";

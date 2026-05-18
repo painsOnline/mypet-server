@@ -188,7 +188,7 @@ public class TenantDataSourceManager {
      */
     private DruidDataSource createDataSource(String dbName, String dbPassword) {
         DruidDataSource ds = new DruidDataSource();
-        ds.setUrl("jdbc:postgresql://" + host + ":" + port + "/" + dbName);
+        ds.setUrl("jdbc:postgresql://" + host + ":" + port + "/" + dbName + "?stringtype=unspecified");
         ds.setUsername(user);
         ds.setPassword(dbPassword);
         ds.setDriverClassName("org.postgresql.Driver");

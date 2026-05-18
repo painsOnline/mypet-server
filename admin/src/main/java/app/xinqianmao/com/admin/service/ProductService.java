@@ -187,12 +187,28 @@ public class ProductService {
                 specsList.forEach(s -> specsNameMap.put(s.getId(), s.getName()));
             }
         }
+        // Load value_id -> value_name map for non-unique specs
+        Set<String> valueIds = props.stream().map(ProductProperty::getValueId)
+            .filter(v -> v != null && !v.isBlank()).collect(Collectors.toSet());
+        Map<String, String> valueIdToName = new HashMap<>();
+        if (!valueIds.isEmpty()) {
+            List<ProductSpecsValue> svs = specsValueMapper.selectList(
+                new LambdaQueryWrapper<ProductSpecsValue>().in(ProductSpecsValue::getId, valueIds));
+            svs.forEach(sv -> valueIdToName.put(sv.getId(), sv.getValueName()));
+        }
+
         r.setProperties(props.stream().map(prop -> {
             ProductDetailResponse.PropertyItem pi = new ProductDetailResponse.PropertyItem();
             pi.setId(prop.getId());
             pi.setSpecsId(prop.getSpecsId());
             pi.setName(specsNameMap.getOrDefault(prop.getSpecsId(), ""));
-            pi.setValueName(prop.getValueName());
+            pi.setValueId(prop.getValueId());
+            // valueName: unique specs store it directly, non-unique look up from specs_value
+            String vn = prop.getValueName();
+            if ((vn == null || vn.isBlank()) && prop.getValueId() != null) {
+                vn = valueIdToName.getOrDefault(prop.getValueId(), "");
+            }
+            pi.setValueName(vn);
             return pi;
         }).collect(Collectors.toList()));
 

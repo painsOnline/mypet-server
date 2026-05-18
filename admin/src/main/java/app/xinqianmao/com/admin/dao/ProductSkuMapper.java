@@ -25,7 +25,7 @@ public interface ProductSkuMapper extends TenantBaseMapper<ProductSku> {
             "COALESCE(elem ->> 'value_name', elem ->> 'valueName') AS valueName " +
             "FROM t_product_sku sku " +
             "JOIN t_product p ON p.id = sku.product_id " +
-            "CROSS JOIN jsonb_array_elements(sku.specs) AS elem " +
+            "CROSS JOIN jsonb_array_elements(sku.specs::jsonb) AS elem " +
             "WHERE p.product_type = #{typeId} AND sku.is_delete = 0")
     List<Map<String, Object>> findUsedSpecValuesByType(@Param("typeId") String typeId);
 }

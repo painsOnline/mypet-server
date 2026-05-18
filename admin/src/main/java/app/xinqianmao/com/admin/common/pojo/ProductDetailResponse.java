@@ -44,6 +44,7 @@ public class ProductDetailResponse {
         private String specsId;
         private String name;
         private String valueName;
+        private String valueId;
     }
 
     @Data

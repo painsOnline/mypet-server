@@ -63,7 +63,7 @@ CREATE INDEX IF NOT EXISTS idx_cart_specs_spec_id ON t_cart USING GIN ((specs->'
 CREATE INDEX IF NOT EXISTS idx_cart_specs_value_id ON t_cart USING GIN ((specs->'value_id'));
 
 -- STEP 9-11: 订单属性表 value_id 迁移 + value_name 修正
-ALTER TABLE t_order_product_properties ADD COLUMN IF NOT EXISTS value_id CHAR(36);
+ALTER TABLE t_order_product_properties ADD COLUMN IF NOT EXISTS value_id uuid;
 CREATE INDEX IF NOT EXISTS idx_opp_value_id ON t_order_product_properties(value_id);
 
 UPDATE t_order_product_properties opp SET value_id = psv.id
@@ -71,9 +71,22 @@ FROM t_product_specs_value psv JOIN t_product_specs ps ON psv.specs_id = ps.id
 WHERE ps.name = opp.name AND psv.value_name = opp.value_name
   AND opp.value_id IS NULL AND opp.value_name IS NOT NULL AND opp.value_name != '';
 
+-- Fallback: 精确匹配失败时取该规格第一个可用 value_id（按属性名匹配规格名）
+UPDATE t_order_product_properties opp SET value_id = sub.first_val_id
+FROM (
+    SELECT DISTINCT ON (psv.specs_id) ps.name AS spec_name, psv.id AS first_val_id
+    FROM t_product_specs_value psv JOIN t_product_specs ps ON ps.id = psv.specs_id
+    ORDER BY psv.specs_id, psv.sort
+) sub
+WHERE opp.name = sub.spec_name AND opp.value_id IS NULL;
+
+-- Set NOT NULL after data is populated
+ALTER TABLE t_order_product_properties ALTER COLUMN value_id SET NOT NULL;
+
 UPDATE t_order_product_properties opp SET value_name = NULL
 FROM t_product_specs ps
-WHERE ps.name = opp.name AND ps.input_type IS DISTINCT FROM 1 AND opp.value_name IS NOT NULL;
+WHERE ps.name = opp.name AND ps.input_type IS DISTINCT FROM 1
+  AND opp.value_name IS NOT NULL AND opp.value_id IS NOT NULL;
 
 -- STEP 12: 删除废弃字段
 DO $$
