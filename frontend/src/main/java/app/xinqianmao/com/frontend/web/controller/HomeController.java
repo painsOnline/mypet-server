@@ -146,10 +146,23 @@ public class HomeController {
                         .eq(ProductProperty::getIsDelete, 0));
         // Resolve spec names from specsId
         Map<String, String> specsNameMap = loadSpecsNameMap(props);
+        Map<String, String> valueIdToName = new HashMap<>();
+        java.util.Set<String> vids = props.stream().map(ProductProperty::getValueId)
+            .filter(v -> v != null && !v.isBlank()).collect(Collectors.toSet());
+        if (!vids.isEmpty()) {
+            specsValueMapper.selectList(new LambdaQueryWrapper<ProductSpecsValue>().in(ProductSpecsValue::getId, vids))
+                .forEach(sv -> valueIdToName.put(sv.getId(), sv.getValueName()));
+        }
         details.setProperties(props.stream().map(prop -> {
             GoodsDetailResponse.PropertyItem pi = new GoodsDetailResponse.PropertyItem();
-            pi.setName(specsNameMap.getOrDefault(prop.getSpecsId(), ""));
-            pi.setValue(prop.getValueName());
+            pi.setSpecId(prop.getSpecsId());
+            pi.setSpecName(specsNameMap.getOrDefault(prop.getSpecsId(), ""));
+            pi.setValueId(prop.getValueId());
+            String vn = prop.getValueName();
+            if ((vn == null || vn.isBlank()) && prop.getValueId() != null) {
+                vn = valueIdToName.getOrDefault(prop.getValueId(), "");
+            }
+            pi.setValueName(vn);
             return pi;
         }).collect(Collectors.toList()));
         details.setPictures(new ArrayList<>());
@@ -172,7 +185,6 @@ public class HomeController {
             gs.setOldPrice(sku.getOldPrice());
             gs.setPicture(imageUrlUtil.fullUrl(sku.getPicture()));
             gs.setPrice(sku.getPrice());
-            gs.setSkuCode("S" + sku.getId().substring(0, 8));
             gs.setSpecs(parseSpecValues(sku.getSpecs(), specIdToName));
             return gs;
         }).collect(Collectors.toList()));

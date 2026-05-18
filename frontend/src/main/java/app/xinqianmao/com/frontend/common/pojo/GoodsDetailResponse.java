@@ -72,11 +72,17 @@ public class GoodsDetailResponse {
     @Schema(description = "商品属性")
     public static class PropertyItem {
 
-        @Schema(description = "属性名")
-        private String name;
+        @Schema(description = "值ID")
+        private String valueId;
 
-        @Schema(description = "属性值")
-        private String value;
+        @Schema(description = "规格值显示名")
+        private String valueName;
+
+        @Schema(description = "规格ID")
+        private String specId;
+
+        @Schema(description = "规格名称")
+        private String specName;
     }
 
     /**
@@ -100,9 +106,6 @@ public class GoodsDetailResponse {
 
         @Schema(description = "售价")
         private BigDecimal price;
-
-        @Schema(description = "SKU编码")
-        private String skuCode;
 
         @Schema(description = "规格值列表")
         private List<SpecValue> specs;

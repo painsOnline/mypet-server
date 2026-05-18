@@ -152,11 +152,26 @@ public class CategoryService {
                 .filter(s -> s.getId() != null && s.getName() != null)
                 .collect(Collectors.toMap(s -> s.getId(), ProductSpecs::getName, (a, b) -> a));
 
+        // Load value_id -> value_name map for non-unique specs
+        Map<String, String> valueIdToName = new HashMap<>();
+        java.util.Set<String> vids = properties.stream().map(ProductProperty::getValueId)
+            .filter(v -> v != null && !v.isBlank()).collect(Collectors.toSet());
+        if (!vids.isEmpty()) {
+            specsValueMapper.selectList(new LambdaQueryWrapper<ProductSpecsValue>().in(ProductSpecsValue::getId, vids))
+                .forEach(sv -> valueIdToName.put(sv.getId(), sv.getValueName()));
+        }
+
         GoodsDetailResponse.DetailInfo details = new GoodsDetailResponse.DetailInfo();
         details.setProperties(properties.stream().map(prop -> {
             GoodsDetailResponse.PropertyItem pi = new GoodsDetailResponse.PropertyItem();
-            pi.setName(specsNameMap.getOrDefault(prop.getSpecsId(), ""));
-            pi.setValue(prop.getValueName());
+            pi.setSpecId(prop.getSpecsId());
+            pi.setSpecName(specsNameMap.getOrDefault(prop.getSpecsId(), ""));
+            pi.setValueId(prop.getValueId());
+            String vn = prop.getValueName();
+            if ((vn == null || vn.isBlank()) && prop.getValueId() != null) {
+                vn = valueIdToName.getOrDefault(prop.getValueId(), "");
+            }
+            pi.setValueName(vn);
             return pi;
         }).collect(Collectors.toList()));
         details.setPictures(parseDetailPictures(product.getDetail()));
@@ -169,7 +184,6 @@ public class CategoryService {
             si.setOldPrice(sku.getOldPrice());
             si.setPicture(sku.getPicture());
             si.setPrice(sku.getPrice());
-            si.setSkuCode(sku.getId());
             si.setSpecs(parseSpecsJson(sku.getSpecs(), specsNameMap));
             return si;
         }).collect(Collectors.toList()));
