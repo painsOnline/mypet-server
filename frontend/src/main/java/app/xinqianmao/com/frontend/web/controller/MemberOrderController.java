@@ -401,7 +401,7 @@ public class MemberOrderController {
             ops.setOldPrice(sku.getOldPrice()); ops.setCostPrice(costPrice);
             ops.setProfitMoney(itemPay.subtract(itemCost)); ops.setCount(pi.getCount());
             ops.setPicture(sku.getPicture());
-            ops.setSpecs(sku.getSpecs() != null ? sku.getSpecs() : "[]");
+            ops.setSpecs(enrichOrderSpecs(sku.getSpecs()));
             ops.setCreateTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
             orderSkus.add(ops);
 
@@ -635,6 +635,25 @@ public class MemberOrderController {
         if (productId == null) return "";
         Product p = productMapper.selectById(productId);
         return p != null ? p.getName() : "";
+    }
+
+    /** Inject spec_name into order SKU specs (not stored in t_product_sku for dynamic lookup). */
+    private String enrichOrderSpecs(String specsJson) {
+        if (specsJson == null || specsJson.isBlank() || "[]".equals(specsJson)) return specsJson != null ? specsJson : "[]";
+        try {
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            List<Map<String, String>> list = mapper.readValue(specsJson, List.class);
+            for (Map<String, String> m : list) {
+                if (!m.containsKey("spec_name") || m.get("spec_name") == null) {
+                    String sid = m.get("spec_id");
+                    if (sid != null && !sid.isBlank()) {
+                        ProductSpecs ps = specsMapper.selectById(sid);
+                        if (ps != null) m.put("spec_name", ps.getName());
+                    }
+                }
+            }
+            return mapper.writeValueAsString(list);
+        } catch (Exception e) { return specsJson; }
     }
 
     private Order getOrderByOrderNo(String orderNo) {

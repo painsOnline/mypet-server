@@ -63,14 +63,16 @@ public class ProductDetailResponse {
     @Data
     @Schema(description = "规格组")
     public static class SpecItem {
-        private String name;
+        private String specId;
+        private String specName;
         private List<SpecValue> values;
     }
 
     @Data
     @Schema(description = "规格值")
     public static class SpecValue {
-        private String name;
+        private String specId;
+        private String valueId;
         private String valueName;
     }
 }

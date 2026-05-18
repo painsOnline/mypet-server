@@ -5,6 +5,7 @@
  */
 package app.xinqianmao.com.admin.common.pojo;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -27,7 +28,11 @@ public class SkuSaveRequest {
     @Data
     @Schema(description = "规格值")
     public static class SpecValueItem {
-        private String name;
+        @JsonProperty("spec_id")
+        private String specId;
+        @JsonProperty("value_id")
+        private String valueId;
+        @JsonProperty("value_name")
         private String valueName;
     }
 }

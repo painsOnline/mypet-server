@@ -43,9 +43,16 @@ public class ProductTypeService {
         List<ProductSpecsValue> vals = specsValueMapper.selectList(
                 new LambdaQueryWrapper<ProductSpecsValue>().in(ProductSpecsValue::getSpecsId, ids)
                         .orderByAsc(ProductSpecsValue::getSort));
-        Map<String, List<String>> map = new HashMap<>();
-        for (ProductSpecsValue v : vals) map.computeIfAbsent(v.getSpecsId(), k -> new ArrayList<>()).add(v.getValueName());
-        for (ProductSpecs s : specs) s.setInputOptions(map.getOrDefault(s.getId(), List.of()));
+        Map<String, List<String>> inputOptionsMap = new HashMap<>();
+        Map<String, List<ProductSpecsValue>> valuesListMap = new HashMap<>();
+        for (ProductSpecsValue v : vals) {
+            inputOptionsMap.computeIfAbsent(v.getSpecsId(), k -> new ArrayList<>()).add(v.getValueName());
+            valuesListMap.computeIfAbsent(v.getSpecsId(), k -> new ArrayList<>()).add(v);
+        }
+        for (ProductSpecs s : specs) {
+            s.setInputOptions(inputOptionsMap.getOrDefault(s.getId(), List.of()));
+            s.setValuesList(valuesListMap.getOrDefault(s.getId(), List.of()));
+        }
     }
 
     public List<TypeWithSpecsResponse> listAllWithSpecs() {

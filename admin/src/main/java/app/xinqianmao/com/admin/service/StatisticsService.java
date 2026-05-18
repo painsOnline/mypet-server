@@ -92,7 +92,8 @@ public class StatisticsService {
         List<ProductTopResponse.TopItem> items = new ArrayList<>();
         for (Map<String, Object> row : rows) {
             ProductTopResponse.TopItem item = new ProductTopResponse.TopItem();
-            item.setProductId((String) row.get("product_id"));
+            Object pid = row.get("product_id");
+            item.setProductId(pid != null ? pid.toString() : "");
             item.setProductName((String) row.get("product_name"));
             item.setTotalSales(((Number) row.get("total_sales")).longValue());
             items.add(item);

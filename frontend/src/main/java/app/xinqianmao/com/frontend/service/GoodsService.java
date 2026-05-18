@@ -197,30 +197,29 @@ public class GoodsService {
     }
 
     private List<GoodsDetailResponse.SpecItem> buildSpecItems(List<ProductSpecs> specDefs, List<ProductSku> skus) {
-        // Build specs for SKU selection UI directly from SKU specs JSON
+        Map<String, String> specIdToName = new HashMap<>();
+        for (ProductSpecs s : specDefs) if (s.getId() != null) specIdToName.put(s.getId(), s.getName());
         Map<String, GoodsDetailResponse.SpecItem> specMap = new LinkedHashMap<>();
         Map<String, Map<String, GoodsDetailResponse.SpecValue>> specValues = new LinkedHashMap<>();
-
         for (ProductSku sku : skus) {
-            List<GoodsDetailResponse.SpecValue> svList = parseSpecsJson(sku.getSpecs(), null);
+            List<GoodsDetailResponse.SpecValue> svList = parseSpecsJson(sku.getSpecs(), specIdToName);
             for (GoodsDetailResponse.SpecValue sv : svList) {
-                if (sv.getSpecId() == null || sv.getSpecName() == null) continue;
+                if (sv.getSpecId() == null) continue;
+                final String sn = specIdToName.getOrDefault(sv.getSpecId(),
+                    sv.getSpecName() != null ? sv.getSpecName() : "");
                 specMap.computeIfAbsent(sv.getSpecId(), k -> {
                     GoodsDetailResponse.SpecItem si = new GoodsDetailResponse.SpecItem();
                     si.setSpecId(sv.getSpecId());
-                    si.setSpecName(sv.getSpecName());
+                    si.setSpecName(sn);
                     return si;
                 });
-                Map<String, GoodsDetailResponse.SpecValue> vals = specValues.computeIfAbsent(
-                    sv.getSpecName(), k -> new LinkedHashMap<>());
+                Map<String, GoodsDetailResponse.SpecValue> vals = specValues.computeIfAbsent(sn, k -> new LinkedHashMap<>());
                 sv.setAvailable(true);
                 vals.putIfAbsent(sv.getValueName(), sv);
             }
         }
-
-        return specMap.values().stream().map(si -> {
-            si.setValues(new ArrayList<>(specValues.getOrDefault(si.getSpecName(), Map.of()).values()));
-            return si;
-        }).collect(Collectors.toList());
+        return new ArrayList<>(specMap.values().stream().peek(si ->
+            si.setValues(new ArrayList<>(specValues.getOrDefault(si.getSpecName(), Map.of()).values()))
+        ).toList());
     }
 }

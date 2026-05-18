@@ -61,15 +61,19 @@ public class CartItemResponse {
     @Schema(description = "购物车规格项")
     public static class SpecItem {
 
+        @com.fasterxml.jackson.annotation.JsonProperty("value_id")
         @Schema(description = "值ID")
         private String valueId;
 
+        @com.fasterxml.jackson.annotation.JsonProperty("value_name")
         @Schema(description = "值名称")
         private String valueName;
 
+        @com.fasterxml.jackson.annotation.JsonProperty("spec_id")
         @Schema(description = "规格ID")
         private String specId;
 
+        @com.fasterxml.jackson.annotation.JsonProperty("spec_name")
         @Schema(description = "规格名称")
         private String specName;
     }

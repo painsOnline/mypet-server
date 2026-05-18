@@ -292,11 +292,18 @@ public class ProductService {
                 ProductSpecs spec = findSpecByName(pi.getName(), product.getProductType());
                 boolean isUnique = spec != null && spec.getInputType() != null && spec.getInputType() == 1;
                 String val = pi.getValueName();
-                if (val != null && !val.isBlank()) {
-                    if (isUnique) prop.setValueName(val);
-                    Map<String, String> nameToId = specsValueMap.getOrDefault(specsId, Map.of());
-                    prop.setValueId(nameToId.get(val));
+                if (isUnique && val != null && !val.isBlank()) prop.setValueName(val);
+                Map<String, String> nameToId = specsValueMap.getOrDefault(specsId, Map.of());
+                if (nameToId.isEmpty()) throw new BizException("400", "规格 '" + pi.getName() + "' 尚未配置可选值");
+                String vid;
+                if (isUnique) {
+                    if (val == null || val.isBlank()) throw new BizException("400", "唯一值规格 '" + pi.getName() + "' 必须填写属性值");
+                    vid = nameToId.values().iterator().next();
+                } else {
+                    vid = nameToId.get(val != null ? val : "");
+                    if (vid == null) throw new BizException("400", "属性值 '" + val + "' 在规格 '" + pi.getName() + "' 中不存在");
                 }
+                prop.setValueId(vid);
                 prop.setSort(0);
                 prop.setCreateTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
                 propertyMapper.insert(prop);
@@ -313,6 +320,9 @@ public class ProductService {
                 .filter(b -> !b.isEmpty()).collect(Collectors.toList());
         checkBarcodeUnique(barcodes, null);
 
+        // Pre-load spec definitions for SKU specs validation (specsValueMap already loaded above)
+        Map<String, ProductSpecs> specDefMap = loadSpecDefsForType(product.getProductType());
+
         com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
         for (ProductSaveRequest.SkuItem si : req.getSkus()) {
                 ProductSku sku = new ProductSku();
@@ -324,11 +334,7 @@ public class ProductService {
                 sku.setCostPrice(si.getCostPrice());
                 sku.setBarcode(si.getBarcode() != null ? si.getBarcode() : "");
                 sku.setPicture(imageDownloadService.downloadSingleImage(si.getPicture(), productId));
-                try {
-                    sku.setSpecs(mapper.writeValueAsString(si.getSpecs()));
-                } catch (Exception e) {
-                    sku.setSpecs("[]");
-                }
+                sku.setSpecs(buildSkuSpecsJson(si.getSpecs(), specDefMap, specsValueMap));
                 sku.setCreateTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
                 skuMapper.insert(sku);
                 writeInventoryLog(sku, null, "in", sku.getInventory(), 0, sku.getInventory());
@@ -399,11 +405,18 @@ public class ProductService {
                 ProductSpecs spec = findSpecByName(pi.getName(), product.getProductType());
                 boolean isUnique = spec != null && spec.getInputType() != null && spec.getInputType() == 1;
                 String val = pi.getValueName();
-                if (val != null && !val.isBlank()) {
-                    if (isUnique) prop.setValueName(val);
-                    Map<String, String> nameToId = specsValueMap.getOrDefault(specsId, Map.of());
-                    prop.setValueId(nameToId.get(val));
+                if (isUnique && val != null && !val.isBlank()) prop.setValueName(val);
+                Map<String, String> nameToId = specsValueMap.getOrDefault(specsId, Map.of());
+                if (nameToId.isEmpty()) throw new BizException("400", "规格 '" + pi.getName() + "' 尚未配置可选值");
+                String vid;
+                if (isUnique) {
+                    if (val == null || val.isBlank()) throw new BizException("400", "唯一值规格 '" + pi.getName() + "' 必须填写属性值");
+                    vid = nameToId.values().iterator().next();
+                } else {
+                    vid = nameToId.get(val != null ? val : "");
+                    if (vid == null) throw new BizException("400", "属性值 '" + val + "' 在规格 '" + pi.getName() + "' 中不存在");
                 }
+                prop.setValueId(vid);
                 prop.setSort(0);
                 prop.setCreateTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
                 propertyMapper.insert(prop);
@@ -432,6 +445,9 @@ public class ProductService {
                 .filter(b -> !b.isEmpty()).collect(Collectors.toList());
         checkBarcodeUnique(barcodes, productId);
 
+        // Pre-load spec definitions for SKU specs validation (specsValueMap already loaded above)
+        Map<String, ProductSpecs> specDefMap = loadSpecDefsForType(product.getProductType());
+
         com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
         for (ProductSaveRequest.SkuItem si : req.getSkus()) {
             ProductSku sku = new ProductSku();
@@ -443,11 +459,7 @@ public class ProductService {
             sku.setCostPrice(si.getCostPrice());
             sku.setBarcode(si.getBarcode() != null ? si.getBarcode() : "");
             sku.setPicture(imageDownloadService.downloadSingleImage(si.getPicture(), productId));
-            try {
-                sku.setSpecs(mapper.writeValueAsString(si.getSpecs()));
-            } catch (Exception e) {
-                sku.setSpecs("[]");
-            }
+            sku.setSpecs(buildSkuSpecsJson(si.getSpecs(), specDefMap, specsValueMap));
             sku.setCreateTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
             skuMapper.insert(sku);
 
@@ -560,9 +572,16 @@ public class ProductService {
         List<ProductSpecsValue> vals = specsValueMapper.selectList(
                 new LambdaQueryWrapper<ProductSpecsValue>().in(ProductSpecsValue::getSpecsId, ids)
                         .orderByAsc(ProductSpecsValue::getSort));
-        Map<String, List<String>> map = new HashMap<>();
-        for (ProductSpecsValue v : vals) map.computeIfAbsent(v.getSpecsId(), k -> new ArrayList<>()).add(v.getValueName());
-        for (ProductSpecs s : specs) s.setInputOptions(map.getOrDefault(s.getId(), List.of()));
+        Map<String, List<String>> inputOptionsMap = new HashMap<>();
+        Map<String, List<ProductSpecsValue>> valuesListMap = new HashMap<>();
+        for (ProductSpecsValue v : vals) {
+            inputOptionsMap.computeIfAbsent(v.getSpecsId(), k -> new ArrayList<>()).add(v.getValueName());
+            valuesListMap.computeIfAbsent(v.getSpecsId(), k -> new ArrayList<>()).add(v);
+        }
+        for (ProductSpecs s : specs) {
+            s.setInputOptions(inputOptionsMap.getOrDefault(s.getId(), List.of()));
+            s.setValuesList(valuesListMap.getOrDefault(s.getId(), List.of()));
+        }
     }
 
     private Map<String, String> buildSpecsNameMap(String productType) {
@@ -592,7 +611,8 @@ public class ProductService {
             List<Map<String, String>> list = mapper.readValue(specsJson, List.class);
             return list.stream().map(m -> {
                 ProductDetailResponse.SpecValue sv = new ProductDetailResponse.SpecValue();
-                sv.setName(m.containsKey("spec_name") ? m.get("spec_name") : m.get("name"));
+                sv.setSpecId(m.get("spec_id"));
+                sv.setValueId(m.get("value_id"));
                 sv.setValueName(m.containsKey("value_name") ? m.get("value_name") : m.get("valueName"));
                 return sv;
             }).collect(Collectors.toList());
@@ -602,26 +622,77 @@ public class ProductService {
     }
 
     private List<ProductDetailResponse.SpecItem> buildSpecItems(List<ProductSpecs> specDefs) {
-        // Group specs by name to build spec items
-        Map<String, List<String>> specValuesMap = new LinkedHashMap<>();
-        Map<String, Integer> specTypeMap = new LinkedHashMap<>();
-        for (ProductSpecs spec : specDefs) {
-            if (spec.getType() != null && spec.getType() == 1) { // SKU type only
-                specTypeMap.put(spec.getName(), spec.getType());
-                specValuesMap.computeIfAbsent(spec.getName(), k -> new ArrayList<>())
-                        .addAll(spec.getInputOptions() != null ? spec.getInputOptions() : List.of());
+        return specDefs.stream()
+            .filter(s -> s.getType() != null && s.getType() == 1)
+            .map(spec -> {
+                ProductDetailResponse.SpecItem si = new ProductDetailResponse.SpecItem();
+                si.setSpecId(spec.getId());
+                si.setSpecName(spec.getName());
+                List<ProductSpecsValue> vals = spec.getValuesList();
+                si.setValues((vals != null ? vals : List.<ProductSpecsValue>of()).stream().map(v -> {
+                    ProductDetailResponse.SpecValue sv = new ProductDetailResponse.SpecValue();
+                    sv.setSpecId(spec.getId());
+                    sv.setValueId(v.getId());
+                    sv.setValueName(v.getValueName());
+                    return sv;
+                }).collect(Collectors.toList()));
+                return si;
+            }).collect(Collectors.toList());
+    }
+
+    /**
+     * Build t_product_sku.specs JSON: [{spec_id, value_name?, value_id}].
+     * value_name only stored for unique specs (inputType=1). value_id never empty.
+     */
+    private String buildSkuSpecsJson(List<ProductSaveRequest.SkuItem.SpecValue> specs,
+                                     Map<String, ProductSpecs> specDefMap,
+                                     Map<String, Map<String, String>> specsValueMap) {
+        if (specs == null || specs.isEmpty()) return "[]";
+        com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+        List<Map<String, String>> result = new ArrayList<>();
+        for (ProductSaveRequest.SkuItem.SpecValue sv : specs) {
+            String specId = sv.getSpecId();
+            if (specId == null || specId.isBlank()) continue;
+            ProductSpecs specDef = specDefMap.get(specId);
+            if (specDef == null) throw new BizException("400", "规格ID '" + specId + "' 不存在");
+            boolean isUnique = specDef.getInputType() != null && specDef.getInputType() == 1;
+            Map<String, String> m = new LinkedHashMap<>();
+            m.put("spec_id", specId);
+            Map<String, String> nameToId = specsValueMap.getOrDefault(specId, Map.of());
+            if (nameToId.isEmpty()) throw new BizException("400", "规格 '" + specDef.getName() + "' 尚未配置可选值");
+            String vid;
+            if (isUnique) {
+                vid = nameToId.values().iterator().next();
+                String vn = sv.getValueName();
+                if (vn != null && !vn.isBlank()) m.put("value_name", vn);
+            } else {
+                String vn = sv.getValueName();
+                if (vn == null || vn.isBlank())
+                    throw new BizException("400", "规格 '" + specDef.getName() + "' 的规格值不能为空");
+                vid = nameToId.get(vn);
+                if (vid == null) throw new BizException("400", "规格值 '" + vn + "' 在规格 '" + specDef.getName() + "' 中不存在");
             }
+            m.put("value_id", vid);
+            result.add(m);
         }
-        return specValuesMap.entrySet().stream().map(entry -> {
-            ProductDetailResponse.SpecItem si = new ProductDetailResponse.SpecItem();
-            si.setName(entry.getKey());
-            si.setValues(entry.getValue().stream().map(v -> {
-                ProductDetailResponse.SpecValue sv = new ProductDetailResponse.SpecValue();
-                sv.setName(v);
-                sv.setValueName(v);
-                return sv;
-            }).collect(Collectors.toList()));
-            return si;
-        }).collect(Collectors.toList());
+        try {
+            return mapper.writeValueAsString(result);
+        } catch (Exception e) {
+            throw new BizException("500", "序列化SKU规格失败");
+        }
+    }
+
+    private Map<String, ProductSpecs> loadSpecDefsForType(String productType) {
+        Map<String, ProductSpecs> map = new HashMap<>();
+        List<ProductSpecs> globalSpecs = specsMapper.selectList(
+                new LambdaQueryWrapper<ProductSpecs>().eq(ProductSpecs::getScope, 0));
+        globalSpecs.forEach(s -> map.put(s.getId(), s));
+        List<ProductTypeSpecRel> rels = typeSpecRelMapper.selectList(
+                new LambdaQueryWrapper<ProductTypeSpecRel>().eq(ProductTypeSpecRel::getProductType, productType));
+        if (!rels.isEmpty()) {
+            List<String> ids = rels.stream().map(ProductTypeSpecRel::getSpecsId).collect(Collectors.toList());
+            specsMapper.selectBatchIds(ids).forEach(s -> map.putIfAbsent(s.getId(), s));
+        }
+        return map;
     }
 }

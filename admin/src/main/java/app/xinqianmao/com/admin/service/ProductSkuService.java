@@ -78,9 +78,9 @@ public class ProductSkuService {
                 ProductSpecs specDef = specDefs.get(i);
                 Map<String, String> m = new LinkedHashMap<>();
                 m.put("spec_id", specDef.getId());
-                m.put("spec_name", specDef.getName());
                 String val = combo.get(i);
-                m.put("value_name", val);
+                boolean isUnique = specDef.getInputType() != null && specDef.getInputType() == 1;
+                if (isUnique) m.put("value_name", val);
                 // Find value_id from spec values
                 String vid = "";
                 if (specDef.getValuesList() != null) {
@@ -88,6 +88,7 @@ public class ProductSkuService {
                         .filter(v -> val.equals(v.getValueName()))
                         .findFirst().map(ProductSpecsValue::getId).orElse("");
                 }
+                if (vid.isBlank()) throw new BizException("400", "规格 '" + specDef.getName() + "' 的值 '" + val + "' 未找到对应的value_id");
                 m.put("value_id", vid);
                 specsList.add(m);
             }
@@ -201,9 +202,16 @@ public class ProductSkuService {
             List<ProductSpecsValue> vals = specsValueMapper.selectList(
                     new LambdaQueryWrapper<ProductSpecsValue>().in(ProductSpecsValue::getSpecsId, specIds)
                             .orderByAsc(ProductSpecsValue::getSort));
-            Map<String, List<String>> map = new HashMap<>();
-            for (ProductSpecsValue v : vals) map.computeIfAbsent(v.getSpecsId(), k -> new ArrayList<>()).add(v.getValueName());
-            for (ProductSpecs s : all) s.setInputOptions(map.getOrDefault(s.getId(), List.of()));
+            Map<String, List<String>> inputOptionsMap = new HashMap<>();
+            Map<String, List<ProductSpecsValue>> valuesListMap = new HashMap<>();
+            for (ProductSpecsValue v : vals) {
+                inputOptionsMap.computeIfAbsent(v.getSpecsId(), k -> new ArrayList<>()).add(v.getValueName());
+                valuesListMap.computeIfAbsent(v.getSpecsId(), k -> new ArrayList<>()).add(v);
+            }
+            for (ProductSpecs s : all) {
+                s.setInputOptions(inputOptionsMap.getOrDefault(s.getId(), List.of()));
+                s.setValuesList(valuesListMap.getOrDefault(s.getId(), List.of()));
+            }
         }
         return all;
     }

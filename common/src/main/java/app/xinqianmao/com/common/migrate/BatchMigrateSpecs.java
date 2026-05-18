@@ -226,9 +226,12 @@ public final class BatchMigrateSpecs {
 
                 if (!first) sb.append(",");
                 first = false;
-                sb.append("{\"spec_id\":\"").append(escapeJson(specId))
-                  .append("\",\"spec_name\":\"").append(escapeJson(specName))
-                  .append("\",\"value_name\":\"").append(escapeJson(valueName))
+                sb.append("{\"spec_id\":\"").append(escapeJson(specId));
+                if (!isProductSku) {
+                    // t_order_product_skus/t_cart: snapshot spec_name for history
+                    sb.append("\",\"spec_name\":\"").append(escapeJson(specName));
+                }
+                sb.append("\",\"value_name\":\"").append(escapeJson(valueName))
                   .append("\",\"value_id\":\"").append(escapeJson(valueId))
                   .append("\"}");
             }

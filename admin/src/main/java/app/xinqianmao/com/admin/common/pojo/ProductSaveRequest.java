@@ -98,9 +98,14 @@ public class ProductSaveRequest {
         @Data
         @Schema(description = "规格值")
         public static class SpecValue {
-            @Schema(description = "规格名")
-            private String name;
-            @Schema(description = "规格值")
+            @com.fasterxml.jackson.annotation.JsonProperty("spec_id")
+            @Schema(description = "规格ID")
+            private String specId;
+            @com.fasterxml.jackson.annotation.JsonProperty("value_id")
+            @Schema(description = "规格值ID")
+            private String valueId;
+            @com.fasterxml.jackson.annotation.JsonProperty("value_name")
+            @Schema(description = "规格值名称")
             private String valueName;
         }
     }

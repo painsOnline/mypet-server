@@ -1,26 +1,8 @@
 -- ============================================================
--- 002a_setup: Steps 0-5 (DDL + light data migration)
+-- 002a_setup: Steps 1-5 (DDL + light data migration)
+-- Backup is handled by Phase 0 (UuidNormalizer).
 -- Idempotent. Run before BatchMigrateSpecs.
 -- ============================================================
-
--- STEP 0: 备份全部需要改动的表
-CREATE TABLE IF NOT EXISTS bak_t_product_specs_20260516 (LIKE t_product_specs INCLUDING ALL);
-INSERT INTO bak_t_product_specs_20260516 SELECT * FROM t_product_specs ON CONFLICT (id) DO NOTHING;
-
-CREATE TABLE IF NOT EXISTS bak_t_product_properties_20260516 (LIKE t_product_properties INCLUDING ALL);
-INSERT INTO bak_t_product_properties_20260516 SELECT * FROM t_product_properties ON CONFLICT (id) DO NOTHING;
-
-CREATE TABLE IF NOT EXISTS bak_t_product_sku_20260516 (LIKE t_product_sku INCLUDING ALL);
-INSERT INTO bak_t_product_sku_20260516 SELECT * FROM t_product_sku ON CONFLICT (id) DO NOTHING;
-
-CREATE TABLE IF NOT EXISTS bak_t_order_product_skus_20260516 (LIKE t_order_product_skus INCLUDING ALL);
-INSERT INTO bak_t_order_product_skus_20260516 SELECT * FROM t_order_product_skus ON CONFLICT DO NOTHING;
-
-CREATE TABLE IF NOT EXISTS bak_t_order_product_properties_20260516 (LIKE t_order_product_properties INCLUDING ALL);
-INSERT INTO bak_t_order_product_properties_20260516 SELECT * FROM t_order_product_properties ON CONFLICT (id) DO NOTHING;
-
-CREATE TABLE IF NOT EXISTS bak_t_cart_20260516 (LIKE t_cart INCLUDING ALL);
-INSERT INTO bak_t_cart_20260516 SELECT * FROM t_cart ON CONFLICT DO NOTHING;
 
 -- STEP 1: 新建规格值表 t_product_specs_value
 CREATE TABLE IF NOT EXISTS t_product_specs_value (
