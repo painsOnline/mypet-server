@@ -54,6 +54,7 @@ public class MemberOrderController {
     private final ShopMapper shopMapper;
     private final ProductSpecsMapper specsMapper;
     private final OrderProductPropertyMapper orderProductPropertyMapper;
+    private final ProductSpecsValueMapper specsValueMapper;
     private final HomeController homeController;
     private final InventoryLogMapper inventoryLogMapper;
     private final ImageUrlUtil imageUrlUtil;
@@ -637,19 +638,30 @@ public class MemberOrderController {
         return p != null ? p.getName() : "";
     }
 
-    /** Inject spec_name into order SKU specs (not stored in t_product_sku for dynamic lookup). */
+    /**
+     * Enrich t_product_sku specs for order snapshot: add spec_name (dynamic lookup),
+     * and add value_name from t_product_specs_value if missing (non-unique specs don't store it).
+     * Result stored in t_order_product_skus.specs as frozen snapshot.
+     */
     private String enrichOrderSpecs(String specsJson) {
         if (specsJson == null || specsJson.isBlank() || "[]".equals(specsJson)) return specsJson != null ? specsJson : "[]";
         try {
             com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
             List<Map<String, String>> list = mapper.readValue(specsJson, List.class);
             for (Map<String, String> m : list) {
+                String sid = m.get("spec_id");
+                if (sid == null || sid.isBlank()) continue;
+                // Add spec_name from t_product_specs if missing
                 if (!m.containsKey("spec_name") || m.get("spec_name") == null) {
-                    String sid = m.get("spec_id");
-                    if (sid != null && !sid.isBlank()) {
-                        ProductSpecs ps = specsMapper.selectById(sid);
-                        if (ps != null) m.put("spec_name", ps.getName());
-                    }
+                    ProductSpecs ps = specsMapper.selectById(sid);
+                    if (ps != null) m.put("spec_name", ps.getName());
+                }
+                // Add value_name from t_product_specs_value if missing (non-unique specs)
+                String vn = m.get("value_name");
+                String vid = m.get("value_id");
+                if ((vn == null || vn.isBlank()) && vid != null && !vid.isBlank()) {
+                    ProductSpecsValue psv = specsValueMapper.selectById(vid);
+                    if (psv != null) m.put("value_name", psv.getValueName());
                 }
             }
             return mapper.writeValueAsString(list);

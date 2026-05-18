@@ -21,6 +21,7 @@ app\xinqianmao\com\frontend\common\pojo\GoodsDetailResponse$DetailInfo.class
 app\xinqianmao\com\frontend\common\entity\Member.class
 app\xinqianmao\com\frontend\dao\ReceiverMapper.class
 app\xinqianmao\com\frontend\common\entity\HotProduct.class
+app\xinqianmao\com\frontend\service\HomeService$3.class
 app\xinqianmao\com\frontend\common\pojo\MiniOrderListResponse$SkuItem.class
 app\xinqianmao\com\frontend\dao\OrderMapper.class
 app\xinqianmao\com\frontend\common\entity\OrderReceiver.class
@@ -41,9 +42,11 @@ app\xinqianmao\com\frontend\common\pojo\MemberLoginResponse.class
 app\xinqianmao\com\frontend\service\WechatService.class
 app\xinqianmao\com\frontend\service\MemberLoginService.class
 app\xinqianmao\com\frontend\dao\MemberMapper.class
+app\xinqianmao\com\frontend\service\CategoryService$3.class
 app\xinqianmao\com\frontend\service\GoodsService$1.class
 app\xinqianmao\com\frontend\common\pojo\CartItemResponse$SpecItem.class
 app\xinqianmao\com\frontend\dao\ProductCategoryMapper.class
+app\xinqianmao\com\frontend\service\GoodsService$3.class
 app\xinqianmao\com\frontend\common\pojo\PreOrderResponse$ProductItem.class
 app\xinqianmao\com\frontend\web\controller\HomeController.class
 app\xinqianmao\com\frontend\service\CategoryService$2.class
