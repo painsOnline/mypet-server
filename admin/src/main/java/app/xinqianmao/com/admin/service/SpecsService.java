@@ -230,6 +230,39 @@ public class SpecsService {
         saveSpecValues(specId, inputOptions);
     }
 
+    /**
+     * Rename a single spec value in-place (keeps ID, updates value_name).
+     */
+    public void renameValue(String valueId, String newValueName) {
+        if (newValueName == null || newValueName.isBlank()) throw new BizException("400", "规格值名称不能为空");
+        ProductSpecsValue psv = specsValueMapper.selectById(valueId);
+        if (psv == null) throw new BizException("404", "规格值不存在");
+        psv.setValueName(newValueName.trim());
+        psv.setModifyTime(LocalDateTime.now(app.xinqianmao.com.common.utils.DateTimeUtil.ZONE_BEIJING));
+        specsValueMapper.updateById(psv);
+    }
+
+    /** Delete a single spec value by ID. */
+    public void deleteValue(String valueId) {
+        ProductSpecsValue psv = specsValueMapper.selectById(valueId);
+        if (psv == null) throw new BizException("404", "规格值不存在");
+        specsValueMapper.deleteById(valueId);
+    }
+
+    /** Add a single spec value and return its new ID. */
+    public String addValue(String specId, String valueName) {
+        if (valueName == null || valueName.isBlank()) throw new BizException("400", "规格值名称不能为空");
+        ProductSpecs psv = specsMapper.selectById(specId);
+        if (psv == null) throw new BizException("404", "规格不存在");
+        ProductSpecsValue sv = new ProductSpecsValue();
+        sv.setSpecsId(specId);
+        sv.setValueName(valueName.trim());
+        sv.setSort(999);
+        sv.setCreateTime(LocalDateTime.now(app.xinqianmao.com.common.utils.DateTimeUtil.ZONE_BEIJING));
+        specsValueMapper.insert(sv);
+        return sv.getId();
+    }
+
     private void saveSpecValues(String specsId, List<String> values) {
         for (int i = 0; i < values.size(); i++) {
             String v = values.get(i);

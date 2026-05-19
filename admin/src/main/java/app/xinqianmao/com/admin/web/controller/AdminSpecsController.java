@@ -44,6 +44,27 @@ public class AdminSpecsController {
         return Result.ok();
     }
 
+    @Operation(summary = "重命名单个规格值")
+    @PutMapping("/values/{valueId}")
+    public Result<Void> renameValue(@PathVariable String valueId, @RequestBody Map<String, String> body) {
+        specsService.renameValue(valueId, body.get("valueName"));
+        return Result.ok();
+    }
+
+    @Operation(summary = "删除单个规格值")
+    @DeleteMapping("/values/{valueId}")
+    public Result<Void> deleteValue(@PathVariable String valueId) {
+        specsService.deleteValue(valueId);
+        return Result.ok();
+    }
+
+    @Operation(summary = "新增单个规格值")
+    @PostMapping("/{specId}/values")
+    public Result<Map<String, String>> addValue(@PathVariable String specId, @RequestBody Map<String, String> body) {
+        String id = specsService.addValue(specId, body.get("valueName"));
+        return Result.ok(Map.of("id", id));
+    }
+
     @Operation(summary = "更新规格值列表")
     @PutMapping("/{specId}/values")
     public Result<Void> updateValues(@PathVariable String specId, @RequestBody SpecValuesUpdateRequest request) {
