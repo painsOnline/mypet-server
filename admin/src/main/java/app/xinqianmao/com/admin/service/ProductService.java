@@ -73,7 +73,7 @@ public class ProductService {
         }
         // Barcode search: match any SKU's barcode
         if (req.getBarcode() != null && !req.getBarcode().isBlank()) {
-            wrapper.exists("SELECT 1 FROM t_product_sku s WHERE s.product_id = t_product.id AND s.barcode LIKE CONCAT('%', {0}, '%')",
+            wrapper.exists("SELECT 1 FROM t_product_sku s WHERE s.product_id = t_product.id AND s.barcode LIKE CONCAT('%', {0}::text, '%')",
                     req.getBarcode().replaceAll("[%_]", "\\\\$0"));
         }
         if (req.getIsEnable() != null) {
