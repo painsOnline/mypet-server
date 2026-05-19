@@ -154,13 +154,7 @@ public class SpecsService {
         if (req.getSort() != null) spec.setSort(req.getSort());
         spec.setModifyTime(LocalDateTime.now(app.xinqianmao.com.common.utils.DateTimeUtil.ZONE_BEIJING));
         specsMapper.updateById(spec);
-
-        // Update values only if inputOptions provided
-        if (req.getInputOptions() != null && !req.getInputOptions().isEmpty()) {
-            specsValueMapper.delete(new LambdaQueryWrapper<ProductSpecsValue>()
-                    .eq(ProductSpecsValue::getSpecsId, specId));
-            saveSpecValues(specId, req.getInputOptions());
-        }
+        // Values are managed separately via renameValue / deleteValue / addValue endpoints
     }
 
     public void delete(String specId) {
