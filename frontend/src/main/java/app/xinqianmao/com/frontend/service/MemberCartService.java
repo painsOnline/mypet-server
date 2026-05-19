@@ -98,10 +98,19 @@ public class MemberCartService {
                 cart.setId(UUIDUtil.uuid());
                 cart.setSkuId(item.getSkuId());
                 cart.setName(item.getName());
-                // Serialize specs list to JSON for DB storage
-                if (item.getSpecs() != null) {
+                // Serialize specs to snake_case JSON for DB storage
+                if (item.getSpecs() != null && !item.getSpecs().isEmpty()) {
+                    List<Map<String, String>> specsList = new ArrayList<>();
+                    for (CartItemResponse.SpecItem sp : item.getSpecs()) {
+                        Map<String, String> m = new LinkedHashMap<>();
+                        if (sp.getSpecId() != null) m.put("spec_id", sp.getSpecId());
+                        if (sp.getSpecName() != null) m.put("spec_name", sp.getSpecName());
+                        if (sp.getValueId() != null) m.put("value_id", sp.getValueId());
+                        if (sp.getValueName() != null) m.put("value_name", sp.getValueName());
+                        specsList.add(m);
+                    }
                     try {
-                        cart.setSpecs(new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(item.getSpecs()));
+                        cart.setSpecs(new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(specsList));
                     } catch (Exception e) { cart.setSpecs("[]"); }
                 } else {
                     cart.setSpecs("[]");

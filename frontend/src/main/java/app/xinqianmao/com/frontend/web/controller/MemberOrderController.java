@@ -186,6 +186,36 @@ public class MemberOrderController {
                 new LambdaQueryWrapper<Cart>().eq(Cart::getSelected, 1));
         if (selectedCarts.isEmpty()) throw new BizException("400", "请选择要购买的商品");
 
+        // Pre-load spec names and value names for specs resolution
+        java.util.Set<String> allSpecIds = new java.util.HashSet<>();
+        java.util.Set<String> allValueIds = new java.util.HashSet<>();
+        for (Cart cart : selectedCarts) {
+            String specsJson = cart.getSpecs();
+            if (specsJson != null && !specsJson.isBlank() && !"[]".equals(specsJson)) {
+                try {
+                    ObjectMapper mapper = new ObjectMapper();
+                    @SuppressWarnings("unchecked")
+                    List<Map<String, String>> list = mapper.readValue(specsJson, List.class);
+                    for (Map<String, String> m : list) {
+                        String sid = m.get("spec_id");
+                        if (sid != null && !sid.isBlank()) allSpecIds.add(sid);
+                        String vid = m.get("value_id");
+                        if (vid != null && !vid.isBlank()) allValueIds.add(vid);
+                    }
+                } catch (Exception ignored) {}
+            }
+        }
+        Map<String, String> specIdToName = new HashMap<>();
+        if (!allSpecIds.isEmpty()) {
+            specsMapper.selectBatchIds(new ArrayList<>(allSpecIds))
+                .forEach(s -> specIdToName.put(s.getId(), s.getName()));
+        }
+        Map<String, String> valueIdToName = new HashMap<>();
+        if (!allValueIds.isEmpty()) {
+            specsValueMapper.selectList(new LambdaQueryWrapper<ProductSpecsValue>().in(ProductSpecsValue::getId, allValueIds))
+                .forEach(sv -> valueIdToName.put(sv.getId(), sv.getValueName()));
+        }
+
         PreOrderResponse resp = new PreOrderResponse();
         List<PreOrderResponse.ProductItem> products = new ArrayList<>();
         BigDecimal totalPrice = BigDecimal.ZERO;
@@ -198,7 +228,7 @@ public class MemberOrderController {
             pp.setId(product != null ? product.getId() : "");
             pp.setSkuId(cart.getSkuId());
             pp.setName(cart.getName());
-            pp.setAttrsText(extractAttrsText(cart.getSpecs()));
+            pp.setSpecs(parsePreOrderSpecs(cart.getSpecs(), specIdToName, valueIdToName));
             pp.setCount(cart.getCount());
             BigDecimal skuPrice = sku != null ? (sku.getPrice() != null ? sku.getPrice() : BigDecimal.ZERO) : BigDecimal.ZERO;
             pp.setPrice(skuPrice);
@@ -255,8 +285,14 @@ public class MemberOrderController {
         pp.setId(product.getId());
         pp.setSkuId(skuId);
         pp.setName(product.getName());
-        pp.setAttrsText(extractAttrsText(sku.getSpecs()));
-        pp.setSpecs(parsePreOrderSpecs(sku.getSpecs()));
+        // Pre-load spec name and value name maps, resolve specs dynamically
+        Map<String, String> nowSpecIdToName = new HashMap<>();
+        Map<String, String> nowValueIdToName = new HashMap<>();
+        preloadSpecMaps(sku.getSpecs(), nowSpecIdToName, nowValueIdToName);
+        List<PreOrderResponse.ProductItem.SpecItem> resolvedSpecs =
+            parsePreOrderSpecs(sku.getSpecs(), nowSpecIdToName, nowValueIdToName);
+
+        pp.setSpecs(resolvedSpecs);
         pp.setCount(count);
         pp.setPrice(sku.getOldPrice());
         pp.setPayPrice(sku.getPrice());
@@ -308,6 +344,13 @@ public class MemberOrderController {
         BigDecimal totalPrice = BigDecimal.ZERO;
         BigDecimal totalPayPrice = BigDecimal.ZERO;
 
+        // Pre-load spec name and value name maps from all order SKUs
+        Map<String, String> reSpecIdToName = new HashMap<>();
+        Map<String, String> reValueIdToName = new HashMap<>();
+        for (OrderProductSku ops : orderSkus) {
+            preloadSpecMaps(ops.getSpecs(), reSpecIdToName, reValueIdToName);
+        }
+
         for (OrderProductSku ops : orderSkus) {
             ProductSku latestSku = skuMapper.selectById(ops.getSkuId());
             BigDecimal currentPrice = latestSku != null ? latestSku.getPrice() : ops.getPrice();
@@ -317,8 +360,7 @@ public class MemberOrderController {
             pp.setId(ops.getProductId());
             pp.setSkuId(ops.getSkuId());
             pp.setName(product != null ? product.getName() : "");
-            pp.setAttrsText(extractAttrsText(ops.getSpecs()));
-            pp.setSpecs(parsePreOrderSpecs(ops.getSpecs()));
+            pp.setSpecs(parsePreOrderSpecs(ops.getSpecs(), reSpecIdToName, reValueIdToName));
             pp.setCount(ops.getCount());
             pp.setPrice(ops.getPrice());
             pp.setPayPrice(currentPrice);
@@ -598,7 +640,8 @@ public class MemberOrderController {
         } catch (Exception e) { return List.of(); }
     }
 
-    private List<PreOrderResponse.ProductItem.SpecItem> parsePreOrderSpecs(String specsJson) {
+    private List<PreOrderResponse.ProductItem.SpecItem> parsePreOrderSpecs(String specsJson,
+            Map<String, String> specIdToName, Map<String, String> valueIdToName) {
         if (specsJson == null || specsJson.isBlank()) return List.of();
         try {
             ObjectMapper mapper = new ObjectMapper();
@@ -606,13 +649,49 @@ public class MemberOrderController {
             List<Map<String, String>> list = mapper.readValue(specsJson, List.class);
             return list.stream().map(m -> {
                 PreOrderResponse.ProductItem.SpecItem si = new PreOrderResponse.ProductItem.SpecItem();
-                si.setSpecName(m.get("spec_name"));
-                si.setValueName(m.get("value_name"));
-                si.setSpecId(m.get("spec_id"));
-                si.setValueId(m.get("value_id"));
+                String sid = m.get("spec_id");
+                si.setSpecId(sid);
+                // spec_name: resolve from map, fallback to stored
+                String sn = specIdToName != null && sid != null ? specIdToName.get(sid) : null;
+                if (sn == null) sn = m.get("spec_name");
+                si.setSpecName(sn);
+                // value_name: resolve from stored first, then map
+                String vn = m.get("value_name");
+                String vid = m.get("value_id");
+                if ((vn == null || vn.isBlank()) && vid != null && valueIdToName != null) {
+                    vn = valueIdToName.get(vid);
+                }
+                si.setValueName(vn);
+                si.setValueId(vid);
                 return si;
             }).collect(Collectors.toList());
         } catch (Exception e) { return List.of(); }
+    }
+
+    /** Parse specs JSON and collect spec_ids + value_ids, then batch-load names from DB. */
+    private void preloadSpecMaps(String specsJson, Map<String, String> specIdToName, Map<String, String> valueIdToName) {
+        if (specsJson == null || specsJson.isBlank() || "[]".equals(specsJson)) return;
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            @SuppressWarnings("unchecked")
+            List<Map<String, String>> list = mapper.readValue(specsJson, List.class);
+            java.util.Set<String> sids = new java.util.HashSet<>();
+            java.util.Set<String> vids = new java.util.HashSet<>();
+            for (Map<String, String> m : list) {
+                String sid = m.get("spec_id");
+                if (sid != null && !sid.isBlank() && !specIdToName.containsKey(sid)) sids.add(sid);
+                String vid = m.get("value_id");
+                if (vid != null && !vid.isBlank() && !valueIdToName.containsKey(vid)) vids.add(vid);
+            }
+            if (!sids.isEmpty()) {
+                specsMapper.selectBatchIds(new ArrayList<>(sids))
+                    .forEach(s -> specIdToName.put(s.getId(), s.getName()));
+            }
+            if (!vids.isEmpty()) {
+                specsValueMapper.selectList(new LambdaQueryWrapper<ProductSpecsValue>().in(ProductSpecsValue::getId, vids))
+                    .forEach(sv -> valueIdToName.put(sv.getId(), sv.getValueName()));
+            }
+        } catch (Exception ignored) {}
     }
 
     @SuppressWarnings("unchecked")

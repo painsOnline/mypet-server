@@ -66,11 +66,23 @@ public class MemberCartController {
                 cart.setPicture(item.getPicture() != null ? item.getPicture() : "");
                 cart.setCount(item.getCount() != null ? item.getCount() : 1);
                 cart.setSelected(item.getSelected() != null && item.getSelected() ? 1 : 0);
-                try {
-                    cart.setSpecs(item.getSpecs() != null && !item.getSpecs().isEmpty()
-                        ? new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(item.getSpecs())
-                        : "[]");
-                } catch (Exception e) { cart.setSpecs("[]"); }
+                // Serialize specs to snake_case JSON for DB storage
+                if (item.getSpecs() != null && !item.getSpecs().isEmpty()) {
+                    java.util.List<java.util.Map<String, String>> specsList = new java.util.ArrayList<>();
+                    for (CartItemResponse.SpecItem sp : item.getSpecs()) {
+                        java.util.Map<String, String> m = new java.util.LinkedHashMap<>();
+                        if (sp.getSpecId() != null) m.put("spec_id", sp.getSpecId());
+                        if (sp.getSpecName() != null) m.put("spec_name", sp.getSpecName());
+                        if (sp.getValueId() != null) m.put("value_id", sp.getValueId());
+                        if (sp.getValueName() != null) m.put("value_name", sp.getValueName());
+                        specsList.add(m);
+                    }
+                    try {
+                        cart.setSpecs(new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(specsList));
+                    } catch (Exception e) { cart.setSpecs("[]"); }
+                } else {
+                    cart.setSpecs("[]");
+                }
                 cart.setCreateTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
                 cartMapper.insert(cart);
             }
