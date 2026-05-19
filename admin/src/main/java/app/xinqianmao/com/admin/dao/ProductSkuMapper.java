@@ -28,4 +28,8 @@ public interface ProductSkuMapper extends TenantBaseMapper<ProductSku> {
             "CROSS JOIN jsonb_array_elements(sku.specs::jsonb) AS elem " +
             "WHERE p.product_type = #{typeId} AND sku.is_delete = 0")
     List<Map<String, Object>> findUsedSpecValuesByType(@Param("typeId") String typeId);
+
+    /** Count SKUs whose specs JSONB contains the given value_id. */
+    @Select("SELECT COUNT(*) FROM t_product_sku WHERE is_delete = 0 AND specs::jsonb @> ('[{\"value_id\":\"' || #{valueId} || '\"}]')::jsonb")
+    int countByValueId(@Param("valueId") String valueId);
 }

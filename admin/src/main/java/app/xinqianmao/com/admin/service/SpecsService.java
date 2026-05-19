@@ -16,6 +16,8 @@ import app.xinqianmao.com.admin.dao.ProductTypeSpecRelMapper;
 import app.xinqianmao.com.admin.common.entity.ProductProperty;
 import app.xinqianmao.com.admin.dao.ProductMapper;
 import app.xinqianmao.com.admin.dao.ProductPropertyMapper;
+import app.xinqianmao.com.admin.dao.ProductSkuMapper;
+import app.xinqianmao.com.admin.dao.OrderProductSkuMapper;
 import app.xinqianmao.com.admin.dao.ProductTypeMapper;
 import app.xinqianmao.com.common.exception.BizException;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -38,6 +40,8 @@ public class SpecsService {
     private final ProductSpecsMapper specsMapper;
     private final ProductSpecsValueMapper specsValueMapper;
     private final ProductMapper productMapper;
+    private final ProductSkuMapper productSkuMapper;
+    private final OrderProductSkuMapper orderProductSkuMapper;
     private final ProductTypeSpecRelMapper typeSpecRelMapper;
     private final ProductTypeMapper typeMapper;
     private final ProductPropertyMapper propertyMapper;
@@ -236,10 +240,20 @@ public class SpecsService {
         specsValueMapper.updateById(psv);
     }
 
-    /** Delete a single spec value by ID. */
+    /** Delete a single spec value by ID. Fails if the value is in use. */
     public void deleteValue(String valueId) {
         ProductSpecsValue psv = specsValueMapper.selectById(valueId);
         if (psv == null) throw new BizException("404", "规格值不存在");
+        // Check if referenced by product properties
+        long propCount = propertyMapper.selectCount(
+                new LambdaQueryWrapper<ProductProperty>().eq(ProductProperty::getValueId, valueId));
+        if (propCount > 0) throw new BizException("400", "该规格值已被商品属性使用，无法删除");
+        // Check if referenced by product SKUs (JSONB)
+        int skuCount = productSkuMapper.countByValueId(valueId);
+        if (skuCount > 0) throw new BizException("400", "该规格值已被商品SKU使用，无法删除");
+        // Check if referenced by order SKUs (JSONB snapshot)
+        int orderSkuCount = orderProductSkuMapper.countByValueId(valueId);
+        if (orderSkuCount > 0) throw new BizException("400", "该规格值已被订单SKU使用，无法删除");
         specsValueMapper.deleteById(valueId);
     }
 
