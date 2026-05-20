@@ -291,22 +291,37 @@ public class ProductService {
                 // value_name only for unique specs (inputType=1)
                 ProductSpecs spec = findSpecByName(pi.getName(), product.getProductType());
                 boolean isUnique = spec != null && spec.getInputType() != null && spec.getInputType() == 1;
+                boolean isMulti = spec != null && spec.getInputType() != null && spec.getInputType() == 3;
                 String val = pi.getValueName();
                 if (isUnique && val != null && !val.isBlank()) prop.setValueName(val);
                 Map<String, String> nameToId = specsValueMap.getOrDefault(specsId, Map.of());
                 if (nameToId.isEmpty()) throw new BizException("400", "规格 '" + pi.getName() + "' 尚未配置可选值");
-                String vid;
-                if (isUnique) {
-                    if (val == null || val.isBlank()) throw new BizException("400", "唯一值规格 '" + pi.getName() + "' 必须填写属性值");
-                    vid = nameToId.values().iterator().next();
+                List<String> valList;
+                if (isMulti && val != null && !val.isBlank()) {
+                    valList = Arrays.stream(val.split("[,，]")).map(String::trim).filter(s -> !s.isEmpty()).collect(Collectors.toList());
                 } else {
-                    vid = nameToId.get(val != null ? val : "");
-                    if (vid == null) throw new BizException("400", "属性值 '" + val + "' 在规格 '" + pi.getName() + "' 中不存在");
+                    valList = val != null ? List.of(val) : List.of("");
                 }
-                prop.setValueId(vid);
-                prop.setSort(0);
-                prop.setCreateTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
-                propertyMapper.insert(prop);
+                for (String v : valList) {
+                    String vid;
+                    if (isUnique) {
+                        if (val == null || val.isBlank()) throw new BizException("400", "唯一值规格 '" + pi.getName() + "' 必须填写属性值");
+                        vid = nameToId.values().iterator().next();
+                    } else {
+                        vid = nameToId.get(v);
+                        if (vid == null) throw new BizException("400", "属性值 '" + v + "' 在规格 '" + pi.getName() + "' 中不存在");
+                    }
+                    ProductProperty p = new ProductProperty();
+                    p.setProductId(product.getId());
+                    p.setSpecsId(specsId);
+                    if (isUnique && val != null && !val.isBlank()) p.setValueName(val);
+                    if (isMulti) p.setValueName(v);
+                    p.setValueId(vid);
+                    p.setSort(0);
+                    p.setCreateTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
+                    propertyMapper.insert(p);
+                }
+                continue;
             }
         }
 
@@ -399,27 +414,37 @@ public class ProductService {
             for (ProductSaveRequest.PropertyItem pi : req.getProperties()) {
                 String specsId = specsNameMap.get(pi.getName());
                 if (specsId == null) continue;
-                ProductProperty prop = new ProductProperty();
-                prop.setProductId(productId);
-                prop.setSpecsId(specsId);
                 ProductSpecs spec = findSpecByName(pi.getName(), product.getProductType());
                 boolean isUnique = spec != null && spec.getInputType() != null && spec.getInputType() == 1;
+                boolean isMulti = spec != null && spec.getInputType() != null && spec.getInputType() == 3;
                 String val = pi.getValueName();
-                if (isUnique && val != null && !val.isBlank()) prop.setValueName(val);
                 Map<String, String> nameToId = specsValueMap.getOrDefault(specsId, Map.of());
                 if (nameToId.isEmpty()) throw new BizException("400", "规格 '" + pi.getName() + "' 尚未配置可选值");
-                String vid;
-                if (isUnique) {
-                    if (val == null || val.isBlank()) throw new BizException("400", "唯一值规格 '" + pi.getName() + "' 必须填写属性值");
-                    vid = nameToId.values().iterator().next();
+                List<String> valList;
+                if (isMulti && val != null && !val.isBlank()) {
+                    valList = Arrays.stream(val.split("[,，]")).map(String::trim).filter(s -> !s.isEmpty()).collect(Collectors.toList());
                 } else {
-                    vid = nameToId.get(val != null ? val : "");
-                    if (vid == null) throw new BizException("400", "属性值 '" + val + "' 在规格 '" + pi.getName() + "' 中不存在");
+                    valList = val != null ? List.of(val) : List.of("");
                 }
-                prop.setValueId(vid);
-                prop.setSort(0);
-                prop.setCreateTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
-                propertyMapper.insert(prop);
+                for (String v : valList) {
+                    String vid;
+                    if (isUnique) {
+                        if (val == null || val.isBlank()) throw new BizException("400", "唯一值规格 '" + pi.getName() + "' 必须填写属性值");
+                        vid = nameToId.values().iterator().next();
+                    } else {
+                        vid = nameToId.get(v);
+                        if (vid == null) throw new BizException("400", "属性值 '" + v + "' 在规格 '" + pi.getName() + "' 中不存在");
+                    }
+                    ProductProperty prop = new ProductProperty();
+                    prop.setProductId(productId);
+                    prop.setSpecsId(specsId);
+                    if (isUnique && val != null && !val.isBlank()) prop.setValueName(val);
+                    if (isMulti) prop.setValueName(v);
+                    prop.setValueId(vid);
+                    prop.setSort(0);
+                    prop.setCreateTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
+                    propertyMapper.insert(prop);
+                }
             }
         }
 
