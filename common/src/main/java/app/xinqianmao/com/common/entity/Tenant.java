@@ -33,4 +33,7 @@ public class Tenant extends BaseEntity {
 
     /** 0=normal, 1=disabled */
     private Integer isDisable;
+
+    /** 0=暂停营业, 1=正常营业 */
+    private Integer isBussinessOpen;
 }

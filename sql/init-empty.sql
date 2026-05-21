@@ -352,3 +352,25 @@ CREATE INDEX IF NOT EXISTS idx_hot_product_id ON t_hot_products(product_id);
 INSERT INTO t_admin (id, account, password, create_time)
 VALUES (gen_random_uuid(), 'admin', 'jAQ6D/jGCO8rVN1T6gnhhQ==:pIqizl5zIE68l0w8Dr0XKuGsIZz9t7KZ5u5B+XDseeA=', now()::timestamp(0))
 ON CONFLICT DO NOTHING;
+
+-- 20. Admin Login Error Log (shop admin risk control, tenant-scoped)
+CREATE TABLE IF NOT EXISTS c_admin_login_error_log (
+    id CHAR(36) PRIMARY KEY,
+    account VARCHAR(255) NOT NULL,
+    error_type VARCHAR(100) NOT NULL,
+    login_ip VARCHAR(100) DEFAULT '',
+    create_time TIMESTAMP NOT NULL DEFAULT now()::timestamp(0),
+    modify_time TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS idx_alert_account ON c_admin_login_error_log(account);
+CREATE INDEX IF NOT EXISTS idx_alert_time ON c_admin_login_error_log(create_time);
+
+-- 21. Admin Login Lock (shop admin risk control, tenant-scoped)
+CREATE TABLE IF NOT EXISTS c_admin_login_lock (
+    id CHAR(36) PRIMARY KEY,
+    account VARCHAR(255) NOT NULL,
+    lock_end_time TIMESTAMP NOT NULL,
+    create_time TIMESTAMP NOT NULL DEFAULT now()::timestamp(0),
+    modify_time TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS idx_allock_account ON c_admin_login_lock(account);

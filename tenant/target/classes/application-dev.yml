@@ -1,0 +1,10 @@
+mypet:
+  db:
+    host: 127.0.0.1
+    port: 1800
+    user: postgres
+    password: mypg123abc
+
+logging:
+  level:
+    app.xinqianmao.com: DEBUG

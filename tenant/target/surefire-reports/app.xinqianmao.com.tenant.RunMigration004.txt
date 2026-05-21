@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: app.xinqianmao.com.tenant.RunMigration004
+-------------------------------------------------------------------------------
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 5.702 s -- in app.xinqianmao.com.tenant.RunMigration004

@@ -89,6 +89,7 @@ app\xinqianmao\com\frontend\dao\ProductSpecsValueMapper.class
 app\xinqianmao\com\frontend\dao\ProductBrandMapper.class
 app\xinqianmao\com\frontend\web\controller\MemberOrderController.class
 app\xinqianmao\com\frontend\dao\ProductTypeSpecRelMapper.class
+app\xinqianmao\com\frontend\web\controller\ShopListController.class
 app\xinqianmao\com\frontend\common\pojo\MiniOrderListResponse.class
 app\xinqianmao\com\frontend\dao\OrderProductSkuMapper.class
 app\xinqianmao\com\frontend\dao\OrderProductMapper.class

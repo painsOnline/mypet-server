@@ -21,6 +21,7 @@
         <module>common</module>
         <module>admin</module>
         <module>frontend</module>
+        <module>tenant</module>
     </modules>
 
     <properties>

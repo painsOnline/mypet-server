@@ -5,8 +5,11 @@
  */
 package app.xinqianmao.com.admin.common.config;
 
+import app.xinqianmao.com.common.service.CaptchaService;
+import app.xinqianmao.com.common.service.LoginSecurityService;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -37,6 +40,19 @@ public class ConfigDataSourceConfig {
             @Value("${mypet.db.user:postgres}") String user,
             @Value("${mypet.db.password:mypg123abc}") String password) {
         return buildDataSource(host, port, user, password, "mypet_empty", "template-db-pool");
+    }
+
+    /**
+     * Shop admin login security service — uses tenant DB (dynamic DataSource).
+     */
+    @Bean
+    public LoginSecurityService loginSecurityService(@Qualifier("dataSource") DataSource dataSource) {
+        return new LoginSecurityService(dataSource, false);
+    }
+
+    @Bean
+    public CaptchaService captchaService() {
+        return new CaptchaService();
     }
 
     private DataSource buildDataSource(String host, String port, String user, String password, String db, String poolName) {

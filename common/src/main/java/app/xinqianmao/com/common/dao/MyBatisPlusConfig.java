@@ -18,6 +18,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
 @MapperScan(basePackages = {
         "app.xinqianmao.com.admin.dao",
         "app.xinqianmao.com.frontend.dao",
+        "app.xinqianmao.com.tenant.dao",
         "app.xinqianmao.com.common.dao"
 })
 public class MyBatisPlusConfig {

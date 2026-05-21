@@ -37,12 +37,13 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
     /** Login paths excluded from auth */
     private static final String[] AUTH_EXCLUDE_PATHS = {
-            "/admin/login", "/frontend/member/login/**"
+            "/admin/login", "/frontend/member/login/**",
+            "/frontend/shop/list", "/frontend/shop/validate"
     };
 
     /** Paths excluded from tenant header requirement (called before login) */
     private static final String[] TENANT_EXCLUDE_PATHS = {
-            "/admin/captcha"
+            "/admin/captcha", "/frontend/shop/list", "/frontend/shop/validate"
     };
 
     @Override

@@ -34,6 +34,8 @@ F:\MyWorkspace\project\mypet\java\mypet-server\common\src\main\java\app\xinqianm
 F:\MyWorkspace\project\mypet\java\mypet-server\common\src\main\java\app\xinqianmao\com\common\migrate\UuidNormalizer.java
 F:\MyWorkspace\project\mypet\java\mypet-server\common\src\main\java\app\xinqianmao\com\common\result\PageResult.java
 F:\MyWorkspace\project\mypet\java\mypet-server\common\src\main\java\app\xinqianmao\com\common\result\Result.java
+F:\MyWorkspace\project\mypet\java\mypet-server\common\src\main\java\app\xinqianmao\com\common\service\CaptchaService.java
+F:\MyWorkspace\project\mypet\java\mypet-server\common\src\main\java\app\xinqianmao\com\common\service\LoginSecurityService.java
 F:\MyWorkspace\project\mypet\java\mypet-server\common\src\main\java\app\xinqianmao\com\common\utils\CryptoUtil.java
 F:\MyWorkspace\project\mypet\java\mypet-server\common\src\main\java\app\xinqianmao\com\common\utils\DateTimeUtil.java
 F:\MyWorkspace\project\mypet\java\mypet-server\common\src\main\java\app\xinqianmao\com\common\utils\ImageUrlUtil.java

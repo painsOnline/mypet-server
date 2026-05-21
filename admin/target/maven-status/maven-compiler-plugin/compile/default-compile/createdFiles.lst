@@ -32,7 +32,6 @@ app\xinqianmao\com\admin\web\controller\AdminProductTypeController.class
 app\xinqianmao\com\admin\common\pojo\ProductTopResponse$TopItem.class
 app\xinqianmao\com\admin\web\controller\AdminProductController.class
 app\xinqianmao\com\admin\web\controller\FileUploadController.class
-app\xinqianmao\com\admin\service\CaptchaService$TokenEntry.class
 app\xinqianmao\com\admin\service\DashboardService.class
 app\xinqianmao\com\admin\web\controller\AdminShopController.class
 app\xinqianmao\com\admin\common\pojo\ChangePasswordRequest.class
@@ -47,7 +46,6 @@ app\xinqianmao\com\admin\common\pojo\SkuSaveRequest$SpecValueItem.class
 app\xinqianmao\com\admin\dao\ProductTypeMapper.class
 app\xinqianmao\com\admin\common\pojo\OrderDetailResponse.class
 app\xinqianmao\com\admin\dao\InventoryLogMapper.class
-app\xinqianmao\com\admin\service\LoginSecurityService.class
 app\xinqianmao\com\admin\common\entity\InventoryLog.class
 app\xinqianmao\com\admin\common\pojo\HotSortRequest.class
 app\xinqianmao\com\admin\common\entity\Order.class
@@ -62,7 +60,6 @@ app\xinqianmao\com\admin\common\pojo\ProductSaveRequest$SkuItem.class
 app\xinqianmao\com\admin\common\entity\Admin.class
 app\xinqianmao\com\admin\common\config\ConfigDataSourceConfig.class
 app\xinqianmao\com\admin\common\pojo\OrderDetailResponse$SkuDetail.class
-app\xinqianmao\com\admin\web\controller\MigrationController.class
 app\xinqianmao\com\admin\dao\AdminMapper.class
 app\xinqianmao\com\admin\common\pojo\ProductDetailResponse$SpecItem.class
 app\xinqianmao\com\admin\common\pojo\ProductSaveRequest$PropertyItem.class
@@ -76,7 +73,6 @@ app\xinqianmao\com\admin\common\entity\Cart.class
 app\xinqianmao\com\admin\common\entity\ProductCategory.class
 app\xinqianmao\com\admin\common\pojo\UserSearchRequest.class
 app\xinqianmao\com\admin\dao\ProductSpecsValueMapper.class
-app\xinqianmao\com\admin\service\MigrationRunnerService$1.class
 app\xinqianmao\com\admin\web\controller\AdminOrderController.class
 app\xinqianmao\com\admin\dao\CartMapper.class
 app\xinqianmao\com\admin\common\pojo\OrderListResponse.class
@@ -90,7 +86,6 @@ app\xinqianmao\com\admin\web\controller\DashboardController.class
 app\xinqianmao\com\admin\common\pojo\ProductDetailResponse$SpecValue.class
 app\xinqianmao\com\admin\common\entity\OrderReceiver.class
 app\xinqianmao\com\admin\dao\OrderReceiverMapper.class
-app\xinqianmao\com\admin\service\MigrationRunnerService.class
 app\xinqianmao\com\admin\service\ProductTypeService.class
 app\xinqianmao\com\admin\common\pojo\SpecValuesUpdateRequest.class
 app\xinqianmao\com\admin\service\UserService.class
@@ -114,7 +109,6 @@ app\xinqianmao\com\admin\common\entity\OrderProductSku.class
 app\xinqianmao\com\admin\web\controller\AdminLoginController.class
 app\xinqianmao\com\admin\common\pojo\ProductDetailResponse$PropertyItem.class
 app\xinqianmao\com\admin\common\entity\ProductTypeSpecRel.class
-app\xinqianmao\com\admin\service\CaptchaService.class
 app\xinqianmao\com\admin\common\pojo\TypeSaveRequest.class
 app\xinqianmao\com\admin\dao\ProductTypeSpecRelMapper.class
 app\xinqianmao\com\admin\common\pojo\ShopSaveRequest.class

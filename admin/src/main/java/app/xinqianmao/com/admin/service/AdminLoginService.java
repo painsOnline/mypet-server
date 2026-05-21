@@ -13,6 +13,8 @@ import app.xinqianmao.com.common.auth.JwtUtil;
 import app.xinqianmao.com.common.auth.TenantContext;
 import app.xinqianmao.com.common.exception.BizException;
 import app.xinqianmao.com.common.utils.DateTimeUtil;
+import app.xinqianmao.com.common.service.CaptchaService;
+import app.xinqianmao.com.common.service.LoginSecurityService;
 import app.xinqianmao.com.common.utils.PasswordUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;

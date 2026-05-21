@@ -72,13 +72,10 @@ F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianma
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\dao\ShopMapper.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\service\AdminLoginService.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\service\BrandService.java
-F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\service\CaptchaService.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\service\CategoryService.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\service\DashboardService.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\service\HotProductService.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\service\ImageDownloadService.java
-F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\service\LoginSecurityService.java
-F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\service\MigrationRunnerService.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\service\OrderService.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\service\ProductService.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\service\ProductSkuService.java
@@ -103,5 +100,4 @@ F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianma
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\web\controller\DashboardController.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\web\controller\FileUploadController.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\web\controller\JieshunController.java
-F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\web\controller\MigrationController.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\web\controller\StatisticsController.java

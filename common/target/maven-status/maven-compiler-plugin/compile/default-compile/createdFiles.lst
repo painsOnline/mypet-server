@@ -41,6 +41,9 @@ app\xinqianmao\com\common\migrate\MigrationLogger.class
 app\xinqianmao\com\common\auth\UserContext.class
 app\xinqianmao\com\common\dao\DynamicDataSource.class
 app\xinqianmao\com\common\migrate\MigrateConfig.class
+app\xinqianmao\com\common\service\CaptchaService.class
+app\xinqianmao\com\common\service\CaptchaService$TokenEntry.class
+app\xinqianmao\com\common\service\LoginSecurityService.class
 app\xinqianmao\com\common\annotation\NoAuth.class
 app\xinqianmao\com\common\web\TenantInterceptor.class
 app\xinqianmao\com\common\enums\SpecInputTypeEnum.class

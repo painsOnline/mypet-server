@@ -75,6 +75,7 @@ public class TenantDataSourceManager {
     /**
      * Look up tenant by code from c_tenant in config DB.
      * Validates the tenant exists and is not disabled.
+     * Disabled tenants (is_disable=1) cannot log into the admin backend.
      */
     private void lookupTenant(String tenantCode) {
         // Validate tenantCode format before any DB access

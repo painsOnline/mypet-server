@@ -10,7 +10,7 @@ import app.xinqianmao.com.admin.common.pojo.AdminLoginRequest;
 import app.xinqianmao.com.admin.common.pojo.AdminLoginResponse;
 import app.xinqianmao.com.admin.common.pojo.ChangePasswordRequest;
 import app.xinqianmao.com.admin.service.AdminLoginService;
-import app.xinqianmao.com.admin.service.CaptchaService;
+import app.xinqianmao.com.common.service.CaptchaService;
 import app.xinqianmao.com.common.annotation.NoAuth;
 import app.xinqianmao.com.common.auth.UserContext;
 import app.xinqianmao.com.common.result.Result;
