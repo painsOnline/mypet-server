@@ -67,6 +67,16 @@ public class MigrationRunnerService {
             if (running != null) entry.put("status", running);
             result.add(entry);
         }
+        // Sort: config_* migrations first (they set up schema needed by tenant queries)
+        result.sort((a, b) -> {
+            String na = (String) a.get("name");
+            String nb = (String) b.get("name");
+            boolean ca = na.startsWith("config_");
+            boolean cb = nb.startsWith("config_");
+            if (ca && !cb) return -1;
+            if (!ca && cb) return 1;
+            return na.compareTo(nb);
+        });
         return result;
     }
 
@@ -94,10 +104,10 @@ public class MigrationRunnerService {
                     try (Connection tc = getTenantConnection(tenant.getCode());
                          Statement stmt = tc.createStatement()) {
                         stmt.execute("SET lock_timeout = '30000'");
-                        String[] statements = sql.replaceAll("(?m)^\\s*--.*$", "").split(";(?=(?:[^']*'[^']*')*[^']*$)");
+                        String[] statements = splitSqlStatements(sql);
                         for (String s : statements) {
                             String t = s.trim();
-                            if (!t.isEmpty() && !t.startsWith("--")) {
+                            if (!t.isEmpty()) {
                                 try { stmt.execute(t); } catch (SQLException e) {
                                     String m = e.getMessage();
                                     if (!m.contains("already exists") && !m.contains("does not exist")) {
@@ -184,14 +194,13 @@ public class MigrationRunnerService {
     }
 
     private String executeSql(DataSource ds, String sql) throws SQLException {
-        sql = sql.replaceAll("(?m)^\\s*--.*$", "");
-        String[] statements = sql.split(";(?=(?:[^']*'[^']*')*[^']*$)");
+        String[] statements = splitSqlStatements(sql);
         int ok = 0, fail = 0;
         try (Connection c = ds.getConnection(); Statement stmt = c.createStatement()) {
             stmt.execute("SET lock_timeout = '30000'");
             for (String s : statements) {
                 String t = s.trim();
-                if (t.isEmpty() || t.startsWith("--")) continue;
+                if (t.isEmpty()) continue;
                 try { stmt.execute(t); ok++; } catch (SQLException e) {
                     String m = e.getMessage();
                     if (!m.contains("already exists") && !m.contains("does not exist")) {
@@ -202,6 +211,102 @@ public class MigrationRunnerService {
             }
         }
         return ok + " OK, " + fail + " skipped";
+    }
+
+    /**
+     * Split SQL into individual statements, respecting PostgreSQL dollar-quoting ($$...$$ / $tag$...$tag$)
+     * and single-quoted strings. Only splits on ; at the top level.
+     */
+    private String[] splitSqlStatements(String sql) {
+        java.util.List<String> result = new java.util.ArrayList<>();
+        StringBuilder buf = new StringBuilder();
+        int i = 0;
+        int len = sql.length();
+
+        while (i < len) {
+            char c = sql.charAt(i);
+
+            // Skip single-line comments (-- to end of line)
+            if (c == '-' && i + 1 < len && sql.charAt(i + 1) == '-') {
+                i += 2;
+                while (i < len && sql.charAt(i) != '\n') i++;
+                continue;
+            }
+
+            // Skip multi-line comments (/* ... */)
+            if (c == '/' && i + 1 < len && sql.charAt(i + 1) == '*') {
+                i += 2;
+                while (i + 1 < len && !(sql.charAt(i) == '*' && sql.charAt(i + 1) == '/')) i++;
+                if (i + 1 < len) i += 2; // skip */
+                continue;
+            }
+
+            // Dollar-quoted string: $$...$$ or $tag$...$tag$
+            if (c == '$') {
+                int start = i;
+                i++; // skip first $
+                // Read the optional tag
+                StringBuilder tag = new StringBuilder();
+                while (i < len && sql.charAt(i) != '$') {
+                    tag.append(sql.charAt(i));
+                    i++;
+                }
+                if (i < len) i++; // skip closing $
+                String endTag = "$" + tag + "$";
+                buf.append(sql, start, i - start);
+                // Consume until matching closing tag
+                while (i + endTag.length() <= len) {
+                    if (sql.substring(i, i + endTag.length()).equals(endTag)
+                            && (i + endTag.length() >= len || sql.charAt(i + endTag.length()) != '$')) {
+                        buf.append(sql, i, i + endTag.length());
+                        i += endTag.length();
+                        break;
+                    }
+                    i++;
+                }
+                continue;
+            }
+
+            // Single-quoted string
+            if (c == '\'') {
+                buf.append(c);
+                i++;
+                while (i < len) {
+                    char sc = sql.charAt(i);
+                    buf.append(sc);
+                    if (sc == '\'') {
+                        // Escaped quote '' inside string
+                        if (i + 1 < len && sql.charAt(i + 1) == '\'') {
+                            buf.append('\'');
+                            i += 2;
+                            continue;
+                        }
+                        i++;
+                        break;
+                    }
+                    i++;
+                }
+                continue;
+            }
+
+            // Statement separator
+            if (c == ';') {
+                result.add(buf.toString());
+                buf.setLength(0);
+                i++;
+                continue;
+            }
+
+            buf.append(c);
+            i++;
+        }
+
+        String remainder = buf.toString().trim();
+        if (!remainder.isEmpty()) {
+            result.add(remainder);
+        }
+
+        return result.toArray(new String[0]);
     }
 
     private Resource[] scanResources() {
