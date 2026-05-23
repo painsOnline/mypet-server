@@ -38,6 +38,7 @@ public class ProductService {
     private final ProductSkuMapper skuMapper;
     private final ProductSpecsMapper specsMapper;
     private final ProductSpecsValueMapper specsValueMapper;
+    private final ProductBrandMapper brandMapper;
     private final InventoryLogMapper inventoryLogMapper;
     private final ProductCategoryMapper categoryMapper;
     private final ProductTypeMapper typeMapper;
@@ -355,6 +356,10 @@ public class ProductService {
                 writeInventoryLog(sku, null, "in", sku.getInventory(), 0, sku.getInventory());
         }
 
+        // Build search text
+        product.setSearchText(buildSearchText(product, req.getProperties(), req.getSkus()));
+        productMapper.updateById(product);
+
         // Move temp images to product's permanent directory
         imageDownloadService.relocateProductImages(productId);
 
@@ -496,6 +501,10 @@ public class ProductService {
                 writeInventoryLog(sku, null, "adjust", newInv - oldInv, oldInv, newInv);
             }
         }
+
+        // Update search text
+        product.setSearchText(buildSearchText(product, req.getProperties(), req.getSkus()));
+        productMapper.updateById(product);
     }
 
     /**
@@ -719,5 +728,81 @@ public class ProductService {
             specsMapper.selectBatchIds(ids).forEach(s -> map.putIfAbsent(s.getId(), s));
         }
         return map;
+    }
+
+    /**
+     * Build search_text for full-text search.
+     * Content: name desc detail(text only) category brand property-values sku-prices sku-spec-values
+     * Joined with spaces, empty/null items excluded.
+     */
+    private String buildSearchText(Product product, List<ProductSaveRequest.PropertyItem> properties,
+                                     List<ProductSaveRequest.SkuItem> skus) {
+        StringBuilder sb = new StringBuilder();
+
+        appendWithSpace(sb, product.getName());
+
+        if (product.getDesc() != null && !product.getDesc().isBlank()) {
+            appendWithSpace(sb, product.getDesc().trim());
+        }
+
+        // Detail: strip HTML tags, only include if has text
+        String detailText = stripHtml(product.getDetail());
+        if (!detailText.isBlank()) {
+            appendWithSpace(sb, detailText);
+        }
+
+        // Category name
+        ProductCategory cat = categoryMapper.selectById(product.getProductCategory());
+        if (cat != null && cat.getName() != null && !cat.getName().isBlank()) {
+            appendWithSpace(sb, cat.getName().trim());
+        }
+
+        // Brand name
+        ProductBrand brand = brandMapper.selectById(product.getProductBrand());
+        if (brand != null && brand.getBrandName() != null && !brand.getBrandName().isBlank()) {
+            appendWithSpace(sb, brand.getBrandName().trim());
+        }
+
+        // Property values (not names)
+        if (properties != null) {
+            for (ProductSaveRequest.PropertyItem pi : properties) {
+                if (pi.getValueName() != null && !pi.getValueName().isBlank()) {
+                    appendWithSpace(sb, pi.getValueName().trim());
+                }
+            }
+        }
+
+        // SKU prices + spec values
+        if (skus != null) {
+            for (ProductSaveRequest.SkuItem si : skus) {
+                if (si.getPrice() != null) {
+                    appendWithSpace(sb, si.getPrice().toPlainString());
+                }
+                if (si.getOldPrice() != null) {
+                    appendWithSpace(sb, si.getOldPrice().toPlainString());
+                }
+                if (si.getSpecs() != null) {
+                    for (ProductSaveRequest.SkuItem.SpecValue sv : si.getSpecs()) {
+                        if (sv.getValueName() != null && !sv.getValueName().isBlank()) {
+                            appendWithSpace(sb, sv.getValueName().trim());
+                        }
+                    }
+                }
+            }
+        }
+
+        return sb.toString().trim();
+    }
+
+    private void appendWithSpace(StringBuilder sb, String text) {
+        if (text != null && !text.isBlank()) {
+            if (sb.length() > 0) sb.append(' ');
+            sb.append(text.trim());
+        }
+    }
+
+    private String stripHtml(String html) {
+        if (html == null || html.isBlank()) return "";
+        return html.replaceAll("<[^>]+>", "").replaceAll("\\s+", " ").trim();
     }
 }

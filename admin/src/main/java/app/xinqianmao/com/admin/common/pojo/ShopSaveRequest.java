@@ -28,4 +28,7 @@ public class ShopSaveRequest {
 
     @Schema(description = "轮播图JSON")
     private String banners;
+
+    @Schema(description = "店铺详情（富文本）")
+    private String detail;
 }

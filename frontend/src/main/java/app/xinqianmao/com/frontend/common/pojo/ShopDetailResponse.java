@@ -13,6 +13,7 @@ public class ShopDetailResponse {
     private String name;
     private String logo;
     private BigDecimal freeShippingAmount;
+    private String detail;
     private List<BannerItem> banners;
 
     @Data

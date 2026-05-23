@@ -22,6 +22,7 @@ public class Shop {
     private BigDecimal freeShippingAmount;
     @TableField(typeHandler = app.xinqianmao.com.common.dao.JsonTypeHandler.class)
     private String banners;
+    private String detail;
     private LocalDateTime createTime;
     private LocalDateTime modifyTime;
 }

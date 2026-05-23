@@ -124,6 +124,10 @@ public class TenantService {
                 stmt.execute("SELECT pg_terminate_backend(pid) FROM pg_stat_activity " +
                              "WHERE datname = 'mypet_empty' AND pid <> pg_backend_pid()");
             } catch (SQLException ignored) { /* best effort */ }
+            // Drop if exists from a previous failed attempt
+            try {
+                stmt.execute("DROP DATABASE IF EXISTS \"" + dbName + "\"");
+            } catch (SQLException ignored) { /* best effort */ }
             stmt.execute("CREATE DATABASE \"" + dbName + "\" TEMPLATE mypet_empty");
             log.info("Tenant database created: {}", dbName);
         } catch (SQLException e) {

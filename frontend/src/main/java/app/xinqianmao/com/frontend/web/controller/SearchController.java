@@ -9,23 +9,21 @@ import app.xinqianmao.com.common.annotation.NoAuth;
 import app.xinqianmao.com.common.result.PageResult;
 import app.xinqianmao.com.common.result.Result;
 import app.xinqianmao.com.frontend.common.entity.Product;
-import app.xinqianmao.com.frontend.common.entity.ProductProperty;
 import app.xinqianmao.com.frontend.common.entity.ProductSku;
-import app.xinqianmao.com.frontend.common.entity.ProductSpecs;
 import app.xinqianmao.com.frontend.common.pojo.GoodsDetailResponse;
 import app.xinqianmao.com.frontend.dao.ProductMapper;
-import app.xinqianmao.com.frontend.dao.ProductPropertyMapper;
 import app.xinqianmao.com.frontend.dao.ProductSkuMapper;
-import app.xinqianmao.com.frontend.dao.ProductSpecsMapper;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Tag(name = "搜索", description = "商品全文搜索")
 @RestController
 @RequestMapping("/frontend/search")
@@ -33,9 +31,7 @@ import java.util.stream.Collectors;
 public class SearchController {
 
     private final ProductMapper productMapper;
-    private final ProductPropertyMapper propertyMapper;
     private final ProductSkuMapper skuMapper;
-    private final ProductSpecsMapper specsMapper;
     private final HomeController homeController;
 
     @NoAuth
@@ -51,77 +47,116 @@ public class SearchController {
         }
 
         String kw = keyword.trim();
-        Set<String> productIds = new LinkedHashSet<>();
+        Set<String> seenIds = new LinkedHashSet<>();
+        List<Product> merged = new ArrayList<>();
 
-        // 1. Match by product name
-        productMapper.selectList(new LambdaQueryWrapper<Product>()
-                .like(Product::getName, kw)
-                .eq(Product::getIsEnable, 1))
-                .forEach(p -> productIds.add(p.getId()));
+        log.info("=== Search keyword: [{}] ===");
 
-        // 2. Match by product desc
-        productMapper.selectList(new LambdaQueryWrapper<Product>()
-                .like(Product::getDesc, kw)
-                .eq(Product::getIsEnable, 1))
-                .forEach(p -> productIds.add(p.getId()));
+        // 1. Jieba full-text search on search_text
+        try {
+            // Debug: check how jieba segments the keyword
+            LambdaQueryWrapper<Product> w1 = new LambdaQueryWrapper<>();
+            w1.apply("to_tsvector('jiebacfg', search_text) @@ plainto_tsquery('jiebacfg', {0})", kw)
+              .eq(Product::getIsEnable, 1)
+              .last("ORDER BY ts_rank(to_tsvector('jiebacfg', search_text), plainto_tsquery('jiebacfg', '" + escapeSql(kw) + "')) DESC, sort ASC");
+            List<Product> r1 = productMapper.selectList(w1);
+            log.info("Jieba result count: {}", r1.size());
+            r1.forEach(p -> { if (seenIds.add(p.getId())) merged.add(p); });
+        } catch (Exception e) { log.warn("Jieba search failed: {}", e.getMessage()); }
 
-        // 3. Match by product detail (HTML content)
-        productMapper.selectList(new LambdaQueryWrapper<Product>()
-                .like(Product::getDetail, kw)
-                .eq(Product::getIsEnable, 1))
-                .forEach(p -> productIds.add(p.getId()));
+        // 2. Trigram similarity on search_text
+        try {
+            LambdaQueryWrapper<Product> w2 = new LambdaQueryWrapper<>();
+            w2.apply("similarity(search_text, {0}) > 0.05", kw)
+              .eq(Product::getIsEnable, 1)
+              .last("ORDER BY similarity(search_text, '" + escapeSql(kw) + "') DESC, sort ASC");
+            List<Product> r2 = productMapper.selectList(w2);
+            log.info("Trigram result count: {}", r2.size());
+            r2.forEach(p -> { if (seenIds.add(p.getId())) merged.add(p); });
+        } catch (Exception e) { log.warn("Trigram search failed: {}", e.getMessage()); }
 
-        // 4. Match by property value (direct)
-        List<ProductProperty> matchedProps = propertyMapper.selectList(
-                new LambdaQueryWrapper<ProductProperty>()
-                        .eq(ProductProperty::getIsDelete, 0)
-                        .like(ProductProperty::getValueName, kw));
-        for (ProductProperty pp : matchedProps) {
-            productIds.add(pp.getProductId());
-        }
-
-        // 5. Match by spec name (via specsId lookup)
-        List<ProductSpecs> matchedSpecs = specsMapper.selectList(
-                new LambdaQueryWrapper<ProductSpecs>().like(ProductSpecs::getName, kw));
-        if (!matchedSpecs.isEmpty()) {
-            List<String> specsIds = matchedSpecs.stream().map(ProductSpecs::getId).collect(Collectors.toList());
-            List<ProductProperty> propsBySpec = propertyMapper.selectList(
-                    new LambdaQueryWrapper<ProductProperty>()
-                            .eq(ProductProperty::getIsDelete, 0)
-                            .in(ProductProperty::getSpecsId, specsIds));
-            for (ProductProperty pp : propsBySpec) {
-                productIds.add(pp.getProductId());
+        // Debug: check if search_text has any data at all
+        try {
+            LambdaQueryWrapper<Product> wd = new LambdaQueryWrapper<>();
+            wd.isNotNull(Product::getSearchText).eq(Product::getIsEnable, 1)
+              .last("LIMIT 3");
+            List<Product> sample = productMapper.selectList(wd);
+            log.info("Products with non-null search_text count (sample): {}", sample.size());
+            for (Product p : sample) {
+                log.info("  id={}, name=[{}], searchText=[{}]", p.getId(), p.getName(),
+                         p.getSearchText() != null ? p.getSearchText().substring(0, Math.min(100, p.getSearchText().length())) : "NULL");
             }
-        }
+        } catch (Exception e) { log.warn("Debug query failed: {}", e.getMessage()); }
 
-        // 6. Match by SKU specs (JSON text)
-        List<ProductSku> allSkus = skuMapper.selectList(new LambdaQueryWrapper<>());
-        for (ProductSku sku : allSkus) {
-            if (sku.getSpecs() != null && sku.getSpecs().contains(kw)) {
-                productIds.add(sku.getProductId());
-            }
-        }
+        log.info("=== Merged before LIKE fallbacks: {} ===", merged.size());
 
-        if (productIds.isEmpty()) {
+        // 3. Direct LIKE on search_text (most reliable fallback) — 暂时注释，先验证分词+模糊效果
+        // try {
+        //     productMapper.selectList(new LambdaQueryWrapper<Product>()
+        //             .like(Product::getSearchText, kw)
+        //             .eq(Product::getIsEnable, 1)
+        //             .orderByAsc(Product::getSort))
+        //             .forEach(p -> { if (seenIds.add(p.getId())) merged.add(p); });
+        // } catch (Exception e) { log.warn("search_text LIKE failed: {}", e.getMessage()); }
+
+        // 4. LIKE on product name (always works regardless of search_text) — 暂时注释，先验证分词+模糊效果
+        // try {
+        //     productMapper.selectList(new LambdaQueryWrapper<Product>()
+        //             .like(Product::getName, kw)
+        //             .eq(Product::getIsEnable, 1)
+        //             .orderByAsc(Product::getSort))
+        //             .forEach(p -> { if (seenIds.add(p.getId())) merged.add(p); });
+        // } catch (Exception e) { log.warn("Name LIKE failed: {}", e.getMessage()); }
+
+        // 5. LIKE on product desc — 暂时注释，先验证分词+模糊效果
+        // try {
+        //     productMapper.selectList(new LambdaQueryWrapper<Product>()
+        //             .like(Product::getDesc, kw)
+        //             .eq(Product::getIsEnable, 1)
+        //             .orderByAsc(Product::getSort))
+        //             .forEach(p -> { if (seenIds.add(p.getId())) merged.add(p); });
+        // } catch (Exception e) { log.warn("Desc LIKE failed: {}", e.getMessage()); }
+
+        if (merged.isEmpty()) {
             return Result.ok(PageResult.of(List.of(), 0, page, 0, pageSize));
         }
 
-        // Fetch and sort matching products by sort order
-        List<Product> products = productMapper.selectBatchIds(productIds).stream()
-                .filter(p -> p.getIsEnable() != null && p.getIsEnable() == 1)
-                .sorted(Comparator.comparing(Product::getSort, Comparator.nullsLast(Comparator.naturalOrder())))
-                .collect(Collectors.toList());
+        // Stock-aware sorting: in-stock products first
+        Set<String> inStockProductIds = getInStockProductIds(
+                merged.stream().map(Product::getId).collect(Collectors.toList()));
 
-        int total = products.size();
+        merged.sort(Comparator
+                .comparing((Product p) -> !inStockProductIds.contains(p.getId()))
+                .thenComparing(Product::getSort, Comparator.nullsLast(Comparator.naturalOrder())));
+
+        // Paginate
+        int total = merged.size();
         int pages = (int) Math.ceil((double) total / pageSize);
         int from = (page - 1) * pageSize;
         int to = Math.min(from + pageSize, total);
-        List<Product> pageItems = from < total ? products.subList(from, to) : List.of();
+        List<Product> pageItems = from < total ? merged.subList(from, to) : List.of();
 
         List<GoodsDetailResponse> items = pageItems.stream()
                 .map(homeController::buildGoodsDetail)
                 .collect(Collectors.toList());
 
         return Result.ok(PageResult.of(items, total, page, pages, pageSize));
+    }
+
+    private Set<String> getInStockProductIds(List<String> productIds) {
+        if (productIds.isEmpty()) return Set.of();
+        Set<String> result = new HashSet<>();
+        for (String pid : productIds) {
+            Long count = skuMapper.selectCount(new LambdaQueryWrapper<ProductSku>()
+                    .eq(ProductSku::getProductId, pid)
+                    .eq(ProductSku::getIsDelete, 0)
+                    .gt(ProductSku::getInventory, 0));
+            if (count > 0) result.add(pid);
+        }
+        return result;
+    }
+
+    private String escapeSql(String s) {
+        return s.replaceAll("['\\\\]", "\\\\$0");
     }
 }

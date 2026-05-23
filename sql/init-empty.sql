@@ -5,6 +5,10 @@
 -- Description: Initialize mypet_empty template database (v3.0)
 -- =====================================================
 
+-- Enable extensions
+CREATE EXTENSION IF NOT EXISTS pg_jieba;
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
 -- 1. Product Category
 CREATE TABLE IF NOT EXISTS t_product_category (
     id CHAR(36) PRIMARY KEY,
@@ -97,6 +101,7 @@ CREATE TABLE IF NOT EXISTS t_product (
     picture VARCHAR(255) NOT NULL,
     detail TEXT NOT NULL,
     sort INT NOT NULL DEFAULT 0,
+    search_text TEXT,
     is_enable SMALLINT NOT NULL DEFAULT 1,
     create_time TIMESTAMP NOT NULL DEFAULT now()::timestamp(0),
     modify_time TIMESTAMP
@@ -105,6 +110,10 @@ CREATE INDEX IF NOT EXISTS idx_product_product_type ON t_product(product_type);
 CREATE INDEX IF NOT EXISTS idx_product_product_category ON t_product(product_category);
 CREATE INDEX IF NOT EXISTS idx_product_product_brand ON t_product(product_brand);
 CREATE INDEX IF NOT EXISTS idx_product_is_enable ON t_product(is_enable);
+CREATE INDEX IF NOT EXISTS idx_product_name ON t_product(name);
+CREATE INDEX IF NOT EXISTS idx_product_name_trgm ON t_product USING GIN (name gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS idx_product_search_text_jieba ON t_product USING GIN (to_tsvector('jiebacfg', search_text));
+CREATE INDEX IF NOT EXISTS idx_product_search_text_trgm ON t_product USING GIN (search_text gin_trgm_ops);
 
 -- 6. Product Properties
 CREATE TABLE IF NOT EXISTS t_product_properties (
@@ -324,6 +333,7 @@ CREATE TABLE IF NOT EXISTS t_shop (
     logo VARCHAR(255) NOT NULL,
     free_shipping_amount NUMERIC(8,2) NOT NULL DEFAULT 20.00,
     banners JSON NOT NULL DEFAULT '[]'::json,
+    detail TEXT,
     create_time TIMESTAMP NOT NULL DEFAULT now()::timestamp(0),
     modify_time TIMESTAMP
 );

@@ -43,7 +43,7 @@ public class LoginSecurityService {
         }
         try (Connection c = dataSource.getConnection(); PreparedStatement ps = c.prepareStatement(sql)) {
             int idx = 1;
-            ps.setString(idx++, UUID.randomUUID().toString());
+            ps.setObject(idx++, UUID.randomUUID());
             if (useTenantCode) ps.setString(idx++, tenantCode);
             ps.setString(idx++, account);
             ps.setString(idx++, errorType);
@@ -102,7 +102,7 @@ public class LoginSecurityService {
 
         try (Connection c = dataSource.getConnection(); PreparedStatement ps = c.prepareStatement(insertSql)) {
             int idx = 1;
-            ps.setString(idx++, UUID.randomUUID().toString());
+            ps.setObject(idx++, UUID.randomUUID());
             if (useTenantCode) ps.setString(idx++, tenantCode);
             ps.setString(idx++, account);
             ps.setTimestamp(idx++, Timestamp.valueOf(LocalDateTime.now().plusMinutes(10)));

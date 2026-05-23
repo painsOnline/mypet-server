@@ -34,6 +34,7 @@ public class Product extends BaseEntity {
     private String picture;
     private String detail;
     private Integer sort;
+    private String searchText;
     /** 1=上架 2=下架 */
     private Integer isEnable;
 }
