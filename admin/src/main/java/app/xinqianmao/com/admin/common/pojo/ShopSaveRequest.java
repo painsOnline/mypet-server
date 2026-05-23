@@ -31,4 +31,7 @@ public class ShopSaveRequest {
 
     @Schema(description = "店铺详情（富文本）")
     private String detail;
+
+    @Schema(description = "联系电话")
+    private String contact;
 }

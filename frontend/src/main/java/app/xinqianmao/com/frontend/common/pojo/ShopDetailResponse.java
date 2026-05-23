@@ -14,6 +14,7 @@ public class ShopDetailResponse {
     private String logo;
     private BigDecimal freeShippingAmount;
     private String detail;
+    private String contact;
     private List<BannerItem> banners;
 
     @Data

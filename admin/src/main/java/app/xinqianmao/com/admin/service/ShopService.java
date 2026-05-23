@@ -42,6 +42,7 @@ public class ShopService {
         if (req.getFreeShippingAmount() != null) shop.setFreeShippingAmount(req.getFreeShippingAmount());
         if (req.getBanners() != null) shop.setBanners(req.getBanners());
         if (req.getDetail() != null) shop.setDetail(req.getDetail());
+        if (req.getContact() != null) shop.setContact(req.getContact());
 
         if (shops.isEmpty()) {
             shopMapper.insert(shop);

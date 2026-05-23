@@ -20,7 +20,6 @@ import javax.sql.DataSource;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.sql.*;
-import java.time.LocalDateTime;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -49,38 +48,55 @@ class MigrationMockTest {
     @Autowired
     private app.xinqianmao.com.tenant.service.MigrationRunnerService migrationRunner;
 
+    private static final String CONFIG_FILE = "config_005_consolidated_multi_tenant_and_later.sql";
+    private static final String TENANT_FILE = "011_consolidated_tenant_multi_tenant_and_later.sql";
+
     // ============================================================
     // 1. SQL content verification
     // ============================================================
 
     @Test
     @Order(1)
-    @DisplayName("config_002_tenant_admin.sql: exists, idempotent, creates t_admin with super user")
-    void sqlConfig002() throws Exception {
-        String sql = loadSql("config_002_tenant_admin.sql");
+    @DisplayName("config_005_consolidated: exists, idempotent, creates t_admin + is_business_open")
+    void sqlConfigConsolidated() throws Exception {
+        String sql = loadSql(CONFIG_FILE);
         assertTrue(sql.contains("CREATE TABLE IF NOT EXISTS"), "Must be idempotent");
         assertTrue(sql.contains("t_admin"), "Must create t_admin table");
         assertTrue(sql.contains("gen_random_uuid()"), "Must use UUID primary key");
         assertTrue(sql.contains("super"), "Must have default super admin");
         assertTrue(sql.contains("ON CONFLICT"), "Insert must handle conflicts");
+        assertTrue(sql.contains("is_bussiness_open"), "Must add is_bussiness_open column");
+        assertTrue(sql.contains("c_tenant"), "Must reference c_tenant");
     }
 
     @Test
     @Order(2)
-    @DisplayName("003_admin_security_tables.sql: exists, idempotent, creates both tables")
-    void sql003Security() throws Exception {
-        String sql = loadSql("003_admin_security_tables.sql");
+    @DisplayName("011_consolidated: exists, idempotent, creates security tables + search + shop")
+    void sqlTenantConsolidated() throws Exception {
+        String sql = loadSql(TENANT_FILE);
+        // Security tables
         assertTrue(sql.contains("CREATE TABLE IF NOT EXISTS c_admin_login_error_log"),
                 "Must create error log table idempotently");
         assertTrue(sql.contains("CREATE TABLE IF NOT EXISTS c_admin_login_lock"),
                 "Must create lock table idempotently");
         assertTrue(sql.contains("CHAR(36)"), "Must use CHAR(36) PK");
-        // database.md says no tenant_code — verify NOT present
         assertFalse(sql.contains("tenant_code"), "Must NOT have tenant_code per database.md");
+        // Search optimization
+        assertTrue(sql.contains("CREATE EXTENSION IF NOT EXISTS pg_jieba"), "Must enable pg_jieba");
+        assertTrue(sql.contains("CREATE EXTENSION IF NOT EXISTS pg_trgm"), "Must enable pg_trgm");
+        assertTrue(sql.contains("search_text"), "Must add search_text column");
+        assertTrue(sql.contains("jiebacfg"), "Must use jiebacfg config");
+        assertTrue(sql.contains("gin_trgm_ops"), "Must have trigram index");
+        assertTrue(sql.contains("idx_product_name"), "Must have name index");
+        assertTrue(sql.contains("UPDATE t_product"), "Must backfill search_text");
+        // Shop detail + contact
+        assertTrue(sql.contains("ALTER TABLE t_shop"), "Must alter t_shop");
+        assertTrue(sql.contains("detail TEXT"), "Must add detail column");
+        assertTrue(sql.contains("contact"), "Must add contact column");
     }
 
     // ============================================================
-    // 2. splitSql tests (from old admin MigrationRunnerService)
+    // 2. splitSql tests
     // ============================================================
 
     @Test
@@ -119,13 +135,13 @@ class MigrationMockTest {
 
     @Test
     @Order(10)
-    @DisplayName("Execute config_002_tenant_admin: creates t_admin table + super user")
-    void execConfig002() {
-        Map<String, Object> result = migrationRunner.runMigration("config_002_tenant_admin.sql");
-        System.out.println("config_002 result: " + result);
+    @DisplayName("Execute config_005_consolidated: creates t_admin + adds is_business_open")
+    void execConfigConsolidated() {
+        Map<String, Object> result = migrationRunner.runMigration(CONFIG_FILE);
+        System.out.println("config_005 result: " + result);
         assertEquals("success", result.get("status"), "Migration should succeed");
 
-        // Verify table exists
+        // Verify t_admin table exists
         try (Connection c = configDs.getConnection();
              Statement stmt = c.createStatement()) {
             ResultSet rs = stmt.executeQuery(
@@ -137,7 +153,7 @@ class MigrationMockTest {
             assertTrue(cols.contains("password"), "Must have password column");
             assertTrue(cols.contains("last_login_time"), "Must have last_login_time column");
         } catch (SQLException e) {
-            fail("Table verification failed: " + e.getMessage());
+            fail("t_admin verification failed: " + e.getMessage());
         }
 
         // Verify super admin exists
@@ -150,26 +166,36 @@ class MigrationMockTest {
         } catch (SQLException e) {
             fail("Super admin check failed: " + e.getMessage());
         }
+
+        // Verify is_bussiness_open column
+        try (Connection c = configDs.getConnection();
+             Statement stmt = c.createStatement()) {
+            ResultSet rs = stmt.executeQuery(
+                "SELECT column_name FROM information_schema.columns WHERE table_name='c_tenant' AND column_name='is_bussiness_open'");
+            assertTrue(rs.next(), "is_bussiness_open column must exist on c_tenant");
+        } catch (SQLException e) {
+            fail("is_bussiness_open check failed: " + e.getMessage());
+        }
     }
 
     @Test
     @Order(11)
-    @DisplayName("Execute config_002 AGAIN: idempotency — no errors on re-run")
-    void execConfig002Idempotent() {
-        Map<String, Object> result = migrationRunner.runMigration("config_002_tenant_admin.sql");
-        System.out.println("config_002 idempotent result: " + result);
+    @DisplayName("Execute config_005 AGAIN: idempotency — no errors on re-run")
+    void execConfigConsolidatedIdempotent() {
+        Map<String, Object> result = migrationRunner.runMigration(CONFIG_FILE);
+        System.out.println("config_005 idempotent result: " + result);
         assertEquals("success", result.get("status"), "Re-run must succeed (idempotent)");
     }
 
     @Test
     @Order(12)
-    @DisplayName("Execute 003_admin_security_tables: creates tables in empty DB")
-    void exec003Security() {
-        Map<String, Object> result = migrationRunner.runMigration("003_admin_security_tables.sql");
-        System.out.println("003 result: " + result);
+    @DisplayName("Execute 011_consolidated: creates security tables + search + shop in empty DB")
+    void execTenantConsolidated() {
+        Map<String, Object> result = migrationRunner.runMigration(TENANT_FILE);
+        System.out.println("011 result: " + result);
         assertEquals("success", result.get("status"), "Migration should succeed");
 
-        // Verify tables exist in template (empty) DB
+        // Verify security tables in template (empty) DB
         for (String table : new String[]{"c_admin_login_error_log", "c_admin_login_lock"}) {
             try (Connection c = templateDs.getConnection();
                  Statement stmt = c.createStatement()) {
@@ -181,20 +207,49 @@ class MigrationMockTest {
                 assertTrue(cols.contains("id"), table + " must have id");
                 assertTrue(cols.contains("account"), table + " must have account");
                 assertTrue(cols.contains("create_time"), table + " must have create_time");
-                // Verify NO tenant_code
                 assertFalse(cols.contains("tenant_code"), table + " must NOT have tenant_code per database.md");
             } catch (SQLException e) {
                 fail(table + " verification failed: " + e.getMessage());
             }
         }
+
+        // Verify search_text column + indexes on t_product in empty DB
+        try (Connection c = templateDs.getConnection();
+             Statement stmt = c.createStatement()) {
+            ResultSet rs = stmt.executeQuery(
+                "SELECT column_name FROM information_schema.columns WHERE table_name='t_product' AND column_name='search_text'");
+            assertTrue(rs.next(), "search_text column must exist on t_product");
+        } catch (SQLException e) {
+            fail("search_text check failed: " + e.getMessage());
+        }
+
+        // Verify detail column on t_shop
+        try (Connection c = templateDs.getConnection();
+             Statement stmt = c.createStatement()) {
+            ResultSet rs = stmt.executeQuery(
+                "SELECT column_name FROM information_schema.columns WHERE table_name='t_shop' AND column_name='detail'");
+            assertTrue(rs.next(), "detail column must exist on t_shop");
+        } catch (SQLException e) {
+            fail("detail check failed: " + e.getMessage());
+        }
+
+        // Verify contact column on t_shop
+        try (Connection c = templateDs.getConnection();
+             Statement stmt = c.createStatement()) {
+            ResultSet rs = stmt.executeQuery(
+                "SELECT column_name FROM information_schema.columns WHERE table_name='t_shop' AND column_name='contact'");
+            assertTrue(rs.next(), "contact column must exist on t_shop");
+        } catch (SQLException e) {
+            fail("contact check failed: " + e.getMessage());
+        }
     }
 
     @Test
     @Order(13)
-    @DisplayName("Execute 003 AGAIN: idempotency — no errors on re-run")
-    void exec003Idempotent() {
-        Map<String, Object> result = migrationRunner.runMigration("003_admin_security_tables.sql");
-        System.out.println("003 idempotent result: " + result);
+    @DisplayName("Execute 011 AGAIN: idempotency — no errors on re-run")
+    void execTenantConsolidatedIdempotent() {
+        Map<String, Object> result = migrationRunner.runMigration(TENANT_FILE);
+        System.out.println("011 idempotent result: " + result);
         assertEquals("success", result.get("status"), "Re-run must succeed (idempotent)");
     }
 
@@ -216,8 +271,7 @@ class MigrationMockTest {
             String status = (String) m.get("status");
             assertNotNull(status);
 
-            // Both of our migrations should be marked success after running
-            if ("config_002_tenant_admin.sql".equals(name) || "003_admin_security_tables.sql".equals(name)) {
+            if (CONFIG_FILE.equals(name) || TENANT_FILE.equals(name)) {
                 assertEquals("success", status, name + " must be 'success'");
             }
         }

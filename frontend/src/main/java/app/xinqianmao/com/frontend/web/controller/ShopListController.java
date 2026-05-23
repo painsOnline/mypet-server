@@ -52,9 +52,26 @@ public class ShopListController {
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 Map<String, Object> item = new LinkedHashMap<>();
-                item.put("code", rs.getString("code"));
+                String code = rs.getString("code");
+                item.put("code", code);
                 item.put("name", rs.getString("name"));
-                item.put("logo", "");
+                // Query logo from tenant's t_shop
+                String logo = "";
+                try {
+                    DataSource tenantDs = tenantDataSourceManager.getOrCreateTenantDataSource(code);
+                    if (tenantDs != null) {
+                        try (Connection tc = tenantDs.getConnection();
+                             PreparedStatement tps = tc.prepareStatement("SELECT logo FROM t_shop LIMIT 1");
+                             ResultSet trs = tps.executeQuery()) {
+                            if (trs.next()) {
+                                logo = imageUrlUtil.fullUrl(trs.getString("logo"));
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    log.warn("Failed to get logo for tenant {}: {}", code, e.getMessage());
+                }
+                item.put("logo", logo);
                 result.add(item);
             }
         } catch (Exception e) {

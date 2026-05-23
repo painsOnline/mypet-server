@@ -333,6 +333,7 @@ CREATE TABLE IF NOT EXISTS t_shop (
     logo VARCHAR(255) NOT NULL,
     free_shipping_amount NUMERIC(8,2) NOT NULL DEFAULT 20.00,
     banners JSON NOT NULL DEFAULT '[]'::json,
+    contact VARCHAR(100),
     detail TEXT,
     create_time TIMESTAMP NOT NULL DEFAULT now()::timestamp(0),
     modify_time TIMESTAMP

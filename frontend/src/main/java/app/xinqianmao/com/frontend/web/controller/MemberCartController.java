@@ -5,6 +5,7 @@
  */
 package app.xinqianmao.com.frontend.web.controller;
 
+import app.xinqianmao.com.common.annotation.NoAuth;
 import app.xinqianmao.com.common.auth.UserContext;
 import app.xinqianmao.com.common.result.Result;
 import app.xinqianmao.com.common.utils.DateTimeUtil;
@@ -43,10 +44,16 @@ public class MemberCartController {
         return UserContext.getRequiredUserId();
     }
 
-    @Operation(summary = "获取用户购物车")
+    @NoAuth
+    @Operation(summary = "获取用户购物车（未登录返回空列表）")
     @GetMapping
     public Result<List<CartItemResponse>> getCart() {
-        String memberId = currentMemberId();
+        String memberId;
+        try {
+            memberId = UserContext.getRequiredUserId();
+        } catch (Exception e) {
+            return Result.ok(List.of());
+        }
         List<Cart> carts = cartMapper.selectList(
                 new LambdaQueryWrapper<Cart>().eq(Cart::getMemberId, memberId));
         return Result.ok(carts.stream().map(this::toCartItemResponse).collect(Collectors.toList()));

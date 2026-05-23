@@ -90,32 +90,32 @@ public class SearchController {
 
         log.info("=== Merged before LIKE fallbacks: {} ===", merged.size());
 
-        // 3. Direct LIKE on search_text (most reliable fallback) — 暂时注释，先验证分词+模糊效果
-        // try {
-        //     productMapper.selectList(new LambdaQueryWrapper<Product>()
-        //             .like(Product::getSearchText, kw)
-        //             .eq(Product::getIsEnable, 1)
-        //             .orderByAsc(Product::getSort))
-        //             .forEach(p -> { if (seenIds.add(p.getId())) merged.add(p); });
-        // } catch (Exception e) { log.warn("search_text LIKE failed: {}", e.getMessage()); }
+        // 3. Direct LIKE on search_text
+        try {
+            productMapper.selectList(new LambdaQueryWrapper<Product>()
+                    .like(Product::getSearchText, kw)
+                    .eq(Product::getIsEnable, 1)
+                    .orderByAsc(Product::getSort))
+                    .forEach(p -> { if (seenIds.add(p.getId())) merged.add(p); });
+        } catch (Exception e) { log.warn("search_text LIKE failed: {}", e.getMessage()); }
 
-        // 4. LIKE on product name (always works regardless of search_text) — 暂时注释，先验证分词+模糊效果
-        // try {
-        //     productMapper.selectList(new LambdaQueryWrapper<Product>()
-        //             .like(Product::getName, kw)
-        //             .eq(Product::getIsEnable, 1)
-        //             .orderByAsc(Product::getSort))
-        //             .forEach(p -> { if (seenIds.add(p.getId())) merged.add(p); });
-        // } catch (Exception e) { log.warn("Name LIKE failed: {}", e.getMessage()); }
+        // 4. LIKE on product name
+        try {
+            productMapper.selectList(new LambdaQueryWrapper<Product>()
+                    .like(Product::getName, kw)
+                    .eq(Product::getIsEnable, 1)
+                    .orderByAsc(Product::getSort))
+                    .forEach(p -> { if (seenIds.add(p.getId())) merged.add(p); });
+        } catch (Exception e) { log.warn("Name LIKE failed: {}", e.getMessage()); }
 
-        // 5. LIKE on product desc — 暂时注释，先验证分词+模糊效果
-        // try {
-        //     productMapper.selectList(new LambdaQueryWrapper<Product>()
-        //             .like(Product::getDesc, kw)
-        //             .eq(Product::getIsEnable, 1)
-        //             .orderByAsc(Product::getSort))
-        //             .forEach(p -> { if (seenIds.add(p.getId())) merged.add(p); });
-        // } catch (Exception e) { log.warn("Desc LIKE failed: {}", e.getMessage()); }
+        // 5. LIKE on product desc
+        try {
+            productMapper.selectList(new LambdaQueryWrapper<Product>()
+                    .like(Product::getDesc, kw)
+                    .eq(Product::getIsEnable, 1)
+                    .orderByAsc(Product::getSort))
+                    .forEach(p -> { if (seenIds.add(p.getId())) merged.add(p); });
+        } catch (Exception e) { log.warn("Desc LIKE failed: {}", e.getMessage()); }
 
         if (merged.isEmpty()) {
             return Result.ok(PageResult.of(List.of(), 0, page, 0, pageSize));

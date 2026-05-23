@@ -26,6 +26,7 @@ public class Shop {
     @TableField(typeHandler = app.xinqianmao.com.common.dao.JsonTypeHandler.class)
     private String banners;
     private String detail;
+    private String contact;
     private LocalDateTime createTime;
     private LocalDateTime modifyTime;
 }

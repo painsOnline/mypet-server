@@ -59,6 +59,7 @@ public class HomeController {
         r.setLogo(imageUrlUtil.fullUrl(shop.getLogo()));
         r.setFreeShippingAmount(shop.getFreeShippingAmount());
         r.setDetail(shop.getDetail());
+        r.setContact(shop.getContact());
         String bannersJson = shop.getBanners();
         if (bannersJson != null && !bannersJson.isBlank()) {
             try {
