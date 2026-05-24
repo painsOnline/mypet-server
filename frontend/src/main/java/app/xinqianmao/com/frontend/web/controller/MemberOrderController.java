@@ -182,8 +182,9 @@ public class MemberOrderController {
     @Operation(summary = "购物车结算预付单")
     @GetMapping("/pre")
     public Result<PreOrderResponse> preOrder() {
+        String memberId = UserContext.getRequiredUserId();
         List<Cart> selectedCarts = cartMapper.selectList(
-                new LambdaQueryWrapper<Cart>().eq(Cart::getSelected, 1));
+                new LambdaQueryWrapper<Cart>().eq(Cart::getSelected, 1).eq(Cart::getMemberId, memberId));
         if (selectedCarts.isEmpty()) throw new BizException("400", "请选择要购买的商品");
 
         // Pre-load spec names and value names for specs resolution

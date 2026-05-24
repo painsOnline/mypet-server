@@ -9,7 +9,7 @@ mypet:
     port: 1800
     user: postgres
     password: mypg123abc
-  base-url: http://localhost:8080
+  base-url: ${BASE_URL}
   upload:
     path: F:/MyWorkspace/project/mypet/uploads
 

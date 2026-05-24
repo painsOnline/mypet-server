@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 @Component
 public class ImageUrlUtil {
 
-    @Value("${mypet.base-url:http://localhost:8080}")
+    @Value("${mypet.base-url}")
     private String baseUrl;
 
     /**

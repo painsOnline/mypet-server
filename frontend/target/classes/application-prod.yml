@@ -1,13 +1,13 @@
 # 生产环境配置
 mypet:
   db:
-    host: ${DB_HOST:127.0.0.1}
-    port: ${DB_PORT:1800}
-    user: ${DB_USER:postgres}
-    password: ${DB_PASSWORD:mypg123abc}
-  base-url: ${BASE_URL:https://app.xinqianmao.com}
+    host: ${DB_HOST}
+    port: ${DB_PORT}
+    user: ${DB_USER}
+    password: ${DB_PASSWORD}
+  base-url: ${BASE_URL}
   upload:
-    path: ${UPLOAD_PATH:/data/mypet/uploads}
+    path: ${UPLOAD_PATH}
 
 logging:
   level:

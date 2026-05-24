@@ -1,0 +1,12 @@
+# 生产环境配置
+mypet:
+  db:
+    host: ${DB_HOST}
+    port: ${DB_PORT}
+    user: ${DB_USER}
+    password: ${DB_PASSWORD}
+
+logging:
+  level:
+    app.xinqianmao.com: WARN
+    root: WARN
