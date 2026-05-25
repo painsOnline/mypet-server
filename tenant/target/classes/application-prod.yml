@@ -5,6 +5,7 @@ mypet:
     port: ${DB_PORT}
     user: ${DB_USER}
     password: ${DB_PASSWORD}
+  base-url: ${BASE_URL}
 
 logging:
   level:

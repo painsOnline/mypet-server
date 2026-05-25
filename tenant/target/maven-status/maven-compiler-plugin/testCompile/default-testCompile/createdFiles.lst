@@ -1,0 +1,6 @@
+app\xinqianmao\com\tenant\RunMigration004.class
+app\xinqianmao\com\tenant\Verify004.class
+app\xinqianmao\com\tenant\QuickVerify.class
+app\xinqianmao\com\tenant\MigrationMockTest.class
+app\xinqianmao\com\tenant\TenantBackendMockTest.class
+app\xinqianmao\com\tenant\VerifyMigration.class

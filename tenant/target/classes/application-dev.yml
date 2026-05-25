@@ -4,6 +4,7 @@ mypet:
     port: 1800
     user: postgres
     password: mypg123abc
+  base-url: ${BASE_URL}
 
 logging:
   level:

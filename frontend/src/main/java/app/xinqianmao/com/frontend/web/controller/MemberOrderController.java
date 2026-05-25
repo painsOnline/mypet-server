@@ -231,11 +231,12 @@ public class MemberOrderController {
             pp.setName(cart.getName());
             pp.setSpecs(parsePreOrderSpecs(cart.getSpecs(), specIdToName, valueIdToName));
             pp.setCount(cart.getCount());
+            BigDecimal skuOldPrice = sku != null ? (sku.getOldPrice() != null ? sku.getOldPrice() : BigDecimal.ZERO) : BigDecimal.ZERO;
             BigDecimal skuPrice = sku != null ? (sku.getPrice() != null ? sku.getPrice() : BigDecimal.ZERO) : BigDecimal.ZERO;
-            pp.setPrice(skuPrice);
+            pp.setPrice(skuOldPrice);
             pp.setPayPrice(skuPrice);
             pp.setPicture(imageUrlUtil.fullUrl(cart.getPicture()));
-            BigDecimal itemTotal = skuPrice.multiply(BigDecimal.valueOf(cart.getCount()));
+            BigDecimal itemTotal = skuOldPrice.multiply(BigDecimal.valueOf(cart.getCount()));
             BigDecimal itemPayTotal = skuPrice.multiply(BigDecimal.valueOf(cart.getCount()));
             pp.setTotalPrice(itemTotal);
             pp.setTotalPayPrice(itemPayTotal);
