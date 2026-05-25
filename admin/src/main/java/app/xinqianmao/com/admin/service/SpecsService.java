@@ -192,14 +192,16 @@ public class SpecsService {
             if (skuCount <= 1) {
                 throw new BizException("400", "至少需要一个SKU规格，无法删除该规格");
             }
-            // Prevent deleting SKU spec if any linked type already has products
-            List<ProductTypeSpecRel> rels = typeSpecRelMapper.selectList(
-                    new LambdaQueryWrapper<ProductTypeSpecRel>()
-                            .eq(ProductTypeSpecRel::getSpecsId, specId));
-            for (ProductTypeSpecRel rel : rels) {
-                long productCount = productMapper.countByTypeId(rel.getProductType());
-                if (productCount > 0) {
-                    throw new BizException("400", "该规格关联的类型下已有商品，无法删除SKU规格");
+            // Prevent deleting SKU spec if any of its VALUES are used in product SKUs
+            List<ProductSpecsValue> values = specsValueMapper.selectList(
+                    new LambdaQueryWrapper<ProductSpecsValue>()
+                            .eq(ProductSpecsValue::getSpecsId, specId));
+            if (values != null) {
+                for (ProductSpecsValue v : values) {
+                    int used = productSkuMapper.countByValueId(v.getId());
+                    if (used > 0) {
+                        throw new BizException("400", "该SKU规格的值「" + v.getValueName() + "」已被商品使用，无法删除");
+                    }
                 }
             }
         }
