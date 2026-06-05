@@ -109,7 +109,7 @@ public class MemberCartController {
         r.setPrice(sku != null ? sku.getPrice() : BigDecimal.ZERO);
         r.setNowPrice(sku != null ? sku.getPrice() : BigDecimal.ZERO);
         r.setSelected(cart.getSelected() != null && cart.getSelected() == 1);
-        r.setStock(sku != null ? sku.getInventory() : 0);
+        r.setStock(sku != null ? sku.getVirtualInventory() : 0);
         boolean effective = true;
         if (sku != null) {
             Product product = productMapper.selectById(sku.getProductId());

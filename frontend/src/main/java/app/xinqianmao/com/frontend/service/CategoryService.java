@@ -193,7 +193,7 @@ public class CategoryService {
         r.setSkus(skus.stream().map(sku -> {
             GoodsDetailResponse.SkuItem si = new GoodsDetailResponse.SkuItem();
             si.setId(sku.getId());
-            si.setInventory(sku.getInventory());
+            si.setVirtualInventory(sku.getVirtualInventory());
             si.setOldPrice(sku.getOldPrice());
             si.setPicture(sku.getPicture());
             si.setPrice(sku.getPrice());

@@ -184,6 +184,8 @@ public class OrderService {
         order.setDeliveryTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
         order.setModifyTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
         orderMapper.updateById(order);
+        // 发货时扣减真实库存
+        deductRealInventory(order.getOrderNo());
     }
 
     /**
@@ -236,11 +238,12 @@ public class OrderService {
         if (order.getOrderStatus() == 4 || order.getOrderStatus() == 5) {
             throw new BizException("400", "当前状态无法取消");
         }
+        boolean wasDispatched = order.getOrderStatus() >= 2;
         order.setOrderStatus(5);
         order.setCancelTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
         order.setModifyTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
         orderMapper.updateById(order);
-        try { returnInventory(order.getOrderNo()); } catch (Exception e) { log.error("returnInventory failed: {}", e.getMessage()); }
+        try { returnInventory(order.getOrderNo(), wasDispatched); } catch (Exception e) { log.error("returnInventory failed: {}", e.getMessage()); }
     }
 
     /**
@@ -256,6 +259,7 @@ public class OrderService {
             order.setDeliveryTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
             order.setModifyTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
             orderMapper.updateById(order);
+            deductRealInventory(order.getOrderNo());
         }
     }
 
@@ -270,11 +274,12 @@ public class OrderService {
             if (order.getOrderStatus() == 4 || order.getOrderStatus() == 5) {
                 throw new BizException("400", "订单 " + id + " 当前状态无法取消");
             }
+            boolean wasDispatched = order.getOrderStatus() >= 2;
             order.setOrderStatus(5);
             order.setCancelTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
             order.setModifyTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
             orderMapper.updateById(order);
-            try { returnInventory(order.getOrderNo()); } catch (Exception e) { log.error("returnInventory failed for {}: {}", order.getOrderNo(), e.getMessage()); }
+            try { returnInventory(order.getOrderNo(), wasDispatched); } catch (Exception e) { log.error("returnInventory failed for {}: {}", order.getOrderNo(), e.getMessage()); }
         }
     }
 
@@ -302,27 +307,77 @@ public class OrderService {
         orderMapper.updateById(order);
     }
 
-    private void returnInventory(String orderNo) {
+    public void updateActualPayMoney(String orderId, java.math.BigDecimal actualPayMoney) {
+        Order order = orderMapper.selectById(orderId);
+        if (order == null) throw new BizException("404", "订单不存在");
+        order.setActualPayMoney(actualPayMoney);
+        // Recalculate profit: actualPayMoney - SUM(costPrice * count)
+        List<OrderProductSku> skus = orderProductSkuMapper.selectList(
+                new LambdaQueryWrapper<OrderProductSku>().eq(OrderProductSku::getOrderNo, order.getOrderNo()));
+        java.math.BigDecimal totalCost = skus.stream()
+                .map(s -> (s.getCostPrice() != null ? s.getCostPrice() : java.math.BigDecimal.ZERO)
+                        .multiply(java.math.BigDecimal.valueOf(s.getCount())))
+                .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+        order.setProfitMoney(actualPayMoney.subtract(totalCost));
+        order.setModifyTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
+        orderMapper.updateById(order);
+    }
+
+    private void deductRealInventory(String orderNo) {
         List<OrderProductSku> skus = orderProductSkuMapper.selectList(
                 new LambdaQueryWrapper<OrderProductSku>().eq(OrderProductSku::getOrderNo, orderNo));
         for (OrderProductSku ops : skus) {
             ProductSku sku = skuMapper.selectById(ops.getSkuId());
             if (sku == null) continue;
             int before = sku.getInventory() != null ? sku.getInventory() : 0;
-            int after = before + (ops.getCount() != null ? ops.getCount() : 0);
+            int count = ops.getCount() != null ? ops.getCount() : 0;
+            if (count <= 0) continue;
+            int after = before - count;
             sku.setInventory(after);
             skuMapper.updateById(sku);
             InventoryLog log = new InventoryLog();
             log.setSkuId(sku.getId());
             log.setBarcode(sku.getBarcode());
             log.setOrderNo(orderNo);
-            log.setChangeType("in");
-            log.setChangeNum(ops.getCount());
+            log.setChangeType("out");
+            log.setChangeNum(count);
             log.setBeforeInventory(before);
             log.setAfterInventory(after);
             log.setOperator("admin");
             log.setCreateTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
             inventoryLogMapper.insert(log);
+        }
+    }
+
+    private void returnInventory(String orderNo, boolean wasDispatched) {
+        List<OrderProductSku> skus = orderProductSkuMapper.selectList(
+                new LambdaQueryWrapper<OrderProductSku>().eq(OrderProductSku::getOrderNo, orderNo));
+        for (OrderProductSku ops : skus) {
+            ProductSku sku = skuMapper.selectById(ops.getSkuId());
+            if (sku == null) continue;
+            int count = ops.getCount() != null ? ops.getCount() : 0;
+            if (count <= 0) continue;
+            // 恢复虚拟库存（下单时扣减）
+            int vBefore = sku.getVirtualInventory() != null ? sku.getVirtualInventory() : 0;
+            sku.setVirtualInventory(vBefore + count);
+
+            // 如果已发货，恢复真实库存并记录日志
+            if (wasDispatched) {
+                int rBefore = sku.getInventory() != null ? sku.getInventory() : 0;
+                sku.setInventory(rBefore + count);
+                InventoryLog log = new InventoryLog();
+                log.setSkuId(sku.getId());
+                log.setBarcode(sku.getBarcode());
+                log.setOrderNo(orderNo);
+                log.setChangeType("in");
+                log.setChangeNum(count);
+                log.setBeforeInventory(rBefore);
+                log.setAfterInventory(rBefore + count);
+                log.setOperator("admin");
+                log.setCreateTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
+                inventoryLogMapper.insert(log);
+            }
+            skuMapper.updateById(sku);
         }
     }
 

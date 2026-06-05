@@ -72,10 +72,14 @@ public class ProductService {
         if (req.getBrandId() != null && !req.getBrandId().isBlank()) {
             wrapper.eq(Product::getProductBrand, req.getBrandId());
         }
-        // Barcode search: match any SKU's barcode
+        // Barcode search: match any SKU's barcode via t_product_sku
         if (req.getBarcode() != null && !req.getBarcode().isBlank()) {
-            wrapper.exists("SELECT 1 FROM t_product_sku s WHERE s.product_id = t_product.id AND s.barcode LIKE CONCAT('%', {0}::text, '%')",
-                    req.getBarcode().replaceAll("[%_]", "\\\\$0"));
+            String safe = req.getBarcode()
+                    .replace("'", "''")
+                    .replaceAll("[%_]", "\\\\$0");
+            wrapper.exists("SELECT 1 FROM t_product_sku s WHERE s.product_id = t_product.id"
+                    + " AND s.is_delete = 0"
+                    + " AND s.barcode LIKE '%" + safe + "%'");
         }
         if (req.getIsEnable() != null) {
             wrapper.eq(Product::getIsEnable, req.getIsEnable());
@@ -224,6 +228,7 @@ public class ProductService {
             si.setOldPrice(sku.getOldPrice());
             si.setCostPrice(sku.getCostPrice());
             si.setInventory(sku.getInventory());
+            si.setVirtualInventory(sku.getVirtualInventory());
             si.setBarcode(sku.getBarcode());
             si.setPicture(sku.getPicture());
             // Parse specs from JSON string
@@ -346,6 +351,7 @@ public class ProductService {
                 sku.setPrice(si.getPrice());
                 sku.setOldPrice(si.getOldPrice());
                 sku.setInventory(si.getInventory());
+                sku.setVirtualInventory(si.getVirtualInventory() != null ? si.getVirtualInventory() : si.getInventory());
                 if (si.getCostPrice() == null) throw new BizException("400", "SKU成本价不能为空");
                 sku.setCostPrice(si.getCostPrice());
                 sku.setBarcode(si.getBarcode() != null ? si.getBarcode() : "");
@@ -485,6 +491,7 @@ public class ProductService {
             sku.setPrice(si.getPrice());
             sku.setOldPrice(si.getOldPrice());
             sku.setInventory(si.getInventory());
+            sku.setVirtualInventory(si.getVirtualInventory() != null ? si.getVirtualInventory() : si.getInventory());
             if (si.getCostPrice() == null) throw new BizException("400", "SKU成本价不能为空");
             sku.setCostPrice(si.getCostPrice());
             sku.setBarcode(si.getBarcode() != null ? si.getBarcode() : "");

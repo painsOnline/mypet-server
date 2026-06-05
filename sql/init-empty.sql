@@ -140,6 +140,7 @@ CREATE TABLE IF NOT EXISTS t_product_sku (
     old_price NUMERIC(8,2) NOT NULL,
     cost_price NUMERIC(8,2) NOT NULL,
     inventory INT NOT NULL DEFAULT 0,
+    virtual_inventory INT NOT NULL DEFAULT 0,
     barcode VARCHAR(255),
     picture VARCHAR(255) NOT NULL,
     specs JSONB NOT NULL DEFAULT '[]'::jsonb,

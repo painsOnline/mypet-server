@@ -111,4 +111,14 @@ public class AdminOrderController {
         orderService.updateSellerMessage(id, body.get("sellerMessage"));
         return Result.ok();
     }
+
+    @Operation(summary = "修改实收金额")
+    @PutMapping("/{id}/actualPayMoney")
+    public Result<Void> updateActualPayMoney(@PathVariable String id, @RequestBody java.util.Map<String, Object> body) {
+        java.math.BigDecimal amount = body.get("actualPayMoney") != null
+                ? new java.math.BigDecimal(body.get("actualPayMoney").toString())
+                : java.math.BigDecimal.ZERO;
+        orderService.updateActualPayMoney(id, amount);
+        return Result.ok();
+    }
 }

@@ -36,7 +36,7 @@ public class MigrationController {
     }
 
     @Operation(summary = "执行指定迁移")
-    @PostMapping("/run/{name}")
+    @PostMapping("/run/{name:.+}")
     public Result<Map<String, Object>> runOne(@PathVariable String name) {
         return Result.ok(migrationRunnerService.runMigration(name));
     }

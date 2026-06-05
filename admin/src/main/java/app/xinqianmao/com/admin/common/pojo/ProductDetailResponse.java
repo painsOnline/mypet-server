@@ -55,6 +55,7 @@ public class ProductDetailResponse {
         private BigDecimal oldPrice;
         private BigDecimal costPrice;
         private Integer inventory;
+        private Integer virtualInventory;
         private String barcode;
         private String picture;
         private List<SpecValue> specs;

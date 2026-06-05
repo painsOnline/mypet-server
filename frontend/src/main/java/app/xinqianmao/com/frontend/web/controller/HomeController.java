@@ -121,14 +121,23 @@ public class HomeController {
         if (productIds.isEmpty()) {
             return Result.ok(PageResult.of(List.of(), 0, page, 0, pageSize));
         }
-        Page<Product> p = Page.of(page, pageSize);
-        IPage<Product> productPage = productMapper.selectPage(p,
+        List<Product> allProducts = productMapper.selectList(
                 new LambdaQueryWrapper<Product>()
                         .in(Product::getId, productIds)
                         .eq(Product::getIsEnable, 1));
-        List<GoodsDetailResponse> items = productPage.getRecords().stream()
+        Map<String, Product> productMap = allProducts.stream()
+                .collect(Collectors.toMap(Product::getId, p -> p, (a, b) -> a));
+        List<Product> ordered = hotList.stream()
+                .map(hp -> productMap.get(hp.getProductId()))
+                .filter(Objects::nonNull)
+                .toList();
+        int total = ordered.size();
+        int fromIndex = Math.min((page - 1) * pageSize, total);
+        int toIndex = Math.min(fromIndex + pageSize, total);
+        List<GoodsDetailResponse> items = ordered.subList(fromIndex, toIndex).stream()
                 .map(this::buildGoodsDetail).collect(Collectors.toList());
-        return Result.ok(PageResult.of(items, productPage.getTotal(), page, productPage.getPages(), pageSize));
+        int pages = (int) Math.ceil((double) total / pageSize);
+        return Result.ok(PageResult.of(items, total, page, pages, pageSize));
     }
 
     GoodsDetailResponse buildGoodsDetail(Product product) {
@@ -209,7 +218,7 @@ public class HomeController {
         r.setSkus(skus.stream().map(sku -> {
             GoodsDetailResponse.SkuItem gs = new GoodsDetailResponse.SkuItem();
             gs.setId(sku.getId());
-            gs.setInventory(sku.getInventory());
+            gs.setVirtualInventory(sku.getVirtualInventory());
             gs.setOldPrice(sku.getOldPrice());
             gs.setPicture(imageUrlUtil.fullUrl(sku.getPicture()));
             gs.setPrice(sku.getPrice());

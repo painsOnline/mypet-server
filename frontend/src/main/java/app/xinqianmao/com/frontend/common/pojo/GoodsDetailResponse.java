@@ -95,8 +95,8 @@ public class GoodsDetailResponse {
         @Schema(description = "SKU ID")
         private String id;
 
-        @Schema(description = "库存")
-        private Integer inventory;
+        @Schema(description = "虚拟库存")
+        private Integer virtualInventory;
 
         @Schema(description = "原价")
         private BigDecimal oldPrice;

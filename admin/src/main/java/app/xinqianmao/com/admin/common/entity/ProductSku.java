@@ -26,6 +26,7 @@ public class ProductSku extends BaseEntity {
     private BigDecimal oldPrice;
     private BigDecimal costPrice;
     private Integer inventory;
+    private Integer virtualInventory;
     private String barcode;
     private String picture;
     /** JSON string: [{name, valueName}] */

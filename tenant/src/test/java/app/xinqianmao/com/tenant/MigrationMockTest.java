@@ -31,7 +31,8 @@ import static org.junit.jupiter.api.Assertions.*;
         "mypet.db.host=127.0.0.1",
         "mypet.db.port=1800",
         "mypet.db.user=postgres",
-        "mypet.db.password=mypg123abc"
+        "mypet.db.password=mypg123abc",
+        "mypet.base-url=http://localhost:8082"
     }
 )
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
@@ -50,6 +51,7 @@ class MigrationMockTest {
 
     private static final String CONFIG_FILE = "config_005_consolidated_multi_tenant_and_later.sql";
     private static final String TENANT_FILE = "011_consolidated_tenant_multi_tenant_and_later.sql";
+    private static final String MIGRATION_012 = "012_add_virtual_inventory.sql";
 
     // ============================================================
     // 1. SQL content verification
@@ -257,6 +259,111 @@ class MigrationMockTest {
     // 4. Migration status tracking
     // ============================================================
 
+    // ============================================================
+    // 5. 012_add_virtual_inventory tests
+    // ============================================================
+
+    @Test
+    @Order(14)
+    @DisplayName("012_add_virtual_inventory: exists, idempotent ALTER, random init 20-100")
+    void sql012Content() throws Exception {
+        String sql = loadSql(MIGRATION_012);
+        assertTrue(sql.contains("virtual_inventory"), "Must add virtual_inventory column");
+        assertTrue(sql.contains("ALTER TABLE t_product_sku"), "Must alter t_product_sku");
+        assertTrue(sql.contains("ADD COLUMN IF NOT EXISTS"), "Must be idempotent (IF NOT EXISTS)");
+        assertTrue(sql.contains("RANDOM()"), "Must use RANDOM() for initialization");
+        assertTrue(sql.contains("FLOOR(RANDOM() * 81 + 20)"), "Must generate values 20-100");
+    }
+
+    @Test
+    @Order(15)
+    @DisplayName("Execute 012: adds virtual_inventory column with random 20-100 values")
+    void exec012VirtualInventory() {
+        Map<String, Object> result = migrationRunner.runMigration(MIGRATION_012);
+        System.out.println("012 result: " + result);
+        assertEquals("success", result.get("status"), "Migration should succeed");
+
+        // Verify column exists in template (empty) DB
+        try (Connection c = templateDs.getConnection();
+             Statement stmt = c.createStatement()) {
+            ResultSet rs = stmt.executeQuery(
+                "SELECT column_name, data_type FROM information_schema.columns"
+                + " WHERE table_name='t_product_sku' AND column_name='virtual_inventory'");
+            assertTrue(rs.next(), "virtual_inventory column must exist on t_product_sku");
+            assertEquals("integer", rs.getString("data_type"), "virtual_inventory must be integer");
+        } catch (SQLException e) {
+            fail("virtual_inventory column check failed: " + e.getMessage());
+        }
+
+        // Verify values are in range 20-100 on a tenant DB with data
+        String tenantCode = getFirstActiveTenantCode();
+        if (tenantCode != null) {
+            try (Connection c = DriverManager.getConnection(
+                    "jdbc:postgresql://127.0.0.1:1800/mypet_" + tenantCode, "postgres", "mypg123abc");
+                 Statement stmt = c.createStatement()) {
+                ResultSet rs = stmt.executeQuery(
+                    "SELECT virtual_inventory FROM t_product_sku WHERE is_delete = 0");
+                int checked = 0;
+                while (rs.next()) {
+                    int val = rs.getInt("virtual_inventory");
+                    assertTrue(val >= 20, "virtual_inventory should be >= 20, got: " + val);
+                    assertTrue(val <= 100, "virtual_inventory should be <= 100, got: " + val);
+                    checked++;
+                }
+                assertTrue(checked > 0, "Must have at least one SKU to verify values in tenant " + tenantCode);
+                System.out.println("012 verified " + checked + " SKUs have virtual_inventory in [20, 100]");
+            } catch (SQLException e) {
+                fail("virtual_inventory value check failed: " + e.getMessage());
+            }
+        } else {
+            System.out.println("012 no active tenant — value range check skipped");
+        }
+    }
+
+    @Test
+    @Order(16)
+    @DisplayName("Execute 012 AGAIN: idempotency + no duplicate random init")
+    void exec012VirtualInventoryIdempotent() {
+        String tenantCode = getFirstActiveTenantCode();
+        if (tenantCode == null) {
+            System.out.println("012 no active tenant — idempotency check skipped");
+            return;
+        }
+        String url = "jdbc:postgresql://127.0.0.1:1800/mypet_" + tenantCode;
+        // Read values before re-run
+        Map<String, Integer> beforeValues = new HashMap<>();
+        try (Connection c = DriverManager.getConnection(url, "postgres", "mypg123abc");
+             Statement stmt = c.createStatement();
+             ResultSet rs = stmt.executeQuery("SELECT id, virtual_inventory FROM t_product_sku WHERE is_delete = 0")) {
+            while (rs.next()) {
+                beforeValues.put(rs.getString("id"), rs.getInt("virtual_inventory"));
+            }
+        } catch (SQLException e) {
+            fail("Pre-scan failed: " + e.getMessage());
+        }
+
+        Map<String, Object> result = migrationRunner.runMigration(MIGRATION_012);
+        System.out.println("012 idempotent result: " + result);
+        assertEquals("success", result.get("status"), "Re-run must succeed (idempotent)");
+
+        // Verify values unchanged after re-run
+        try (Connection c = DriverManager.getConnection(url, "postgres", "mypg123abc");
+             Statement stmt = c.createStatement();
+             ResultSet rs = stmt.executeQuery("SELECT id, virtual_inventory FROM t_product_sku WHERE is_delete = 0")) {
+            while (rs.next()) {
+                String id = rs.getString("id");
+                int after = rs.getInt("virtual_inventory");
+                if (beforeValues.containsKey(id)) {
+                    assertEquals(beforeValues.get(id).intValue(), after,
+                            "SKU " + id + " virtual_inventory should NOT change on re-run");
+                }
+            }
+        } catch (SQLException e) {
+            fail("Post-scan failed: " + e.getMessage());
+        }
+        System.out.println("012 idempotency verified on tenant " + tenantCode);
+    }
+
     @Test
     @Order(20)
     @DisplayName("c_migration_log: status tracked for executed migrations")
@@ -296,6 +403,16 @@ class MigrationMockTest {
     // ============================================================
     // Helpers
     // ============================================================
+
+    private String getFirstActiveTenantCode() {
+        try (Connection c = configDs.getConnection();
+             Statement stmt = c.createStatement();
+             ResultSet rs = stmt.executeQuery("SELECT code FROM c_tenant WHERE is_disable = 0 LIMIT 1")) {
+            return rs.next() ? rs.getString("code") : null;
+        } catch (SQLException e) {
+            return null;
+        }
+    }
 
     private String loadSql(String filename) throws IOException {
         Resource[] all = new PathMatchingResourcePatternResolver()

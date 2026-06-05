@@ -422,14 +422,13 @@ public class MemberOrderController {
         for (MiniOrderSubmitRequest.ProductItem pi : request.getProducts()) {
             ProductSku sku = skuMapper.selectById(pi.getSkuId());
             if (sku == null) throw new BizException("400", "SKU不存在: " + pi.getSkuId());
-            if (sku.getInventory() < pi.getCount()) throw new BizException("400", "库存不足: " + pi.getSkuId());
+            Integer virtualInv = sku.getVirtualInventory() != null ? sku.getVirtualInventory() : 0;
+            if (virtualInv < pi.getCount()) throw new BizException("400", "库存不足: " + pi.getSkuId());
             Product product = productMapper.selectById(sku.getProductId());
             if (product == null) throw new BizException("400", "商品不存在");
 
-            int before = sku.getInventory(); int after = before - pi.getCount();
-            sku.setInventory(after);
+            sku.setVirtualInventory(virtualInv - pi.getCount());
             skuMapper.updateById(sku);
-            writeInventoryLog(sku, orderNo, "out", pi.getCount(), before, after);
 
             BigDecimal itemPay = sku.getPrice().multiply(BigDecimal.valueOf(pi.getCount()));
             BigDecimal itemOrig = sku.getOldPrice().multiply(BigDecimal.valueOf(pi.getCount()));
@@ -464,7 +463,10 @@ public class MemberOrderController {
             }
         }
 
-        BigDecimal profit = payMoney.subtract(totalCost);
+        // 毛利 = 实付金额 - 所有商品成本总额
+        // 下单时实付金额初始等于 SKU 售价汇总，后续管理员可在后台手动调整
+        BigDecimal actualPayMoney = payMoney;
+        BigDecimal profit = actualPayMoney.subtract(totalCost);
 
         // 校验实付金额不低于起配金额
         List<Shop> shops = shopMapper.selectList(new LambdaQueryWrapper<>());
@@ -480,7 +482,7 @@ public class MemberOrderController {
         order.setOrderNo(orderNo); order.setOrderType(0); order.setOrderStatus(1); order.setIsDelete(0);
         order.setProductType(orderProducts.isEmpty() ? "" : orderProducts.get(0).getProductType());
         order.setTotalMoney(totalMoney); order.setPayMoney(payMoney);
-        order.setActualPayMoney(payMoney); order.setProfitMoney(profit);
+        order.setActualPayMoney(actualPayMoney); order.setProfitMoney(profit);
         // deliveryTime: support null/empty gracefully (was varchar, now timestamp)
         String dt = request.getDeliveryTime();
         order.setDeliveryTime(dt != null && !dt.isBlank() ? DateTimeUtil.parse(dt) : null);
@@ -547,21 +549,10 @@ public class MemberOrderController {
         for (OrderProductSku ops : skus) {
             ProductSku sku = skuMapper.selectById(ops.getSkuId());
             if (sku == null) continue;
-            int before = sku.getInventory() != null ? sku.getInventory() : 0;
-            int after = before + (ops.getCount() != null ? ops.getCount() : 0);
-            sku.setInventory(after);
+            int currentVirtual = sku.getVirtualInventory() != null ? sku.getVirtualInventory() : 0;
+            int count = ops.getCount() != null ? ops.getCount() : 0;
+            sku.setVirtualInventory(currentVirtual + count);
             skuMapper.updateById(sku);
-            InventoryLog log = new InventoryLog();
-            log.setSkuId(sku.getId());
-            log.setBarcode(sku.getBarcode());
-            log.setOrderNo(orderNo);
-            log.setChangeType("in");
-            log.setChangeNum(ops.getCount());
-            log.setBeforeInventory(before);
-            log.setAfterInventory(after);
-            log.setOperator("member");
-            log.setCreateTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
-            inventoryLogMapper.insert(log);
         }
     }
 

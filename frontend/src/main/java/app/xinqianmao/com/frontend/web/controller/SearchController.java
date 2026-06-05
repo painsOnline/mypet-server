@@ -150,7 +150,7 @@ public class SearchController {
             Long count = skuMapper.selectCount(new LambdaQueryWrapper<ProductSku>()
                     .eq(ProductSku::getProductId, pid)
                     .eq(ProductSku::getIsDelete, 0)
-                    .gt(ProductSku::getInventory, 0));
+                    .gt(ProductSku::getVirtualInventory, 0));
             if (count > 0) result.add(pid);
         }
         return result;

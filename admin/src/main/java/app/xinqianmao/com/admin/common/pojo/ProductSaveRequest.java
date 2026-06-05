@@ -84,8 +84,10 @@ public class ProductSaveRequest {
         private BigDecimal price;
         @Schema(description = "原价")
         private BigDecimal oldPrice;
-        @Schema(description = "库存")
+        @Schema(description = "真实库存")
         private Integer inventory;
+        @Schema(description = "虚拟库存")
+        private Integer virtualInventory;
         @Schema(description = "成本价")
         private BigDecimal costPrice;
         @Schema(description = "条形码")
