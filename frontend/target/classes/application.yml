@@ -17,6 +17,8 @@ jwt:
 wechat:
   app-id: ${WECHAT_APP_ID:}
   secret: ${WECHAT_SECRET:}
+  work:
+    webhook-key: ${WECHAT_WORK_WEBHOOK_KEY:73d0072b-5c75-4d1e-be5e-e2b20fb66f19}
 
 # 上传文件路径（开发环境默认值）
 mypet:

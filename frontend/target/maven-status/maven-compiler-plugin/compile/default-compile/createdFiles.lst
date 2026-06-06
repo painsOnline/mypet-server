@@ -5,6 +5,7 @@ app\xinqianmao\com\frontend\common\pojo\LoginRequest.class
 app\xinqianmao\com\frontend\service\HomeService.class
 app\xinqianmao\com\frontend\common\pojo\AddressSaveRequest.class
 app\xinqianmao\com\frontend\service\HomeService$1.class
+app\xinqianmao\com\frontend\service\WechatWorkNotifyService.class
 app\xinqianmao\com\frontend\dao\ShopMapper.class
 app\xinqianmao\com\frontend\common\entity\Product.class
 app\xinqianmao\com\frontend\common\entity\Shop.class
@@ -94,6 +95,7 @@ app\xinqianmao\com\frontend\dao\OrderProductSkuMapper.class
 app\xinqianmao\com\frontend\dao\OrderProductMapper.class
 app\xinqianmao\com\frontend\common\pojo\CartItemResponse.class
 app\xinqianmao\com\frontend\common\pojo\HomeHotRequest.class
+app\xinqianmao\com\frontend\web\controller\MemberOrderController$1.class
 app\xinqianmao\com\frontend\common\pojo\GoodsDetailResponse$SpecValue.class
 app\xinqianmao\com\frontend\dao\ProductPropertyMapper.class
 app\xinqianmao\com\frontend\common\entity\ProductTypeSpecRel.class

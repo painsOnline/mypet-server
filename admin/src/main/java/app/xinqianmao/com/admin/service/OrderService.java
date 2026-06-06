@@ -68,12 +68,12 @@ public class OrderService {
         if (req.getPriceMax() != null) {
             wrapper.le(Order::getActualPayMoney, req.getPriceMax());
         }
-        if (req.getCreateTimeStart() != null) {
-            LocalDateTime start = DateTimeUtil.parse(req.getCreateTimeStart());
+        if (req.getCreateTimeStart() != null && !req.getCreateTimeStart().isBlank()) {
+            LocalDateTime start = parseFlexibleDateTime(req.getCreateTimeStart(), false);
             if (start != null) wrapper.ge(Order::getCreateTime, start);
         }
-        if (req.getCreateTimeEnd() != null) {
-            LocalDateTime end = DateTimeUtil.parse(req.getCreateTimeEnd());
+        if (req.getCreateTimeEnd() != null && !req.getCreateTimeEnd().isBlank()) {
+            LocalDateTime end = parseFlexibleDateTime(req.getCreateTimeEnd(), true);
             if (end != null) wrapper.le(Order::getCreateTime, end);
         }
         if (req.getUserPhone() != null && !req.getUserPhone().isBlank()) {
@@ -85,10 +85,10 @@ public class OrderService {
         // Sort
         String sortBy = req.getSortBy() != null ? req.getSortBy() : "createTime";
         boolean asc = "asc".equalsIgnoreCase(req.getSortOrder());
-        if ("price".equals(sortBy)) {
-            wrapper.orderBy(true, asc, Order::getActualPayMoney);
-        } else {
-            wrapper.orderByDesc(Order::getCreateTime);
+        switch (sortBy) {
+            case "price" -> wrapper.orderBy(true, asc, Order::getActualPayMoney);
+            case "dispatchTime" -> wrapper.orderBy(true, asc, Order::getDeliveryTime);
+            default -> wrapper.orderBy(true, asc, Order::getCreateTime);
         }
 
         Page<Order> page = Page.of(req.getPage(), req.getPageSize());
@@ -381,14 +381,19 @@ public class OrderService {
         }
     }
 
-    @SuppressWarnings("unchecked")
     private String extractAttrsText(String specsJson) {
         if (specsJson == null || specsJson.isBlank()) return "";
         try {
             ObjectMapper mapper = new ObjectMapper();
-            List<Map<String, String>> list = mapper.readValue(specsJson, List.class);
+            List<?> list = mapper.readValue(specsJson, List.class);
             return list.stream()
-                    .map(m -> m.get("name") + "：" + m.get("valueName"))
+                    .map(item -> {
+                        @SuppressWarnings("unchecked")
+                        Map<String, Object> m = (Map<String, Object>) item;
+                        String specName = Objects.toString(m.get("spec_name"), "");
+                        String valueName = Objects.toString(m.get("value_name"), "");
+                        return specName + "：" + valueName;
+                    })
                     .collect(Collectors.joining("，"));
         } catch (Exception e) {
             return "";
@@ -453,5 +458,18 @@ public class OrderService {
         r.setTotalNum(skus.stream().mapToInt(OrderProductSku::getCount).sum());
 
         return r;
+    }
+
+    /**
+     * Parse date string flexibly: supports both "yyyy-MM-dd" and "yyyy-MM-dd HH:mm:ss".
+     * For end dates without time, appends 23:59:59 to include the full day.
+     */
+    private LocalDateTime parseFlexibleDateTime(String dateStr, boolean isEnd) {
+        if (dateStr == null || dateStr.isBlank()) return null;
+        dateStr = dateStr.trim();
+        if (dateStr.length() == 10) {
+            dateStr = dateStr + (isEnd ? " 23:59:59" : " 00:00:00");
+        }
+        return DateTimeUtil.parse(dateStr);
     }
 }

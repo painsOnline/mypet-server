@@ -5,6 +5,7 @@
  */
 package app.xinqianmao.com.frontend.web.controller;
 
+import app.xinqianmao.com.common.auth.TenantContext;
 import app.xinqianmao.com.common.auth.UserContext;
 import app.xinqianmao.com.common.enums.OrderStatusEnum;
 import app.xinqianmao.com.common.exception.BizException;
@@ -17,6 +18,7 @@ import app.xinqianmao.com.common.utils.OrderNoUtil;
 import app.xinqianmao.com.frontend.common.entity.*;
 import app.xinqianmao.com.frontend.common.pojo.*;
 import app.xinqianmao.com.frontend.dao.*;
+import app.xinqianmao.com.frontend.service.WechatWorkNotifyService;
 import app.xinqianmao.com.frontend.web.controller.HomeController;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -28,6 +30,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -58,6 +62,7 @@ public class MemberOrderController {
     private final HomeController homeController;
     private final InventoryLogMapper inventoryLogMapper;
     private final ImageUrlUtil imageUrlUtil;
+    private final WechatWorkNotifyService wechatWorkNotifyService;
 
     @Operation(summary = "获取订单列表")
     @GetMapping
@@ -156,6 +161,10 @@ public class MemberOrderController {
         order.setCancelTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
         order.setModifyTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
         orderMapper.updateById(order);
+
+        // 事务提交后异步发送企业微信订单取消通知（失败不影响取消操作）
+        registerPostCommitNotification(orderNo, false);
+
         // Return inventory on cancel (non-critical, don't rollback on error)
         try {
             returnOrderInventory(orderNo);
@@ -163,6 +172,32 @@ public class MemberOrderController {
             log.error("Failed to return inventory for order {}: {}", orderNo, e.getMessage());
         }
         return Result.ok(toListResponse(order));
+    }
+
+    /**
+     * Register a post-commit hook to send WeChat Work notification.
+     * Uses TransactionSynchronization to ensure DB data is visible to the async thread.
+     */
+    private void registerPostCommitNotification(String orderNo, boolean isNewOrder) {
+        String tenantCode = TenantContext.get();
+        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+            if (isNewOrder) {
+                wechatWorkNotifyService.sendNewOrderNotification(orderNo, tenantCode);
+            } else {
+                wechatWorkNotifyService.sendCancelOrderNotification(orderNo, tenantCode);
+            }
+            return;
+        }
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                if (isNewOrder) {
+                    wechatWorkNotifyService.sendNewOrderNotification(orderNo, tenantCode);
+                } else {
+                    wechatWorkNotifyService.sendCancelOrderNotification(orderNo, tenantCode);
+                }
+            }
+        });
     }
 
     @Operation(summary = "删除订单")
@@ -491,6 +526,9 @@ public class MemberOrderController {
         order.setPayType(request.getPayType() != null ? request.getPayType() : 1);
         order.setCreateTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
         orderMapper.insert(order);
+
+        // 事务提交后异步发送企业微信新订单通知（失败不影响下单）
+        registerPostCommitNotification(orderNo, true);
 
         OrderReceiver orderReceiver = new OrderReceiver();
         orderReceiver.setOrderNo(orderNo);
