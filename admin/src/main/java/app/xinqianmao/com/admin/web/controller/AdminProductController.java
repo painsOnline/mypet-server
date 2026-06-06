@@ -82,4 +82,11 @@ public class AdminProductController {
     public Result<List<Map<String, String>>> generateSkus(@PathVariable String productTypeId) {
         return Result.ok(skuService.previewCombinations(productTypeId));
     }
+
+    @Operation(summary = "批量更新商品排序")
+    @PutMapping("/sort")
+    public Result<Void> updateSort(@RequestBody ProductSortRequest request) {
+        productService.updateSort(request);
+        return Result.ok();
+    }
 }

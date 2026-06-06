@@ -55,7 +55,8 @@ public class CategoryController {
                 new LambdaQueryWrapper<Product>()
                         .eq(Product::getProductCategory, id)
                         .eq(Product::getIsEnable, 1)
-                        .orderByAsc(Product::getSort));
+                        .orderByAsc(Product::getSort)
+                        .orderByDesc(Product::getCreateTime));
         List<GoodsDetailResponse> items = productPage.getRecords().stream()
                 .map(homeController::buildGoodsDetail).collect(Collectors.toList());
         return Result.ok(PageResult.of(items, productPage.getTotal(), page, productPage.getPages(), pageSize));

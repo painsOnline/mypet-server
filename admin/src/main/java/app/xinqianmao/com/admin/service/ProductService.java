@@ -546,6 +546,20 @@ public class ProductService {
     }
 
     /**
+     * Batch update product sort values.
+     */
+    @Transactional
+    public void updateSort(ProductSortRequest req) {
+        if (req.getItems() == null || req.getItems().isEmpty()) return;
+        for (ProductSortRequest.SortItem item : req.getItems()) {
+            Product p = new Product();
+            p.setId(item.getProductId());
+            p.setSort(item.getSort() != null ? item.getSort() : 0);
+            productMapper.updateById(p);
+        }
+    }
+
+    /**
      * Toggle product enable/disable (上架/下架).
      */
     public void toggleEnable(String productId) {
