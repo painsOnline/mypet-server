@@ -52,6 +52,7 @@ class MigrationMockTest {
     private static final String CONFIG_FILE = "config_005_consolidated_multi_tenant_and_later.sql";
     private static final String TENANT_FILE = "011_consolidated_tenant_multi_tenant_and_later.sql";
     private static final String MIGRATION_012 = "012_add_virtual_inventory.sql";
+    private static final String MIGRATION_013 = "013_add_llm_and_import_tables.sql";
 
     // ============================================================
     // 1. SQL content verification
@@ -362,6 +363,143 @@ class MigrationMockTest {
             fail("Post-scan failed: " + e.getMessage());
         }
         System.out.println("012 idempotency verified on tenant " + tenantCode);
+    }
+
+    // ============================================================
+    // 6. 013_add_llm_and_import_tables tests
+    // ============================================================
+
+    @Test
+    @Order(17)
+    @DisplayName("013_add_llm_and_import_tables: exists, idempotent, creates 4 tables with indexes")
+    void sql013Content() throws Exception {
+        String sql = loadSql(MIGRATION_013);
+        assertTrue(sql.contains("CREATE TABLE IF NOT EXISTS"), "Must be idempotent");
+        assertTrue(sql.contains("t_ext_product_import_log"), "Must create t_ext_product_import_log");
+        assertTrue(sql.contains("t_chat_messages"), "Must create t_chat_messages");
+        assertTrue(sql.contains("t_agent_action_logs"), "Must create t_agent_action_logs");
+        assertTrue(sql.contains("t_shop_llm_config"), "Must create t_shop_llm_config");
+        assertTrue(sql.contains("uuid PRIMARY KEY"), "Must use uuid type for PK");
+        assertTrue(sql.contains("CHECK"), "Must have CHECK constraints for enum fields");
+        assertTrue(sql.contains("now()::timestamp(0)"), "Must use Beijing time default");
+        assertTrue(sql.contains("CREATE INDEX IF NOT EXISTS"), "Must create indexes idempotently");
+        assertTrue(sql.contains("USING GIN (content)"), "Must use GIN index on content JSONB");
+    }
+
+    @Test
+    @Order(18)
+    @DisplayName("Execute 013: creates 4 tables in empty DB with correct columns")
+    void exec013CreateTables() {
+        Map<String, Object> result = migrationRunner.runMigration(MIGRATION_013);
+        System.out.println("013 result: " + result);
+        assertEquals("success", result.get("status"), "Migration should succeed");
+
+        // Verify t_ext_product_import_log
+        try (Connection c = templateDs.getConnection();
+             Statement stmt = c.createStatement()) {
+            ResultSet rs = stmt.executeQuery(
+                "SELECT column_name FROM information_schema.columns"
+                + " WHERE table_name='t_ext_product_import_log' AND table_schema='public'"
+                + " ORDER BY ordinal_position");
+            List<String> cols = new ArrayList<>();
+            while (rs.next()) cols.add(rs.getString(1));
+            assertTrue(cols.contains("id"), "Must have id");
+            assertTrue(cols.contains("ext_from"), "Must have ext_from");
+            assertTrue(cols.contains("ext_product_id"), "Must have ext_product_id");
+            assertTrue(cols.contains("ext_product_name"), "Must have ext_product_name");
+            assertTrue(cols.contains("main_picture"), "Must have main_picture");
+            assertTrue(cols.contains("pictures"), "Must have pictures");
+            assertTrue(cols.contains("detail_pictures"), "Must have detail_pictures");
+            assertTrue(cols.contains("attrs"), "Must have attrs");
+            assertTrue(cols.contains("create_time"), "Must have create_time");
+            assertTrue(cols.contains("modify_time"), "Must have modify_time");
+        } catch (SQLException e) {
+            fail("t_ext_product_import_log verification failed: " + e.getMessage());
+        }
+
+        // Verify t_chat_messages
+        try (Connection c = templateDs.getConnection();
+             Statement stmt = c.createStatement()) {
+            ResultSet rs = stmt.executeQuery(
+                "SELECT column_name FROM information_schema.columns"
+                + " WHERE table_name='t_chat_messages' AND table_schema='public'"
+                + " ORDER BY ordinal_position");
+            List<String> cols = new ArrayList<>();
+            while (rs.next()) cols.add(rs.getString(1));
+            assertTrue(cols.contains("id"), "Must have id");
+            assertTrue(cols.contains("user_id"), "Must have user_id");
+            assertTrue(cols.contains("import_product_id"), "Must have import_product_id");
+            assertTrue(cols.contains("role"), "Must have role");
+            assertTrue(cols.contains("content"), "Must have content");
+            assertTrue(cols.contains("create_time"), "Must have create_time");
+            assertTrue(cols.contains("modify_time"), "Must have modify_time");
+        } catch (SQLException e) {
+            fail("t_chat_messages verification failed: " + e.getMessage());
+        }
+
+        // Verify t_agent_action_logs
+        try (Connection c = templateDs.getConnection();
+             Statement stmt = c.createStatement()) {
+            ResultSet rs = stmt.executeQuery(
+                "SELECT column_name FROM information_schema.columns"
+                + " WHERE table_name='t_agent_action_logs' AND table_schema='public'"
+                + " ORDER BY ordinal_position");
+            List<String> cols = new ArrayList<>();
+            while (rs.next()) cols.add(rs.getString(1));
+            assertTrue(cols.contains("id"), "Must have id");
+            assertTrue(cols.contains("user_id"), "Must have user_id");
+            assertTrue(cols.contains("import_product_id"), "Must have import_product_id");
+            assertTrue(cols.contains("action_type"), "Must have action_type");
+            assertTrue(cols.contains("status"), "Must have status");
+            assertTrue(cols.contains("request"), "Must have request");
+            assertTrue(cols.contains("response"), "Must have response");
+            assertTrue(cols.contains("metadata"), "Must have metadata");
+            assertTrue(cols.contains("create_time"), "Must have create_time");
+            assertTrue(cols.contains("modify_time"), "Must have modify_time");
+        } catch (SQLException e) {
+            fail("t_agent_action_logs verification failed: " + e.getMessage());
+        }
+
+        // Verify t_shop_llm_config
+        try (Connection c = templateDs.getConnection();
+             Statement stmt = c.createStatement()) {
+            ResultSet rs = stmt.executeQuery(
+                "SELECT column_name, column_default FROM information_schema.columns"
+                + " WHERE table_name='t_shop_llm_config' AND table_schema='public'"
+                + " ORDER BY ordinal_position");
+            List<String> cols = new ArrayList<>();
+            Map<String, String> defaults = new HashMap<>();
+            while (rs.next()) {
+                cols.add(rs.getString(1));
+                defaults.put(rs.getString(1), rs.getString(2));
+            }
+            assertTrue(cols.contains("id"), "Must have id");
+            assertTrue(cols.contains("provider"), "Must have provider");
+            assertTrue(cols.contains("api_key"), "Must have api_key");
+            assertTrue(cols.contains("model_name"), "Must have model_name");
+            assertTrue(cols.contains("base_url"), "Must have base_url");
+            assertTrue(cols.contains("temperature"), "Must have temperature");
+            assertTrue(cols.contains("max_tokens"), "Must have max_tokens");
+            assertTrue(cols.contains("timeout_seconds"), "Must have timeout_seconds");
+            assertTrue(cols.contains("max_retries"), "Must have max_retries");
+            assertTrue(cols.contains("create_time"), "Must have create_time");
+            assertTrue(cols.contains("modify_time"), "Must have modify_time");
+            assertTrue(defaults.getOrDefault("temperature", "").contains("0.3"), "temperature default should be 0.3");
+            assertTrue(defaults.getOrDefault("max_tokens", "").contains("4096"), "max_tokens default should be 4096");
+            assertTrue(defaults.getOrDefault("timeout_seconds", "").contains("6"), "timeout_seconds default should be 6");
+            assertTrue(defaults.getOrDefault("max_retries", "").contains("3"), "max_retries default should be 3");
+        } catch (SQLException e) {
+            fail("t_shop_llm_config verification failed: " + e.getMessage());
+        }
+    }
+
+    @Test
+    @Order(19)
+    @DisplayName("Execute 013 AGAIN: idempotency — no errors on re-run")
+    void exec013Idempotent() {
+        Map<String, Object> result = migrationRunner.runMigration(MIGRATION_013);
+        System.out.println("013 idempotent result: " + result);
+        assertEquals("success", result.get("status"), "Re-run must succeed (idempotent)");
     }
 
     @Test

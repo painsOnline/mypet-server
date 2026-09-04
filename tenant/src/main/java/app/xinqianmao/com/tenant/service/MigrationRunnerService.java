@@ -13,6 +13,7 @@ import app.xinqianmao.com.common.entity.Tenant;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.stereotype.Service;
@@ -35,6 +36,9 @@ public class MigrationRunnerService {
     private final DataSource configDataSource;
     private final DataSource templateDataSource;
     private final ConfigTenantMapper tenantMapper;
+
+    @Value("${mypet.db.encrypt-key:mypet-jwt-secret-key-2026-minimum-32chars!!}")
+    private String encryptKey;
 
     private final ConcurrentMap<String, String> runningStatus = new ConcurrentHashMap<>();
 
@@ -183,8 +187,7 @@ public class MigrationRunnerService {
                     String user = rs.getString("user");
                     String password = rs.getString("password");
                     // Decrypt password
-                    password = app.xinqianmao.com.common.utils.CryptoUtil.decrypt(password,
-                            "mypet-jwt-secret-key-2026-minimum-32chars!!");
+                    password = app.xinqianmao.com.common.utils.CryptoUtil.decrypt(password, encryptKey);
                     String url = "jdbc:postgresql://" + host + ":" + port + "/mypet_" + tenantCode;
                     return DriverManager.getConnection(url, user, password);
                 }

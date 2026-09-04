@@ -128,7 +128,9 @@ public class ProductService {
             r.setDesc(p.getDesc());
             r.setPrice(p.getPrice());
             r.setOldPrice(p.getOldPrice());
-            r.setPicture(p.getPicture());
+            r.setPicture(p.getPicture() != null && !p.getPicture().isBlank()
+                    ? p.getPicture()
+                    : (p.getMainPictures() != null && !p.getMainPictures().isEmpty() ? p.getMainPictures().get(0) : null));
             r.setSort(p.getSort());
             r.setIsEnable(p.getIsEnable());
             r.setCreateTime(DateTimeUtil.format(p.getCreateTime()));

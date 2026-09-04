@@ -144,7 +144,9 @@ public class CategoryService {
         r.setDesc(product.getDesc());
         r.setPrice(product.getPrice());
         r.setOldPrice(product.getOldPrice());
-        r.setPicture(product.getPicture());
+        r.setPicture(product.getPicture() != null && !product.getPicture().isBlank()
+                ? product.getPicture()
+                : (product.getMainPictures() != null && !product.getMainPictures().isEmpty() ? product.getMainPictures().get(0) : null));
         r.setMainPictures(product.getMainPictures());
 
         // Build maps: trimmed for JSON specId lookup, untrimmed for DB CHAR(36) lookups

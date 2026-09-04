@@ -32,6 +32,7 @@ public class ShopService {
         Shop shop;
         if (shops.isEmpty()) {
             shop = new Shop();
+            shop.setId(java.util.UUID.randomUUID().toString());
             shop.setCreateTime(LocalDateTime.now(DateTimeUtil.ZONE_BEIJING));
         } else {
             shop = shops.get(0);

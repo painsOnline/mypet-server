@@ -1,4 +1,11 @@
 # 开发环境配置
+spring:
+  redis:
+    host: ${REDIS_HOST:127.0.0.1}
+    port: ${REDIS_PORT:6379}
+    password: ${REDIS_PASSWORD:myredis123abc}
+    database: ${REDIS_DATABASE:8}
+
 mypet:
   db:
     host: 127.0.0.1

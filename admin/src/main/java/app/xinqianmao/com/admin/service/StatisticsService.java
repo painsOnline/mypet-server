@@ -43,14 +43,16 @@ public class StatisticsService {
                   + "COUNT(*) AS order_count, COALESCE(SUM(o.actual_pay_money), 0) AS total_amount, "
                   + "COALESCE(SUM(o.profit_money), 0) AS profit_amount "
                   + "FROM t_order o "
-                  + "WHERE o.create_time AT TIME ZONE 'Asia/Shanghai' >= ?::date "
+                  + "WHERE o.order_status IN (3, 4) "
+                  + "AND o.create_time AT TIME ZONE 'Asia/Shanghai' >= ?::date "
                   + "AND o.create_time AT TIME ZONE 'Asia/Shanghai' < (?::date + INTERVAL '1 day') "
                   + "GROUP BY date_key ORDER BY date_key"
                 : "SELECT TO_CHAR(o.create_time AT TIME ZONE 'Asia/Shanghai', 'YYYY-MM-DD') AS date_key, "
                   + "COUNT(*) AS order_count, COALESCE(SUM(o.actual_pay_money), 0) AS total_amount, "
                   + "COALESCE(SUM(o.profit_money), 0) AS profit_amount "
                   + "FROM t_order o "
-                  + "WHERE o.create_time AT TIME ZONE 'Asia/Shanghai' >= ?::date "
+                  + "WHERE o.order_status IN (3, 4) "
+                  + "AND o.create_time AT TIME ZONE 'Asia/Shanghai' >= ?::date "
                   + "AND o.create_time AT TIME ZONE 'Asia/Shanghai' < (?::date + INTERVAL '1 day') "
                   + "GROUP BY date_key ORDER BY date_key";
 
@@ -81,7 +83,8 @@ public class StatisticsService {
                 + "FROM t_order_product_skus ops "
                 + "JOIN t_order o ON ops.order_no = o.order_no "
                 + "JOIN t_product p ON ops.product_id = p.id "
-                + "WHERE o.create_time AT TIME ZONE 'Asia/Shanghai' >= ?::date "
+                + "WHERE o.order_status IN (3, 4) "
+                + "AND o.create_time AT TIME ZONE 'Asia/Shanghai' >= ?::date "
                 + "AND o.create_time AT TIME ZONE 'Asia/Shanghai' < (?::date + INTERVAL '1 day') "
                 + "GROUP BY ops.product_id, p.name "
                 + "ORDER BY total_sales DESC LIMIT 20";

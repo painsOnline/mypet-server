@@ -199,7 +199,9 @@ public class HomeService {
         r.setDesc(product.getDesc());
         r.setPrice(product.getPrice());
         r.setOldPrice(product.getOldPrice());
-        r.setPicture(product.getPicture());
+        r.setPicture(product.getPicture() != null && !product.getPicture().isBlank()
+                ? product.getPicture()
+                : (product.getMainPictures() != null && !product.getMainPictures().isEmpty() ? product.getMainPictures().get(0) : null));
         r.setMainPictures(product.getMainPictures());
 
         // Build specs name map for property name resolution

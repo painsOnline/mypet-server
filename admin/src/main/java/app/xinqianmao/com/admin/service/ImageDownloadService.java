@@ -150,6 +150,7 @@ public class ImageDownloadService {
             String newDetail = relocateTempInHtml(detail, productId);
             if (!newDetail.equals(detail)) { product.setDetail(newDetail); changed = true; }
         }
+        syncPictureFromMainPictures(product);
         if (changed) productMapper.updateById(product);
 
         // SKU pictures
@@ -186,6 +187,16 @@ public class ImageDownloadService {
             return url;
         }
         return "/uploads/" + tenant + "/" + newSubPath + "/" + filename;
+    }
+
+    /**
+     * After relocation, ensure picture field matches mainPictures[0].
+     */
+    private void syncPictureFromMainPictures(Product product) {
+        List<String> pics = product.getMainPictures();
+        if (pics != null && !pics.isEmpty()) {
+            product.setPicture(pics.get(0));
+        }
     }
 
     private String relocateTempInHtml(String html, String productId) {
@@ -231,35 +242,46 @@ public class ImageDownloadService {
     // ---- Internal ----
 
     private String downloadImage(String url, String type, String productId) {
-        HttpURLConnection conn = null;
-        try {
-            conn = (HttpURLConnection) URI.create(url).toURL().openConnection();
-            conn.setConnectTimeout(8000);
-            conn.setReadTimeout(15000);
-            conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36");
-            conn.setRequestProperty("Referer", referer(url));
-            conn.setInstanceFollowRedirects(true);
+        for (int attempt = 1; attempt <= 3; attempt++) {
+            HttpURLConnection conn = null;
+            try {
+                conn = (HttpURLConnection) URI.create(url).toURL().openConnection();
+                conn.setConnectTimeout(8000);
+                conn.setReadTimeout(15000);
+                conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36");
+                conn.setRequestProperty("Referer", referer(url));
+                conn.setInstanceFollowRedirects(true);
 
-            String ct = conn.getContentType();
-            String ext = getExt(url, ct);
-            byte[] data = readBytes(conn);
-            if (!isValid(data)) return null;
+                String ct = conn.getContentType();
+                String ext = getExt(url, ct);
+                byte[] data = readBytes(conn);
+                if (!isValid(data)) {
+                    log.warn("Download INVALID {} (attempt {}/3)", url, attempt);
+                    if (attempt < 3) { sleep(1000); continue; }
+                    return null;
+                }
 
-            String tc = TenantContext.get();
-            if (tc == null || tc.isBlank()) tc = "xlong";
-            String dateDir = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy/MM"));
-            String subPath = buildSubPath(type, productId, dateDir);
-            Path dir = uploadRoot.resolve(tc).resolve(subPath);
-            Files.createDirectories(dir);
-            String name = UUID.randomUUID().toString().replace("-", "") + ext;
-            Files.write(dir.resolve(name), data);
-            return "/uploads/" + tc + "/" + subPath + "/" + name;
-        } catch (Exception e) {
-            log.info("Download FAILED {}: {}", url, e.getMessage());
-            return null;
-        } finally {
-            if (conn != null) conn.disconnect();
+                String tc = TenantContext.get();
+                if (tc == null || tc.isBlank()) tc = "xlong";
+                String dateDir = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy/MM"));
+                String subPath = buildSubPath(type, productId, dateDir);
+                Path dir = uploadRoot.resolve(tc).resolve(subPath);
+                Files.createDirectories(dir);
+                String name = UUID.randomUUID().toString().replace("-", "") + ext;
+                Files.write(dir.resolve(name), data);
+                return "/uploads/" + tc + "/" + subPath + "/" + name;
+            } catch (Exception e) {
+                log.warn("Download FAILED {} (attempt {}/3): {}", url, attempt, e.getMessage());
+                if (attempt < 3) { sleep(1000); }
+            } finally {
+                if (conn != null) conn.disconnect();
+            }
         }
+        return null;
+    }
+
+    private void sleep(long ms) {
+        try { Thread.sleep(ms); } catch (InterruptedException ignored) { Thread.currentThread().interrupt(); }
     }
 
     private String buildSubPath(String type, String productId, String dateDir) {

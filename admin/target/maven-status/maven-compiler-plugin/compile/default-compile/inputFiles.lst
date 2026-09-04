@@ -1,4 +1,5 @@
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\common\config\ConfigDataSourceConfig.java
+F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\common\config\ScheduleThreadPoolConfig.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\common\entity\Admin.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\common\entity\AdminLoginErrorLog.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\common\entity\AdminLoginLock.java
@@ -22,6 +23,7 @@ F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianma
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\common\entity\ProductTypeSpecRel.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\common\entity\Receiver.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\common\entity\Shop.java
+F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\common\entity\ShopLlmConfig.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\common\pojo\AdminLoginRequest.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\common\pojo\AdminLoginResponse.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\common\pojo\CategoryListResponse.java
@@ -40,6 +42,7 @@ F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianma
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\common\pojo\ProductSearchRequest.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\common\pojo\ProductSortRequest.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\common\pojo\ProductTopResponse.java
+F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\common\pojo\ShopLlmConfigSaveRequest.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\common\pojo\ShopSaveRequest.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\common\pojo\SkuSaveRequest.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\common\pojo\SpecsSaveRequest.java
@@ -49,6 +52,7 @@ F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianma
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\common\pojo\TypeWithSpecsResponse.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\common\pojo\UserListResponse.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\common\pojo\UserSearchRequest.java
+F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\common\utils\RedisDistributedLock.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\dao\AdminLoginErrorLogMapper.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\dao\AdminMapper.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\dao\CartMapper.java
@@ -70,17 +74,21 @@ F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianma
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\dao\ProductTypeMapper.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\dao\ProductTypeSpecRelMapper.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\dao\ReceiverMapper.java
+F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\dao\ShopLlmConfigMapper.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\dao\ShopMapper.java
+F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\schedule\OrderCompleteScheduler.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\service\AdminLoginService.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\service\BrandService.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\service\CategoryService.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\service\DashboardService.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\service\HotProductService.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\service\ImageDownloadService.java
+F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\service\OrderCompleteService.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\service\OrderService.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\service\ProductService.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\service\ProductSkuService.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\service\ProductTypeService.java
+F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\service\ShopLlmConfigService.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\service\ShopService.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\service\SpecsService.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\service\StatisticsService.java
@@ -95,6 +103,7 @@ F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianma
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\web\controller\AdminProductController.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\web\controller\AdminProductTypeController.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\web\controller\AdminShopController.java
+F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\web\controller\AdminShopLlmConfigController.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\web\controller\AdminSkuController.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\web\controller\AdminSpecsController.java
 F:\MyWorkspace\project\mypet\java\mypet-server\admin\src\main\java\app\xinqianmao\com\admin\web\controller\AdminUserController.java

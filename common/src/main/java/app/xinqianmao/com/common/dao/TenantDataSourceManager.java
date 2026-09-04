@@ -38,9 +38,9 @@ public class TenantDataSourceManager {
     private final String user;
     private final String password;
 
-    /** JWT secret used as encryption/decryption key for DB passwords in c_database_instance */
-    @Value("${jwt.secret}")
-    private String jwtSecret;
+    /** Encryption/decryption key for DB passwords in c_database_instance. Set once and never change. */
+    @Value("${mypet.db.encrypt-key:mypet-jwt-secret-key-2026-minimum-32chars!!}")
+    private String encryptKey;
 
     /** Config DB DataSource — used to query tenant registry */
     private final DruidDataSource configDataSource;
@@ -122,7 +122,7 @@ public class TenantDataSourceManager {
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     String encryptedPassword = rs.getString("password");
-                    return CryptoUtil.decrypt(encryptedPassword, jwtSecret);
+                    return CryptoUtil.decrypt(encryptedPassword, encryptKey);
                 }
             }
         } catch (Exception e) {

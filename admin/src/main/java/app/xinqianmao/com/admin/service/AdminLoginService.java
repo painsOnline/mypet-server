@@ -49,6 +49,7 @@ public class AdminLoginService {
         String tenantCode = TenantContext.get();
         String ip = "";
 
+
         try {
             // Check lock (uses config DB, safe regardless of tenant validity)
             if (securityService.isLocked(tenantCode, account)) {
@@ -57,7 +58,7 @@ public class AdminLoginService {
             // Captcha required?
             if (securityService.needCaptcha(tenantCode, account)) {
                 if (captchaToken == null || captchaToken.isBlank() || captchaInput == null || captchaInput.isBlank()) {
-                    throw new BizException("429", "需要验证码");
+                        throw new BizException("429", "需要验证码");
                 }
                 if (!captchaService.validate(captchaToken, captchaInput)) {
                     securityService.recordFailure(tenantCode, account, "CAPTCHA", ip);

@@ -14,6 +14,7 @@ dist
 
 # Editor directories and files
 .idea
+target/
 *.suo
 *.ntvs*
 *.njsproj

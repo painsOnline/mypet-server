@@ -5,12 +5,16 @@ app\xinqianmao\com\admin\common\pojo\ProductSortRequest$SortItem.class
 app\xinqianmao\com\admin\dao\OrderProductMapper.class
 app\xinqianmao\com\admin\web\controller\StatisticsController.class
 app\xinqianmao\com\admin\common\pojo\OrderTrendResponse$TrendPoint.class
+app\xinqianmao\com\admin\service\ShopLlmConfigService.class
 app\xinqianmao\com\admin\common\pojo\UserListResponse.class
 app\xinqianmao\com\admin\service\ImageDownloadService.class
+app\xinqianmao\com\admin\schedule\OrderCompleteScheduler.class
 app\xinqianmao\com\admin\common\pojo\OrderDetailResponse$MemberInfo.class
+app\xinqianmao\com\admin\common\utils\RedisDistributedLock.class
 app\xinqianmao\com\admin\service\AdminLoginService.class
 app\xinqianmao\com\admin\common\entity\HotProduct.class
 app\xinqianmao\com\admin\web\controller\AdminHotController.class
+app\xinqianmao\com\admin\service\OrderCompleteService.class
 app\xinqianmao\com\admin\common\pojo\AdminLoginResponse.class
 app\xinqianmao\com\admin\common\entity\AdminLoginErrorLog.class
 app\xinqianmao\com\admin\dao\ProductPropertyMapper.class
@@ -20,6 +24,7 @@ app\xinqianmao\com\admin\common\entity\Receiver.class
 app\xinqianmao\com\admin\common\pojo\ProductSaveRequest.class
 app\xinqianmao\com\admin\common\pojo\ProductListResponse.class
 app\xinqianmao\com\admin\service\ShopService.class
+app\xinqianmao\com\admin\common\config\ScheduleThreadPoolConfig.class
 app\xinqianmao\com\admin\common\pojo\ProductSortRequest.class
 app\xinqianmao\com\admin\dao\ProductSkuMapper.class
 app\xinqianmao\com\admin\common\pojo\ProductSaveRequest$SkuItem$SpecValue.class
@@ -28,6 +33,7 @@ app\xinqianmao\com\admin\common\pojo\DashboardStatsResponse.class
 app\xinqianmao\com\admin\dao\OrderProductPropertyMapper.class
 app\xinqianmao\com\admin\common\pojo\ProductDetailResponse.class
 app\xinqianmao\com\admin\web\controller\AdminSkuController.class
+app\xinqianmao\com\admin\web\controller\AdminShopLlmConfigController.class
 app\xinqianmao\com\admin\common\pojo\HotSortRequest$SortItem.class
 app\xinqianmao\com\admin\service\ProductService.class
 app\xinqianmao\com\admin\web\controller\AdminProductTypeController.class
@@ -70,7 +76,9 @@ app\xinqianmao\com\admin\common\entity\Shop.class
 app\xinqianmao\com\admin\service\BrandService.class
 app\xinqianmao\com\admin\common\entity\ProductType.class
 app\xinqianmao\com\admin\web\AdminApplication.class
+app\xinqianmao\com\admin\dao\ShopLlmConfigMapper.class
 app\xinqianmao\com\admin\common\pojo\TypeWithSpecsResponse.class
+app\xinqianmao\com\admin\common\entity\ShopLlmConfig.class
 app\xinqianmao\com\admin\common\entity\Cart.class
 app\xinqianmao\com\admin\common\entity\ProductCategory.class
 app\xinqianmao\com\admin\common\pojo\UserSearchRequest.class
@@ -100,6 +108,7 @@ app\xinqianmao\com\admin\common\pojo\OrderTrendResponse.class
 app\xinqianmao\com\admin\dao\ProductSpecsMapper.class
 app\xinqianmao\com\admin\service\CategoryService.class
 app\xinqianmao\com\admin\web\controller\JieshunController.class
+app\xinqianmao\com\admin\common\pojo\ShopLlmConfigSaveRequest.class
 app\xinqianmao\com\admin\common\pojo\OrderSearchRequest.class
 app\xinqianmao\com\admin\common\pojo\HotProductResponse.class
 app\xinqianmao\com\admin\web\controller\AdminCategoryController.class
